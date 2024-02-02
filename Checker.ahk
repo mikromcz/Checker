@@ -2,7 +2,7 @@
 ; Www: http://geoget.ararat.cz/doku.php/user:skript:checker
 ; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ; Author: mikrom, http://mikrom.cz
-; Version: 0.2.1.0
+; Version: 0.2.2.1
 ;
 ; Documentation: http://ahkscript.org/docs/AutoHotkey.htm
 ; FAQ: http://www.autohotkey.com/docs/FAQ.htm
@@ -14,22 +14,30 @@
 ; ToDo:
 ; After load page with result check if check was "success!" then change return value (ExitApp, 1)
 ; In GeoGet use something like this: ret := RunExec(ahk); if ret=1 then set final waypoint tag to{?}
+; after page load, STOP
+; after page load, check if valid formm is present (or if there is some messga about exceeded limit)
 
 ; Special commands
-#SingleInstance, Force ; http://ahkscript.org/docs/commands/_SingleInstance.htm
-#NoTrayIcon ; http://ahkscript.org/docs/commands/_NoTrayIcon.htm
-#NoEnv ; http://ahkscript.org/docs/commands/_NoEnv.htm
+; #Warn  ; Enable warnings to assist with detecting common errors.
+#SingleInstance, Force ; Determines whether a script is allowed to run again when it is already running.
+#NoTrayIcon ; Disables the showing of a tray icon.
+#NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases.
+SendMode, Input  ; Recommended for new scripts due to its superior speed and reliability.
+SetWorkingDir, %A_ScriptDir%  ; Ensures a consistent starting directory.
 
 ; Variables
-debug := 0 ; For enabling debug mode, show some infos, ListVars, ..
-errorLvl := 0 ; For sure set default error level, (0 - without error (default), 1 - success, 2 - wrong)
-returnResult := 0 ; Define if return check result
+global errorLvl := 0 ; For sure set default error level, (0 - without error (default), 1 - success, 2 - wrong)
+global returnResult := 0 ; Define if return check result
+
+; Read setting from INI ^
+IniRead, proxy, %A_ScriptDir%\Checker.ini, % "Checker", % "proxy"
+IniRead, debug, %A_ScriptDir%\Checker.ini, % "Checker", % "debug" ; For enabling debug mode, show some infos, ListVars, ..
 
 ; Change icon of GUI title, tray, ...
 ; Icon from: http://www.iconarchive.com/show/colorful-long-shadow-icons-by-graphicloads/Hand-thumbs-up-like-2-icon.html
-Menu, Tray, Icon, %A_ScriptDir%\Checker.ico,,1 ; http://ahkscript.org/docs/commands/Menu.htm
+Menu, Tray, Icon, %A_ScriptDir%\Checker.ico,,1
 
-; Language switch, by http://ahkscript.org/docs/Variables.htm#Language
+; Language switch
 If (A_Language = "0405") { ; Czech
   global textError := "Chyba"
   global textErrorParam := "Chyba: Neplatný poèet parametrù!`n`nPovolené parametry jsou:`n[service] [N|S] [Dx] [Mx] [Sx] [E|W] [Dy] [My] [Sy] [URL]`n`nPoužity byly tyto:`n"
@@ -46,16 +54,16 @@ If (A_Language = "0405") { ; Czech
   global textHint := "You can use ESC for quit and F5 for page reload"
 }
 
-; Add CMD paremeters to (pseudo) array
+; Add CMD paremeters to (pseudo) array. It's not necessary, parameters are in variables %1%, %2%, .. but seems not to work in my case.
 ; http://www.autohotkey.com/docs/Tutorial.htm#s7
 ; http://ahkscript.org/docs/misc/Arrays.htm#pseudo
 global args := []
 Loop, %0% {
   args[A_Index] := %A_Index%
-  paramList := paramList . "[" . A_Index . "] " . args[A_Index] . "`n" ; Make list of parameters for next error MagBox => [n] Param
+  paramList := paramList . "[" . A_Index . "] " . args[A_Index] . "`n" ; Make list of parameters for next error MsgBox => [n] Param
 }
 
-; Parameter count check. There must be 10 parameters
+; Parameter count check. There must be 10 parameters.
 If (args.MaxIndex() != 10) {
   MsgBox 16, % textError, % textErrorParam . paramList
   ExitApp, errorLvl
@@ -103,6 +111,7 @@ WM_KeyPress(wParam, lParam, nMsg, hWnd) {
 ; http://www.autohotkey.com/docs/FAQ.htm#load
 ; http://www.autohotkey.com/board/topic/17715-determine-if-a-webpage-is-completely-loaded-in-ie/
 ; http://www.autohotkey.com/board/topic/77243-need-help-for-a-custom-browser/
+; http://p.ahkscript.org/?p=90e74d
 LoadWait(ByRef wb) {
   passCount := 0
   While (wb.Busy) { ; Seems to work perfect! Any variants with wb.ReadyState != 4 (or !="complete") hangs on some websites. geocheck, geochecker, hang on readystate 3
@@ -132,26 +141,55 @@ Browser(ByRef wb) {
 
     ; Page can be switched to two versions of form, standard or one field
     If (wb.Document.getElementsByName("coordOneField").Length = 0) { ; For classic six field version
-      ; Checking radiobuttons is little bit difficult
-      Loop, % (lat := wb.Document.getElementsByName("lat")).Length ; Get elements named "lat"
+  
+      ; Determine if page has fillable element - right page
+      If (wb.Document.getElementsByName("latdeg").Length <> 0) {
+        ; Checking radiobuttons is little bit difficult
+        Loop, % (lat := wb.Document.getElementsByName("lat")).Length ; Get elements named "lat"
         if (lat[A_index-1].Value = args[2]) ; If some of them is equal args[2]
           lat[A_index-1].Checked := True ; Check it
 
-      wb.Document.All.latdeg.Value := args[3]
-      wb.Document.All.latmin.Value := args[4]
-      wb.Document.All.latdec.Value := args[5]
+        wb.Document.All.latdeg.Value := args[3]
+        wb.Document.All.latmin.Value := args[4]
+        wb.Document.All.latdec.Value := args[5]
 
-      ; Checking radiobuttons is little bit difficult
-      Loop, % (lon := wb.Document.getElementsByName("lon")).Length ; Get elements named "lon"
+        ; Checking radiobuttons is little bit difficult
+        Loop, % (lon := wb.Document.getElementsByName("lon")).Length ; Get elements named "lon"
         if (lon[A_index-1].Value = args[6]) ; If some of them is equal args[6]
           lon[A_index-1].Checked := True ; Check it
 
-      wb.Document.All.londeg.Value := args[7]
-      wb.Document.All.lonmin.Value := args[8]
-      wb.Document.All.londec.Value := args[9]
-    } Else { ; For one field version
+        wb.Document.All.londeg.Value := args[7]
+        wb.Document.All.lonmin.Value := args[8]
+        wb.Document.All.londec.Value := args[9]
+      } 
+    } Else If (wb.Document.getElementsByName("coordOneField").Length <> 0) { ; For one field version
       wb.Document.All.coordOneField.Value := args[2] . args[3] . " " . args[4] . "." . args[5] . " " . args[6] . args[7] . " " . args[8] . "." . args[9]
-    }
+    } Else If (proxy = 1) {
+        ; Proxy
+        ; If there is no "onefield" and no "latdeg" input there is probably warning about reach max tries
+        ; then, we try reload page with proxy server!
+        Sleep, 1000
+        wb.Navigate("http://datp.de/proxy2/index.php?q=" . args[10] . "&hl=1e7") ; Navigate to webpage
+        LoadWait(wb) ; Wait for page load
+
+        ; Checking radiobuttons is little bit difficult
+        Loop, % (lat := wb.Document.getElementsByName("lat")).Length ; Get elements named "lat"
+        if (lat[A_index-1].Value = args[2]) ; If some of them is equal args[2]
+          lat[A_index-1].Checked := True ; Check it
+
+        wb.Document.All.latdeg.Value := args[3]
+        wb.Document.All.latmin.Value := args[4]
+        wb.Document.All.latdec.Value := args[5]
+
+        ; Checking radiobuttons is little bit difficult
+        Loop, % (lon := wb.Document.getElementsByName("lon")).Length ; Get elements named "lon"
+        if (lon[A_index-1].Value = args[6]) ; If some of them is equal args[6]
+          lon[A_index-1].Checked := True ; Check it
+
+        wb.Document.All.londeg.Value := args[7]
+        wb.Document.All.lonmin.Value := args[8]
+        wb.Document.All.londec.Value := args[9]
+      } ; <= Proxy
     wb.Document.All.usercaptcha.Focus() ; Focus on captcha field
 
     ; Check result after page reload
@@ -159,7 +197,17 @@ Browser(ByRef wb) {
     ; NO:  <td colspan="2" class="alert">Bohužel, zadaná odpov&#283;&#271; není správná. Zkuste to prosím znovu:</td>
     If (returnResult = 1) {
       LoadWait(wb) ; Wait for page load
-      errorLvl := 1
+      MsgBox, % "jedem - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      If RegExMatch(wb.Document.body.innerHTML, "m)Výborn&#283; - Tvé &#345;ešení je správné!!!") {
+        If (debug = 1)
+          MsgBox, % "correct :)"
+        errorLvl := 1
+      }
+      If RegExMatch(wb.Document.body.innerHTML, "m)Bohužel, zadaná odpov&#283;&#271; není správná. Zkuste to prosím znovu:") {
+        If (debug = 1)
+          MsgBox, % "incorrect :("
+        errorLvl := 2
+      }
     }
   } Else If (args[1] = "geochecker") { ; ==========================================> GEOCHECKER (2)
     ; URL: geochecker.com/index.php?code=150e9c12665c476df9d1fcc30eeae605&action=check&wp=4743354e595a33&name=4d79646c6f   ...   &CaptchaChoice=Recaptcha
@@ -179,10 +227,16 @@ Browser(ByRef wb) {
     ; NO:  <div class="wrong">Incorrect</div> (ES: <div class="wrong">Incorrecto</div>)
     If (returnResult = 1) {
       LoadWait(wb) ; Wait for page load
-      If RegExMatch(wb.Document.body.innerHTML, "im)<div class=success>")
-        errorLvl := 1 ;MsgBox, % "The string ""Success!"" was found."
-      If RegExMatch(wb.Document.body.innerHTML, "im)<div class=wrong>")
-        errorLvl := 2 ;MsgBox, % "The string ""Incorrect"" was found."
+      If RegExMatch(wb.Document.body.innerHTML, "m)Success!") {
+        If (debug = 1)
+          MsgBox, % "correct :)"
+        errorLvl := 1
+      }
+      If RegExMatch(wb.Document.body.innerHTML, "m)Incorrect") {
+        If (debug = 1)
+          MsgBox, % "incorrect :("
+        errorLvl := 2
+      }
     }
   } Else If (args[1] = "evince") { ; ==============================================> EVINCE (3)
     ; URL: http://evince.locusprime.net/cgi-bin/index.cgi?q=d0ZNzQeHKReGKzr
@@ -205,7 +259,17 @@ Browser(ByRef wb) {
     ; NO:  <span style="font-size: large; font-weight: bold; color: rgb(206, 0, 0);">Sorry!</span>
     If (returnResult = 1) {
       LoadWait(wb) ; Wait for page load
-      errorLvl := 1
+      MsgBox, % "jedem - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      If RegExMatch(wb.Document.body.innerHTML, "m)Congratulations!") {
+        If (debug = 1)
+          MsgBox, % "correct :)"
+        errorLvl := 1
+      }
+      If RegExMatch(wb.Document.body.innerHTML, "m)Sorry!") {
+        If (debug = 1)
+          MsgBox, % "incorrect :("
+        errorLvl := 2
+      }
     }
   } Else If (args[1] = "hermansky") { ; ===========================================> HERMANSKY (4)
     ; URL: http://geo.hermansky.net/index.php?co=checker&code=22377facb3ee0fbbf6e5e2b7dee042ee8687a55cd
@@ -226,11 +290,20 @@ Browser(ByRef wb) {
     wb.Document.Forms[0].Submit()
 
     ; Check result after page reload
-    ; YES: <div style='background: #77db7a; border: 1px solid black;'>spravne
-    ; NO:  <div style="background: #db7777; border: 1px solid black;">spatne
+    ; YES: <div style='background: #77db7a; border: 1px solid black;'>Vaše souøadnice jsou spravnì, mùžete vyrazit na lov!
+    ; NO:  <div style="background: #db7777; border: 1px solid black;">Vaše souøadnice jsou špatnì, poèítejte znovu.
     If (returnResult = 1) {
       LoadWait(wb) ; Wait for page load
-      errorLvl := 1
+      If RegExMatch(wb.Document.body.innerHTML, "m)Vaše souøadnice jsou spravnì, mùžete vyrazit na lov!") {
+        If (debug = 1)
+          MsgBox, % "correct :)"
+        errorLvl := 1
+      }
+      If RegExMatch(wb.Document.body.innerHTML, "m)Vaše souøadnice jsou špatnì, poèítejte znovu.") {
+        If (debug = 1)
+          MsgBox, % "incorrect :("
+        errorLvl := 2
+      }
     }
     wb.Document.ParentWindow.ScrollTo(0,370) ; Scroll again after page reload
   } Else If (args[1] = "komurka") { ; =============================================> KOMURKA (5)
@@ -262,7 +335,17 @@ Browser(ByRef wb) {
     ; NO:  <img src="images/smile_red.jpg">
     If (returnResult = 1) {
       LoadWait(wb) ; Wait for page load
-      errorLvl := 1
+      msgbox, % "jedem - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      If RegExMatch(wb.Document.body.innerHTML, "m)images/smile_green\.jpg") {
+        If (debug = 1)
+          MsgBox, % "correct :)"
+        errorLvl := 1
+      }
+      If RegExMatch(wb.Document.body.innerHTML, "m)images/smile_red\.jpg") {
+        If (debug = 1)
+          MsgBox, % "incorrect :("
+        errorLvl := 2
+      }
     }
   } Else If (args[1] = "gccounter") { ; ===========================================> GCCOUNTER (5)
     ; URL: http://gccounter.com/gcchecker.php?site=gcchecker_check&id=2076
@@ -294,7 +377,16 @@ Browser(ByRef wb) {
     ; NO:  <h2 align="center" style="color:red">Schade!</h2>
     If (returnResult = 1) {
       LoadWait(wb) ; Wait for page load
-      errorLvl := 1
+      If RegExMatch(wb.Document.body.innerHTML, "m)Herzlichen Glückwunsch!") {
+        If (debug = 1)
+          MsgBox, % "correct :)"
+        errorLvl := 1
+      }
+      If RegExMatch(wb.Document.body.innerHTML, "m)Schade!") {
+        If (debug = 1)
+          MsgBox, % "incorrect :("
+        errorLvl := 2
+      }
     }
   } Else If (args[1] = "certitudes") { ; ==========================================> CERTITUDES (6)
     ; URL: http://www.certitudes.org/certitude?wp=GC2QFYT
@@ -317,8 +409,50 @@ Browser(ByRef wb) {
     ; NO:  <img src="/images/doh.jpg" align="middle">
     If (returnResult = 1) {
       LoadWait(wb) ; Wait for page load
-      errorLvl := 1
+      If (debug = 2)
+        MsgBox, % wb.Document.body.innerHTML
+      If RegExMatch(wb.Document.body.innerHTML, "m)/images/woohoo\.jpg") {
+        If (debug = 1)
+          MsgBox, % "correct :)"
+        errorLvl := 1
+      }
+      If RegExMatch(wb.Document.body.innerHTML, "m)/images/doh\.jpg") {
+        If (debug = 1)
+          MsgBox, % "incorrect :("
+        errorLvl := 2
+      }
     }
+  } Else If (args[1] = "gpscache") { ; ==========================================> GPS-CACHE (7)
+    ; URL: http://geochecker.gps-cache.de/check.aspx?id=7c52d196-b9d2-4b23-ad99-5d6e1bece187
+    ; Captcha: YES
+    Gui, Show,, % "Checker - " . args[1] ; Change title
+
+    wb.Navigate(args[10]) ; Navigate to webpage
+    LoadWait(wb) ; Wait for page load
+
+    wb.Document.ParentWindow.ScrollTo(0,240) ; Scroll down because page has a huge picture in header
+    wb.Document.All.ListView1_txtKoords_0.Value := args[2] . args[3] . " " . args[4] . "." . args[5] . " " . args[6] . args[7] . " " . args[8] . "." . args[9]
+    wb.Document.All.ListView1_txtCaptchaCode_0.Focus()
+    Sleep, 500
+
+    ; Check result after page reload
+    ; YES: <img src="/images/woohoo.jpg">
+    ; NO:  <table><td><img alt=":)" src="http://cool-web.de/images/smiley-weird-80.png"></td><td style="font-weight:bold;color:grey;font-size:17pt;padding-left:20px;width:500px;">Sie haben eine besondere Koordinate eingegeben, zu der der Owner eine Nachricht hinterlegt hat!<br><br></td></tr></table><b>Die Mitteilung des Owners lautet:</b><br><br>Gratuliere,  du hast die Header Koordinaten richtig eingegeben! Hier findest du jedoch leider nichts!<br><br><br /><br /></td></tr>
+    ;If (returnResult = 1) {
+    ;  LoadWait(wb) ; Wait for page load
+    ;  If (debug = 2)
+    ;    MsgBox, % wb.Document.body.innerHTML
+    ;  If RegExMatch(wb.Document.body.innerHTML, "m)/images/woohoo\.jpg") {
+    ;    If (debug = 1)
+    ;      MsgBox, % "correct :)"
+    ;    errorLvl := 1
+    ;  }
+    ;  If RegExMatch(wb.Document.body.innerHTML, "m)/images/doh\.jpg") {
+    ;    If (debug = 1)
+    ;      MsgBox, % "incorrect :("
+    ;    errorLvl := 2
+    ;  }
+    ;}
   } Else If (args[1] = "finar") { ; ===============================================> FINAR (7)
     ; URL: http://gc.elanot.cz/index.php/data-final.html
     ; Captcha: NO
@@ -336,7 +470,16 @@ Browser(ByRef wb) {
     ; NO:  <div class="emptyDataMessage" style="">Žádná data nenalezena</div>
     If (returnResult = 1) {
       LoadWait(wb) ; Wait for page load
-      errorLvl := 1
+      If RegExMatch(wb.Document.body.innerHTML, "m)Žádná data nenalezena") {
+        If (debug = 1)
+          MsgBox, % "correct :)"
+        errorLvl := 1
+      }
+      If RegExMatch(wb.Document.body.innerHTML, "m)Žádná data nenalezena") {
+        If (debug = 1)
+          MsgBox, % "incorrect :("
+        errorLvl := 2
+      }
     }
   } Else { ; =====================================================================> SERVICE ERROR
     MsgBox 16, % textError, % textErrorService
@@ -367,6 +510,7 @@ Return
 ; Run when GUI is closed
 GuiClose: ; http://ahkscript.org/docs/commands/Gui.htm#GuiClose
   ObjRelease(pipa) ; Implement Tabstop for ActiveX > Shell.Explorer
+  Gui Destroy
   ExitApp, errorLvl
 Return
 
