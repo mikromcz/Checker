@@ -1,4 +1,4 @@
-** 0.2.5.0 (2016/05/01) **
+** 0.2.5.2 (2016/05/21) **
   * pøidáno ovìøení na gccheck.com
   * pøidána nìjaká druhá verze gccounter.de
   * koneènì se AHK skript nezhroutí pokud na stránce nenalezne políèko k vyplnìní!

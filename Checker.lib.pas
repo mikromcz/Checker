@@ -4,10 +4,12 @@
   Www: http://geoget.ararat.cz/doku.php/user:skript:checker
   Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
   Author: mikrom, http://mikrom.cz
-  Version: 0.2.4.2
+  Version: 0.2.5.2
 
   ToDo:
-  This is maybe interesting: http://www.regular-expressions.info/duplicatelines.html
+  * This is maybe interesting: http://www.regular-expressions.info/duplicatelines.html
+  * Check if run from selected waypoint or cache, and fill check answer to fonal/corrected waypoint
+  * Add date to wpt comment (ini<= "OK %DATE%", ini<=dateformat=yyyy/mm/dd)..
 }
 
 const
@@ -24,7 +26,7 @@ const
   gccheckRegex    = '(?i)https?:\/\/gccheck\.com\/(GC[^"''<\s]+)';
 
 var
-  debug, finar, answer: Boolean;
+  debug, answer: Boolean;
 
 {Update waypoint comment. Add custom string (correct|incorrect from ini) at the begining of the waypoint comment. String will be in curly brackets!}
 procedure UpdateWaypointComment(ans: String);
@@ -32,15 +34,15 @@ var
   n: Integer;
 begin
   for n:=0 to GC.Waypoints.Count-1 do begin // for all waypoints
-    if GC.Waypoints[n].IsSelected and GC.Waypoints[n].IsFinal then begin // which are SELECTED and FINAL
+    if GC.Waypoints[n].IsSelected then begin //and GC.Waypoints[n].IsFinal then begin // which are SELECTED and FINAL
       if GC.Waypoints[n].Comment <> '' then begin // if there is already some comment
         if RegexFind('^\{[^}]+\}', GC.Waypoints[n].Comment) then // and have our tag at the begining
-          GC.Waypoints[n].UpdateComment(RegexReplace('^\{([^}]+)\}', GC.Waypoints[n].Comment, '{'+ans+'}', true)) // REPLACE the existing tag
+          GC.Waypoints[n].UpdateComment(RegexReplace('^\{([^}]+)\}', GC.Waypoints[n].Comment, '{'+ans+' '+FormatDateTime('dd"."mm"."yyyy', Now())+'}', true)) // REPLACE the existing tag
         else // else ADD tag at the begining
-          GC.Waypoints[n].UpdateComment('{'+ans+'} ' + GC.Waypoints[n].Comment);
+          GC.Waypoints[n].UpdateComment('{'+ans+' '+FormatDateTime('dd"."mm"."yyyy', Now())+'} ' + GC.Waypoints[n].Comment);
       end 
       else // or if comment has no our tab, then ADD only tag
-        GC.Waypoints[n].UpdateComment('{'+ans+'}');
+        GC.Waypoints[n].UpdateComment('{'+ans+' '+FormatDateTime('dd"."mm"."yyyy', Now())+'}');
       GeoListUpdateID(GC.ID);
     end;
   end;
@@ -74,7 +76,6 @@ begin
   {Read configuration from INI}
   ini := TIniFile.Create(GEOGET_SCRIPTDIR+'\Checker\Checker.ini');
   debug := ini.ReadBool('Checker', 'debug', False);
-  finar := ini.ReadBool('Checker', 'finar', False);
   answer := ini.ReadBool('Checker', 'answer', False);
   correct := ini.ReadString('Checker', 'correct', 'CORRECT');
   incorrect :=ini.ReadString('Checker', 'incorrect', 'INCORRECT');
@@ -189,15 +190,6 @@ begin
     else if RegexFind(gccheckRegex, description) then begin
       url := RegExSubstitute(gccheckRegex, description, '$0#'); // Parse URL from listing (on purpose it ends with '#')
       service := 'gccheck';
-    end
-    {
-    FINAR - secret behavior
-    url: http://gc.elanot.cz/index.php/data-final.html?fabrik_list_filter_all_1_com_fabrik_1=N+49%C2%B0+06.864+E+017%C2%B0+46.694&limit1=10&limitstart1=0&option=com_fabrik&orderdir=&orderby=&view=list&listid=1&listref=1_com_fabrik_1&Itemid=112&fabrik_referrer=%2Findex.php%2Fdata-final.html%3Fresetfilters%3D0&735d56ae937921f2bb7c794d8ebfee41=1&format=html&packageId=0&task=list.filter&fabrik_listplugin_name=&fabrik_listplugin_renderOrder=&fabrik_listplugin_options=&incfilters=1
-    captcha: no
-    }
-    else if finar then begin
-      url := 'http://gc.elanot.cz/index.php/data-final.html';
-      service := 'finar';
     end
     {Standard behavior}
     else begin
