@@ -4,12 +4,10 @@
   Www: http://geoget.ararat.cz/doku.php/user:skript:checker
   Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
   Author: mikrom, http://mikrom.cz
-  Version: 0.2.5.2
+  Version: 0.2.5.3
 
   ToDo:
   * This is maybe interesting: http://www.regular-expressions.info/duplicatelines.html
-  * Check if run from selected waypoint or cache, and fill check answer to fonal/corrected waypoint
-  * Add date to wpt comment (ini<= "OK %DATE%", ini<=dateformat=yyyy/mm/dd)..
 }
 
 const
@@ -21,7 +19,7 @@ const
   komurkaRegex    = '(?i)https?:\/\/(www\.)?geo\.komurka\.cz\/check\.php([^"''<\s]+)';
   gccounterRegex  = '(?i)https?:\/\/(www\.)?gccounter\.(de|com)\/gcchecker\.php([^"''<\s]+)';
   gccounter2Regex = '(?i)https?:\/\/(www\.)?gccounter\.(de|com)\/GCchecker\/Check([^"''<\s]+)';
-  certitudesRegex = '(?i)https?:\/\/(www\.)?certitudes\.org\/certitude\?wp\=([^"''<\s]+)';
+  certitudesRegex = '(?i)https?:\/\/(www\.)?certitudes\.org\/certitude(\.php)?\?wp\=([^"''<\s]+)';
   gpscacheRegex   = '(?i)https?:\/\/geochecker\.gps-cache\.de\/check\.aspx\?id\=([^"''<\s]+)';
   gccheckRegex    = '(?i)https?:\/\/gccheck\.com\/(GC[^"''<\s]+)';
 
@@ -33,17 +31,38 @@ procedure UpdateWaypointComment(ans: String);
 var
   n: Integer;
 begin
-  for n:=0 to GC.Waypoints.Count-1 do begin // for all waypoints
-    if GC.Waypoints[n].IsSelected then begin //and GC.Waypoints[n].IsFinal then begin // which are SELECTED and FINAL
-      if GC.Waypoints[n].Comment <> '' then begin // if there is already some comment
-        if RegexFind('^\{[^}]+\}', GC.Waypoints[n].Comment) then // and have our tag at the begining
-          GC.Waypoints[n].UpdateComment(RegexReplace('^\{([^}]+)\}', GC.Waypoints[n].Comment, '{'+ans+' '+FormatDateTime('dd"."mm"."yyyy', Now())+'}', true)) // REPLACE the existing tag
-        else // else ADD tag at the begining
-          GC.Waypoints[n].UpdateComment('{'+ans+' '+FormatDateTime('dd"."mm"."yyyy', Now())+'} ' + GC.Waypoints[n].Comment);
-      end 
-      else // or if comment has no our tab, then ADD only tag
-        GC.Waypoints[n].UpdateComment('{'+ans+' '+FormatDateTime('dd"."mm"."yyyy', Now())+'}');
-      GeoListUpdateID(GC.ID);
+  if GC.IsSelected then begin                                      // If CACHE is selected, than ADD comment to the waypoint which has same coordinates as COORRECTED coordinates
+    for n:=0 to GC.Waypoints.Count-1 do begin                      // For all waypoints
+      if (GC.CorrectedLat = GC.Waypoints[n].Lat) and (GC.CorrectedLon = GC.Waypoints[n].Lon) then begin // Which has same coordinates
+      
+        if GC.Waypoints[n].Comment <> '' then begin                // If there is already some comment
+          if RegexFind('^\{[^}]+\}', GC.Waypoints[n].Comment) then // And HAVE our tag at the begining
+            GC.Waypoints[n].UpdateComment(RegexReplace('^\{([^}]+)\}', GC.Waypoints[n].Comment, '{'+ans+' '+FormatDateTime('dd"."mm"."yyyy', Now())+'}', true)) // REPLACE the existing tag
+          else                                                     // Else ADD tag at the begining
+            GC.Waypoints[n].UpdateComment('{'+ans+' '+FormatDateTime('dd"."mm"."yyyy', Now())+'} ' + GC.Waypoints[n].Comment);
+        end
+        else                                                       // Or if comment has no our tag, then ADD only tag
+          GC.Waypoints[n].UpdateComment('{'+ans+' '+FormatDateTime('dd"."mm"."yyyy', Now())+'}');
+        GeoListUpdateID(GC.ID);                                    // Refresh chache in the list
+        
+      end;
+    end;
+  end
+  else begin                                                       // If WAYPOINT is selected, than ADD comment to him
+    for n:=0 to GC.Waypoints.Count-1 do begin                      // For all waypoints
+      if GC.Waypoints[n].IsSelected then begin                     // Which are SELECTED (hopefully ony one :) )
+      
+        if GC.Waypoints[n].Comment <> '' then begin                // If there is already some comment
+          if RegexFind('^\{[^}]+\}', GC.Waypoints[n].Comment) then // And HAVE our tag at the begining
+            GC.Waypoints[n].UpdateComment(RegexReplace('^\{([^}]+)\}', GC.Waypoints[n].Comment, '{'+ans+' '+FormatDateTime('dd"."mm"."yyyy', Now())+'}', true)) // REPLACE the existing tag
+          else                                                     // Else ADD tag at the begining
+            GC.Waypoints[n].UpdateComment('{'+ans+' '+FormatDateTime('dd"."mm"."yyyy', Now())+'} ' + GC.Waypoints[n].Comment);
+        end
+        else                                                       // Or if comment has no our tag, then ADD only tag
+          GC.Waypoints[n].UpdateComment('{'+ans+' '+FormatDateTime('dd"."mm"."yyyy', Now())+'}');
+        GeoListUpdateID(GC.ID);                                    // Refresh cache in the list
+        
+      end;
     end;
   end;
 end;
@@ -54,7 +73,7 @@ begin
   if debug then ShowMessage(url);
   url := RegexReplace('\n.*', url, '', false); // Sometimes it is on two rows
   if debug then ShowMessage(url);
-  url := RegexReplace('#.*', url, '', false); // Preventing doubled urls (www.neco.cz/odkazwww.neco.cz/odkaz)
+  url := RegexReplace('#.*', url, '', false);  // Preventing doubled urls (www.neco.cz/odkazwww.neco.cz/odkaz)
   result := url;
 end;
 
@@ -74,11 +93,11 @@ var
   ini: TIniFile;
 begin
   {Read configuration from INI}
-  ini := TIniFile.Create(GEOGET_SCRIPTDIR+'\Checker\Checker.ini');
-  debug := ini.ReadBool('Checker', 'debug', False);
-  answer := ini.ReadBool('Checker', 'answer', False);
-  correct := ini.ReadString('Checker', 'correct', 'CORRECT');
-  incorrect :=ini.ReadString('Checker', 'incorrect', 'INCORRECT');
+  ini       := TIniFile.Create(GEOGET_SCRIPTDIR+'\Checker\Checker.ini');
+    debug     := ini.ReadBool('Checker', 'debug', False);
+    answer    := ini.ReadBool('Checker', 'answer', False);
+    correct   := ini.ReadString('Checker', 'correct', 'CORRECT');
+    incorrect :=ini.ReadString('Checker', 'incorrect', 'INCORRECT');
   ini.Free;
 
   {This cache GC3PVWQ have url in short description, so we join short and long together}
@@ -86,9 +105,9 @@ begin
 
   {Check if this script runs from GGP or GGC script}
   case runFrom of
-    'ggp': if GC.IsSelected then // for cache
+    'ggp': if GC.IsSelected then                                             // for cache
              coord := FormatCoordNum(GC.CorrectedLatNum, GC.CorrectedLonNum)
-           else begin // for waypoint
+           else begin                                                        // for waypoint
              for n:=0 to GC.Waypoints.Count-1 do
                if GC.Waypoints[n].IsSelected then coord := FormatCoordNum(GC.Waypoints[n].LatNum, GC.Waypoints[n].LonNum);
            end;
@@ -100,7 +119,7 @@ begin
     {N50°30.123' E015°29.456' split to sections divided by spaces => N 50 30 123 E 015 29 456}
     coord := RegexReplace('(N|S)(\d+)°(\d+)\.(\d+)''\s(E|W)(\d+)°(\d+)\.(\d+)''', coord, '$1 $2 $3 $4 $5 $6 $7 $8', true);
 
-    {Try to finf type of the checking service - geocheck.org, geochecker.com, evince.locusprime.net, etc..}
+    {Try to find type of the checking service - geocheck.org, geochecker.com, evince.locusprime.net, etc..}
     {
     GEOCHECK
     url: geocheck.org/geo_inputchkcoord.php?gid=61241961c72ab1d-b813-47da-bf03-07c67bb81ac9
@@ -205,14 +224,14 @@ begin
     if answer then begin
       case RunExec(s) of
         0: if debug then ShowMessage(_('OK, neither correct or incorrect')); {AHK script run without error, but not found if result was correct or not}
-        1: begin {If it WAS correct add special comment to the Final waypoint}
-          if debug then ShowMessage(_('Correct solution! :)'));
-          UpdateWaypointComment(correct);
-        end;
-        2: begin {If it WAS NOT correct add special comment to the Final waypoint}
-          if debug then ShowMessage(_('Incorrect solution! :('));
-          UpdateWaypointComment(incorrect);
-        end;
+        1: begin                                                             {If it WAS correct add special comment to the Final waypoint}
+             if debug then ShowMessage(_('Correct solution! :)'));
+             UpdateWaypointComment(correct);
+           end;
+        2: begin                                                             {If it WAS NOT correct add special comment to the Final waypoint}
+             if debug then ShowMessage(_('Incorrect solution! :('));
+             UpdateWaypointComment(incorrect);
+           end;
         3: if debug then ShowMessage(_('Error'));
       end;
     end

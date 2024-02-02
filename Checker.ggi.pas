@@ -39,7 +39,7 @@ begin
   {installtool}
   InstallTool_MoveFile(GEOGET_SCRIPTDIR+'\Checker\AutoHotKey.exe', 'Checker');
   
-  result := '';  // probehlo bez chyby
+  result := '';  // run without error
 end;
 
 {Do Uninstall tasks here.}
@@ -48,5 +48,5 @@ begin
   {installtool}
   InstallTool_RemoveFile('AutoHotkey.exe', 'Checker');
   
-  result := '';  // probehlo bez chyby
+  result := '';  // run without error
 end;

@@ -2,7 +2,7 @@
 ; Www: http://geoget.ararat.cz/doku.php/user:skript:checker
 ; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ; Author: mikrom, http://mikrom.cz
-; Version: 0.2.5.2
+; Version: 0.2.5.3
 ;
 ; Documentation: http://ahkscript.org/docs/AutoHotkey.htm
 ; FAQ: http://www.autohotkey.com/docs/FAQ.htm
@@ -16,19 +16,20 @@
 ; https://msdn.microsoft.com/en-us/library/aa752084%28v=vs.85%29.aspx
 
 ; Special commands
-#Warn                         ; Enable warnings to assist with detecting common errors.
-#SingleInstance, Force        ; Determines whether a script is allowed to run again when it is already running.
-#NoTrayIcon                   ; Disables the showing of a tray icon.
-#NoEnv                        ; Recommended for performance and compatibility with future AutoHotkey releases.
-SendMode, Input               ; Recommended for new scripts due to its superior speed and reliability.
-SetWorkingDir, %A_ScriptDir%  ; Ensures a consistent starting directory.
+#Warn                        ; Enable warnings to assist with detecting common errors.
+#SingleInstance, Force       ; Determines whether a script is allowed to run again when it is already running.
+#NoTrayIcon                  ; Disables the showing of a tray icon.
+#NoEnv                       ; Recommended for performance and compatibility with future AutoHotkey releases.
+SendMode, Input              ; Recommended for new scripts due to its superior speed and reliability.
+SetWorkingDir, %A_ScriptDir% ; Ensures a consistent starting directory.
 
 ; Global variables
-global args := []
+global args := []    ; Commandline parameters array
 global errorLvl := 0 ; For sure set default error level, (0 - without error (default), 1 - success, 2 - wrong)
-global debug := 0
-global proxy := 1
-global answer := 0
+global debug := 0    ; Debugging mode, change it in the INI!
+global proxy := 1    ; Use proxy if you are banned for many tries, change in the INI!
+global answer := 0   ; Check if verification was successful or not, change in the INI!
+global cnt := 0      ; Only counter that we increment while we are waiting for verification page
 
 ; Read setting from INI ^
 IniRead, debug, %A_ScriptDir%\Checker.ini, % "Checker", % "debug"   ; For enabling debug mode, show some infos, ListVars, ..
@@ -48,6 +49,7 @@ If (A_Language = "0405") { ; Czech
   global textErrorTimeout    := "Chyba: Vypršel èasový limit naèítání stránky.`nZkuste F5 pro obnovení."
   global textDonate          := "Zvažte podporu pluginu pøes <a href=""http://goo.gl/dCKefD"">PayPal</a>, nebo mi napište <a href=""mailto:mikrom@mikrom.cz"">email</a>"
   global textHint            := "Pro ukonèení mùžete použít ESC a pro obnovení stránky F5"
+  global textAnswerChecking  := "Kontroluji..."
   global textAnswerCorrect   := "Správnì!"
   global textAnswerIncorrect := "Špatnì!"
 } Else { ; Other = English
@@ -58,6 +60,7 @@ If (A_Language = "0405") { ; Czech
   global textErrorTimeout    := "Error: Timeout while page load.`nTry press F5 for reload."
   global textDonate          := "You can donate plugin by <a href=""http://goo.gl/dCKefD"">PayPal</a>, or send me an <a href=""mailto:mikrom@mikrom.cz"">email</a>"
   global textHint            := "You can use ESC for quit and F5 for page reload"
+  global textAnswerChecking  := "Checking..."
   global textAnswerCorrect   := "Correct!"
   global textAnswerIncorrect := "Incorrect!"
 }
@@ -71,7 +74,7 @@ Loop, %0% {
   paramList := paramList . "[" . A_Index . "] " . args[A_Index] . "`n" ; Make list of parameters for next error MsgBox => [n] Param
 }
 
-; Parameter count check. There must be 10 parameters.
+; Parameter count check. There must be exactly 10 parameters!
 If (args.MaxIndex() != 10) {
   MsgBox 16, % textError, % textErrorParam . paramList
   ExitApp, errorLvl
@@ -79,11 +82,11 @@ If (args.MaxIndex() != 10) {
 
 ; Create GUI
 ; http://www.autohotkey.com/docs/commands/Gui.htm
-Gui, +Resize +OwnDialogs +MinSize640x480 ; Allow change GUI size, MsgBoxes is owned by main window, Set minimal window size
-Gui, Add, Link, x5 y+0 vHint, % textHint . ". " . textDonate . "."
-Gui, Add, ActiveX, x0 y0 w1000 h580 vWB, Shell.Explorer ; The final parameter is the name of the ActiveX component.
-Gui, Add, Text, x940 y+0 vLabelAnswer, % " "
-Gui, Show, Center w1000 h600, % "Checker"
+Gui, +Resize +OwnDialogs +MinSize640x480                           ; Allow change GUI size, MsgBoxes is owned by main window, Set minimal window size
+Gui, Add, ActiveX, x0 y0 w1000 h580 vWB, Shell.Explorer            ; The final parameter is the name of the ActiveX component.
+Gui, Add, Link, x5 y+0 vHint, % textHint . ". " . textDonate . "." ; Hint and donate text at the bottom
+Gui, Add, Text, x940 w60 vLabelAnswer, % " "                       ; Label for showing verification status Success|Error
+Gui, Show, Center w1000 h600, % "Checker"                          ; Show the main window (with title Checker)
 
 ; Implement Tabstop for ActiveX > Shell.Explorer
 ; Because without this TAB, ESC, maybe Ctrl+C, Ctrl+V not work in Shell.Explorer
@@ -121,98 +124,69 @@ WM_KeyPress(wParam, lParam, nMsg, hWnd) {
 ; http://www.autohotkey.com/board/topic/17715-determine-if-a-webpage-is-completely-loaded-in-ie/
 ; http://www.autohotkey.com/board/topic/77243-need-help-for-a-custom-browser/
 ; http://p.ahkscript.org/?p=21044572
-LoadWait(ByRef wb) {  
-  ;passCount := 0
-  ;While (wb.Busy) { ; Seems to work perfect! Any variants with wb.ReadyState != 4 (or !="complete") hangs on some websites. geocheck, geochecker, hang on readystate 3
-  ;  Sleep, 100
-  ;  passCount += 1
-  ;  If (passCount >= 100) { ; Sleep 100ms x 100 = 10s timeout
-  ;    MsgBox 64, % textError, % textErrorTimeout
-  ;    Break
-  ;  }
-  ;}
-  ;Sleep, 500 ; Just for sure :)
-
-  If !wb ; If wb is not a valid pointer then quit
+LoadWait(ByRef wb) {
+  If !wb          ; If wb is not a valid pointer then quit
     Return False
-  Loop ; Otherwise sleep for .1 seconds untill the page starts loading
+  Loop            ; Otherwise sleep for .1 seconds untill the page starts loading
     Sleep, 100
   Until (wb.Busy)
-  Loop ; Once it starts loading wait until completes
+  Loop            ; Once it starts loading wait until completes
     Sleep, 100
   Until (!wb.busy)
-  ;Loop ; Optional check to wait for the page to completely load
+  ;Loop           ; Optional check to wait for the page to completely load - NOT WORK FOR ME, hangs at some pages
   ;  Sleep, 100
   ;Until (wb.Document.Readystate = "Complete")
 	Return True
-  
-  ;wb.Stop ; Cancels a pending navigation or download, and stops dynamic page elements, such as background sounds and animations.
+
+  Sleep, 500      ; Just for sure
+  ;wb.Stop        ; Cancels a pending navigation or download, and stops dynamic page elements, such as background sounds and animations.
 } ; => LoadWait()
 
-; http://p.ahkscript.org/?p=56968b7a
-ChangeArrowCursorToHourglass()
-{
-	IDC_ARROW := 32512
-	IDC_WAIT := 32514
-	CursorHandle := DllCall( "LoadCursor", Uint,0, Int,IDC_WAIT )
-	DllCall( "SetSystemCursor", Uint,CursorHandle, Int,IDC_ARROW )
-}
-; http://p.ahkscript.org/?p=56968b7a
-RestoreCursor() 
-{
-	SPI_SETCURSORS := 0x57
-	DllCall( "SystemParametersInfo", UInt,SPI_SETCURSORS, UInt,0, UInt,0, UInt,0 )
-}
-
-; Function for check returned page
+; Function for check returned page for the information if verification was successful or not
 CheckAnwser(ByRef wb, correct, incorrect) {
-
-  ; Okay, this is horrible solution, but works 100% perfect! Check every 100ms if there is information in html of the page.
-  ; RegeEx needles have "S" option: https://autohotkey.com/docs/misc/RegEx-QuickRef.htm#Study
-  ;ChangeArrowCursorToHourglass() ;Notify the user that the script is busy by changing the arrow cursor to hourglass
-  Loop
-    Sleep, 200
-  Until (RegExMatch(wb.Document.body.innerHTML, correct) || RegExMatch(wb.Document.body.innerHTML, incorrect))
-  ;RestoreCursor() ;Notify the user that the script is idle by restoring the cursor
-  
-  Gui, Show,, % "*Checker - " . args[1] ; Change title
-  
   If (debug = 1)
     MsgBox, % "Correct: " . correct . "`nIncorrect: " . incorrect . "`n`n" . wb.Document.body.innerHTML
-
+  
   Try {
-    ; https://autohotkey.com/docs/commands/RegExMatch.htm
-    If RegExMatch(wb.Document.body.innerHTML, correct) {
-      If (debug = 1)
-        MsgBox, % "Correct :)"
+    Loop {
+      Sleep, 200
 
-      Gui, Font, cGreen Bold                        ; Set color to GREEN
-      GuiControl, Font, labelanswer                 ; Apply color to labelanswer
-      GuiControl, Move, labelanswer, % "w" 60       ; Set label width
-      GuiControl,, labelanswer, % textAnswerCorrect ; Show the TEXT
+      cnt++                                               ; Incremet counter in statusbar
+      If (mod(cnt, 2) = 0)                                ; Modulo divide to determine if cnt is Even or Odd
+        GuiControl,, labelanswer, % textAnswerChecking    ; Flashing sign "Checking..."
+      Else
+        GuiControl,, labelanswer, % " "
 
-      errorLvl := 1
-    } Else If RegExMatch(wb.Document.body.innerHTML, incorrect) {
-      If (debug = 1)
-        MsgBox, % "Incorrect :("
+        ; https://autohotkey.com/docs/commands/RegExMatch.htm
+        If RegExMatch(wb.Document.body.innerHTML, correct) {
+          If (debug = 1)
+            MsgBox, % "Correct :)"
 
-      Gui, Font, cRed Bold                            ; Set color to RED
-      GuiControl, Font, labelanswer                   ; Apply color to labelanswer
-      GuiControl, Move, labelanswer, % "w" 60         ; Set label width
-      GuiControl,, labelanswer, % textAnswerIncorrect ; Show the TEXT
+          Gui, Font, cGreen Bold                          ; Set color to GREEN
+          GuiControl, Font, labelanswer                   ; Apply color to labelanswer
+          GuiControl,, labelanswer, % textAnswerCorrect   ; Show the TEXT
 
-      errorLvl := 2
-    } Else {
-      If (debug = 1)
-        MsgBox, % "error"
+          errorLvl := 1                                   ; Change errorlevel for geoget script
+        } Else If RegExMatch(wb.Document.body.innerHTML, incorrect) {
+          If (debug = 1)
+            MsgBox, % "Incorrect :("
 
-      Gui, Font, cBlue Bold                           ; Set color to RED
-      GuiControl, Font, labelanswer                   ; Apply color to labelanswer
-      GuiControl, Move, labelanswer, % "w" 60         ; Set label width
-      GuiControl,, labelanswer, % textError           ; Show the TEXT
-      
-      errorLvl := 3
-    }
+          Gui, Font, cRed Bold                            ; Set color to RED
+          GuiControl, Font, labelanswer                   ; Apply color to labelanswer
+          GuiControl,, labelanswer, % textAnswerIncorrect ; Show the TEXT
+
+          errorLvl := 2                                   ; Change errorlevel for geoget script
+        } ;Else {                                         ; I think we don't even need it
+          ;If (debug = 1)
+          ;  MsgBox, % "error"
+
+          ;Gui, Font, cBlue Bold                          ; Set color to RED
+          ;GuiControl, Font, labelanswer                  ; Apply color to labelanswer
+          ;GuiControl,, labelanswer, % textError          ; Show the TEXT
+
+          ;errorLvl := 3
+        ;}
+    } Until (errorLvl != 0)                               ; Loop again and again until errorlevel is changed
   } Catch e {
       MsgBox 16, % textError, % textErrorException . e.message . "`n" . e.extra
   }
@@ -232,9 +206,12 @@ Browser(ByRef wb) {
     wb.Navigate(args[10]) ; Navigate to webpage
     LoadWait(wb)          ; Wait for page load
 
+    ; Try to fill the webpage form
     Try {
       ; Page can be switched to two versions of form, standard or one field
       If (wb.Document.getElementsByName("coordOneField").Length = 0) { ; For classic six field version
+        If (debug = 1)
+          MsgBox, % "Six field version"
 
         ; Determine if page has fillable element - right page
         If (wb.Document.getElementsByName("latdeg").Length <> 0) {
@@ -243,7 +220,7 @@ Browser(ByRef wb) {
             If (lat[A_index-1].Value = args[2])                        ; If some of them is equal args[2]
               lat[A_index-1].Checked := True                           ; Check it
 
-          wb.Document.All.latdeg.Value := args[3]          
+          wb.Document.All.latdeg.Value := args[3]
           wb.Document.All.latmin.Value := args[4]
           wb.Document.All.latdec.Value := args[5]
 
@@ -257,14 +234,23 @@ Browser(ByRef wb) {
           wb.Document.All.londec.Value := args[9]
         }
       } Else If (wb.Document.getElementsByName("coordOneField").Length <> 0) { ; For one field version
+        If (debug = 1)
+          MsgBox, % "One field version"
         wb.Document.All.coordOneField.Value := args[2] . args[3] . " " . args[4] . "." . args[5] . " " . args[6] . args[7] . " " . args[8] . "." . args[9]
       } Else If (proxy = 1) {
         ; Proxy
         ; If there is no "onefield" and no "latdeg" input there is probably warning about reach max tries
         ; then, we try reload page with proxy server!
+        ; <tr><th colspan="2">P&#345;íli? mnoho pokus&#367;</th></tr>
+        If (debug = 1)
+          MsgBox, % "Proxy"
+            
         Sleep, 1000
-        wb.Navigate("http://datp.de/proxy2/index.php?q=" . args[10] . "&hl=1e7") ; Navigate to webpage
-        LoadWait(wb)                                                             ; Wait for page load
+        If (debug = 1)
+          wb.Navigate("http://datp.de/proxy2/index.php?q=" . args[10] . "")        ; Navigate to webpage
+        Else
+          wb.Navigate("http://datp.de/proxy2/index.php?q=" . args[10] . "&hl=1e7") ; Navigate to webpage
+        LoadWait(wb)                                                               ; Wait for page load
 
         ; Checking radiobuttons is little bit difficult
         Loop, % (lat := wb.Document.getElementsByName("lat")).Length ; Get elements named "lat"
@@ -287,33 +273,96 @@ Browser(ByRef wb) {
       wb.Document.All.usercaptcha.Focus() ; Focus on captcha field
     } Catch e {
       MsgBox 16, % textError, % textErrorException . e.message . "`n" . e.extra
-      ExitApp
+      ExitApp, errorLvl
     }
-    
+
     ; Check result after page reload
-    ; YES: <th colspan="2">Výborn&#283; - Tvé &#345;e?ení je správné!!!</th> # -
-    ; NO:  <td colspan="2" class="alert">Bohu?el, zadaná odpov&#283;&#271; není správná. Zkuste to prosím znovu:</td> # -
-    If (answer = 1)
-      CheckAnwser(wb, "Smi)ení je správné!!!", "Smi)zadaná odpov.+ není správná")
-    
+    ; YES CZ:    <th colspan="2">Výborn&#283; - Tvé &#345;e?ení je správné!!!</th> # -
+    ; NO CZ:     <td colspan="2" class="alert">Bohu?el, zadaná odpov&#283;&#271; není správná. Zkuste to prosím znovu:</td> # -
+    ; YES EN:    <th colspan="2">Congratulations - your solution is correct!!!</th>
+    ; NO EN:     <td colspan="2" class="alert">Sorry, that answer is incorrect. Do try again:</td>
+    ; YES DE:    <th colspan="2">Herzlichen Glückwunsch! Deine Lösung ist korrekt!!!</th>
+    ; NO DE:     <td colspan="2" class="alert">Schade, die Lösung ist falsch. Versuche es erneut:</td>
+    ; YES FR:    <th colspan="2">Félicitations, vous avez trouvé la solution!!!</th>
+    ; NO FR:     <td colspan="2" class="alert">Désolé, il ne s'agit pas des bonnes coordonnées. Essayez de nouveau:</td>
+    ; YES ES:    <th colspan="2">Enhorabuena - tu solución es correcta!!!</th>
+    ; NO ES:     <td colspan="2" class="alert">Lo sentimos, la respuesta no es correcta. Prueba otra vez:</td>
+    ; YES CA-ES: <th colspan="2">Enhorabona - La teva solució és correcta!!!</th>
+    ; NO CA-ES:  <td colspan="2" class="alert">Ho sentim, la resposta és incorrecta. Intenta-ho de nou:</td>
+    ; YES IT:    <th colspan="2">Congratulazione - la tua risposta e corretta!!!</th>
+    ; NO IT:     <td colspan="2" class="alert">Spiacente, questa risposta non e corretta. Riprova:</td>
+    ; YES PT:    <th colspan="2">Parabéns - a a sua soluçao está correcta!!!</th>
+    ; NO PT:     <td colspan="2" class="alert">Peço desculpa, essa resposta é incorrecta. Tente novamente:</td>
+    ; YES PT-BR: <th colspan="2">A sua soluçao está correta!!!!!!
+    ; NO PT-BR:  <td colspan="2" class="alert">Infelizmente a sua soluçao está incorreta. Tente novamente:</td>
+    ; YES PL:    <th colspan="2">Gratulacje! Twoje rozwi&#261;zanie jest poprawne!!!</th>
+    ; NO PL:     <td colspan="2" class="alert">Niestety Twoja odpowied&#378; jest niepoprawna. Spróbuj ponownie.:</td>
+    ; YES NL:    <th colspan="2">Proficiat - Je oplossing is juist!!!</th>
+    ; NO NL:     <td colspan="2" class="alert">Sorry, dat antwoord is niet juist. Probeer het nog eens:</td>
+    ; YES DA-DK: <th colspan="2">Tillykke - din losning er korrekt!!!</th>
+    ; NO DA-DK:  <td colspan="2" class="alert">Beklager, det svar er forkert. Prov venligst igen:</td>
+    ; YES NO:    <th colspan="2">Gratulerer ? losningen er korrekt!!!</th>
+    ; NO NO:     <td colspan="2" class="alert">Beklager, det svaret er feil. Prov gjerne igjen.:</td>
+    ; YES SV-SE: <th colspan="2">Grattis - din lösning är rätt!!!</th>
+    ; NO SV-SE:  <td colspan="2" class="alert">Tyvärr, svaret är fel. Försök igen:</td>
+    If (answer = 1) {
+      okay :=
+      (LTrim Join
+        "Smi)
+        (your solution is correct!!!)|
+        (Deine L.+sung ist korrekt!!!)|
+        (vous avez trouvé la solution!!!)|
+        (tu solución es correcta!!!)|
+        (La teva solució és correcta!!!)|
+        (la tua risposta e corretta!!!)|
+        (a a sua solu.+ao está correcta!!!)|
+        (A sua soluçao está correta!!!!!!)|
+        (Twoje rozwi.+zanie jest poprawne!!!)|
+        (Je oplossing is juist!!!)|
+        (din losning er korrekt!!!)|
+        (l.+sningen er korrekt!!!)|
+        (din l.+sning .+r r.+tt!!!)|
+        (Tvé .+e.+ení je správné!!!)"
+      )
+      notokay :=
+      (LTrim Join
+        "Smi)
+        (Sorry, that answer is incorrect)|
+        (Schade, die L.+sung ist falsch)|
+        (Désolé, il ne s.+agit pas des bonnes coordonnées)|
+        (Lo sentimos, la respuesta no es correcta)|
+        (Ho sentim, la resposta és incorrecta)|
+        (Spiacente, questa risposta non e corretta)|
+        (Pe.+o desculpa, essa resposta é incorrecta)|
+        (Infelizmente a sua solu.+ao está incorreta)|
+        (Niestety Twoja odpowied.+ jest niepoprawna)|
+        (Sorry, dat antwoord is niet juist)|
+        (Beklager, det svar er forkert)|
+        (Beklager, det svaret er feil)|
+        (Tyv.+rr, svaret .+r fel)|
+        (Bohu.+el, zadaná odpov.+ není správná)"
+      )
+      CheckAnwser(wb, okay, notokay)
+    }
   } Else If (args[1] = "geochecker") { ; ==========================================> GEOCHECKER (2)
     ; URL: http://geochecker.com/index.php?code=150e9c12665c476df9d1fcc30eeae605&action=check&wp=4743354e595a33&name=4d79646c6f   ...   &CaptchaChoice=Recaptcha
     ; Captcha: NO
     Gui, Show,, % "Checker - " . args[1] ; Change title
 
-    wb.Navigate(args[10]) ; Navigate to webpage
+    wb.Navigate(args[10] . "&language=English") ; Navigate to webpage
     LoadWait(wb)          ; Wait for page load
 
+    ; Try to fill the webpage form
     Try {
       wb.Document.All.LatString.Value := args[2] . " " . args[3] . "° " . args[4] . "." . args[5]
       wb.Document.All.LonString.Value := args[6] . " " . args[7] . "° " . args[8] . "." . args[9]
       Sleep, 500
-      wb.Document.All.button.Click()  
+      wb.Document.All.button.Click()
     } Catch e {
       MsgBox 16, % textError, % textErrorException . e.message . "`n" . e.extra
-      ExitApp
+      ExitApp, errorLvl
     }
-    
+
     ; Check result after page reload
     ; YES: <div class="success">Success!</div> # <DIV class=success>Success!</DIV>
     ; NO:  <div class="wrong">Incorrect</div> | (ES: <div class="wrong">Incorrecto</div>) # <DIV class=wrong>Incorrect</DIV>
@@ -327,7 +376,8 @@ Browser(ByRef wb) {
 
     wb.Navigate(args[10]) ; Navigate to webpage
     LoadWait(wb)          ; Wait for page load
-    
+
+    ; Try to fill the webpage form
     Try {
       wb.Document.All.NorthSouth.Value := args[2]
       wb.Document.All.LatDeg.Value := args[3]
@@ -338,9 +388,9 @@ Browser(ByRef wb) {
       wb.Document.All.recaptcha_response_field.Focus()
     } Catch e {
       MsgBox 16, % textError, % textErrorException . e.message . "`n" . e.extra
-      ExitApp
+      ExitApp, errorLvl
     }
-    
+
     ; Check result after page reload
     ; YES: <span style="font-size: large; font-weight: bold; color: rgb(206, 0, 0);">Congratulations!</span> # <SPAN style="FONT-SIZE: large; FONT-WEIGHT: bold; COLOR: rgb(206,0,0)"><BR>Congratulations! </SPAN>
     ; NO:  <span style="font-size: large; font-weight: bold; color: rgb(206, 0, 0);">Sorry!</span> # <SPAN style="FONT-SIZE: large; FONT-WEIGHT: bold; COLOR: rgb(206,0,0)">Sorry! </SPAN>
@@ -352,10 +402,11 @@ Browser(ByRef wb) {
     ; Captcha: NO
     Gui, Show,, % "Checker - " . args[1] ; Change title
 
-    wb.Navigate(args[10]) ; Navigate to webpage
-    LoadWait(wb)          ; Wait for page load
+    wb.Navigate(args[10])                    ; Navigate to webpage
+    LoadWait(wb)                             ; Wait for page load
     wb.Document.ParentWindow.ScrollTo(0,370) ; Scroll down because page has a huge picture in header
 
+    ; Try to fill the webpage form
     Try {
       wb.Document.All.vyska.Value := args[2]
       wb.Document.All.stupne21.Value := args[3]
@@ -367,18 +418,18 @@ Browser(ByRef wb) {
       wb.Document.Forms[0].Submit()
     } Catch e {
       MsgBox 16, % textError, % textErrorException . e.message . "`n" . e.extra
-      ExitApp
+      ExitApp, errorLvl
     }
 
     Sleep, 1000
     wb.Document.ParentWindow.ScrollTo(0,370) ; Scroll again after page reload
-    
+
     ; Check result after page reload
     ; YES: <div style='background: #77db7a; border: 1px solid black;'><br />Vaše souøadnice jsou spravnì, mùžete vyrazit na lov!<br /> # <DIV style="BORDER-TOP: black 1px solid; BORDER-RIGHT: black 1px solid; BACKGROUND: #77db7a; BORDER-BOTTOM: black 1px solid; BORDER-LEFT: black 1px solid"><BR>Vaše souøadnice jsou spravnì, mùžete vyrazit na lov!<BR>
     ; NO:  <div style="background: #db7777; border: 1px solid black;">Vaše souøadnice jsou špatnì, poèítejte znovu. # <DIV style="BORDER-TOP: black 1px solid; BORDER-RIGHT: black 1px solid; BACKGROUND: #db7777; BORDER-BOTTOM: black 1px solid; BORDER-LEFT: black 1px solid"><BR>Vaše souøadnice jsou špatnì, poèítejte znovu.<BR>
     If (answer = 1)
       CheckAnwser(wb, "Smi)>Vaše souøadnice jsou spravnì, mùžete vyrazit na lov!<", "Smi)>Vaše souøadnice jsou špatnì, poèítejte znovu.<")
-      
+
   } Else If (args[1] = "komurka") { ; =============================================> KOMURKA (5)
     ; URL: http://geo.komurka.cz/check.php?cache=GC2JCEQ
     ; Captcha: YES
@@ -387,6 +438,7 @@ Browser(ByRef wb) {
     wb.Navigate(args[10]) ; Navigate to webpage
     LoadWait(wb)          ; Wait for page load
 
+    ; Try to fill the webpage form
     Try {
       If (args[2] = "N")
         wb.Document.All.select1.SelectedIndex := 0
@@ -405,7 +457,7 @@ Browser(ByRef wb) {
       wb.Document.All.code.Focus()
     } Catch e {
       MsgBox 16, % textError, % textErrorException . e.message . "`n" . e.extra
-      ExitApp
+      ExitApp, errorLvl
     }
 
     ; Check result after page reload
@@ -422,6 +474,7 @@ Browser(ByRef wb) {
     wb.Navigate(args[10]) ; Navigate to webpage
     LoadWait(wb)          ; Wait for page load
 
+    ; Try to fill the webpage form
     Try {
       If (args[2] = "N")
         wb.Document.All.Lat_R.SelectedIndex := 0
@@ -441,7 +494,7 @@ Browser(ByRef wb) {
       wb.Document.Forms[0].Submit()
     } Catch e {
       MsgBox 16, % textError, % textErrorException . e.message . "`n" . e.extra
-      ExitApp
+      ExitApp, errorLvl
     }
 
     ; Check result after page reload
@@ -458,6 +511,7 @@ Browser(ByRef wb) {
     wb.Navigate(args[10]) ; Navigate to webpage
     LoadWait(wb)          ; Wait for page load
 
+    ; Try to fill the webpage form
     Try {
       If (args[2] = "N")
         wb.Document.All.latNS.SelectedIndex := 0
@@ -479,9 +533,9 @@ Browser(ByRef wb) {
           inputs[A_index-1].Click()                                        ; Click on it
     } Catch e {
       MsgBox 16, % textError, % textErrorException . e.message . "`n" . e.extra
-      ExitApp
+      ExitApp, errorLvl
     }
-    
+
     ; Check result after page reload
     ; YES: <h1 style="color: green;">Richtig</h1> # <H1 style="COLOR: green">Richtig</H1>
     ; NO:  <li>Leider stimmt die eingegebene Koordinate nicht.</li> # <LI>Leider stimmt die eingegebene Koordinate nicht. </LI>
@@ -496,6 +550,7 @@ Browser(ByRef wb) {
     wb.Navigate(args[10]) ; Navigate to webpage
     LoadWait(wb)          ; Wait for page load
 
+    ; Try to fill the webpage form
     Try {
       wb.Document.All.coordinates.Value := args[2] . " " . args[3] . " " . args[4] . "." . args[5] . " " . args[6] . " " . args[7] . " " . args[8] . "." . args[9]
       Sleep, 500
@@ -506,9 +561,9 @@ Browser(ByRef wb) {
           inputs[A_index-1].Click()                                        ; Click on it
     } Catch e {
       MsgBox 16, % textError, % textErrorException . e.message . "`n" . e.extra
-      ExitApp
+      ExitApp, errorLvl
     }
-    
+
     ; Check result after page reload
     ; YES: <img src="/images/woohoo.jpg"> # <IMG src="/images/woohoo.jpg">
     ; NO:  <img src="/images/doh.jpg" align="middle"> # <IMG src="/images/doh.jpg" align=middle>
@@ -523,13 +578,14 @@ Browser(ByRef wb) {
     wb.Navigate(args[10]) ; Navigate to webpage
     LoadWait(wb)          ; Wait for page load
     wb.Document.ParentWindow.ScrollTo(0,240) ; Scroll down because page has a huge picture in header
-    
+
+    ; Try to fill the webpage form
     Try {
       wb.Document.All.ListView1_txtKoords_0.Value := args[2] . args[3] . " " . args[4] . "." . args[5] . " " . args[6] . args[7] . " " . args[8] . "." . args[9]
       wb.Document.All.ListView1_txtCaptchaCode_0.Focus()
     } Catch e {
       MsgBox 16, % textError, % textErrorException . e.message . "`n" . e.extra
-      ExitApp
+      ExitApp, errorLvl
     }
 
     ; Check result after page reload
@@ -546,6 +602,7 @@ Browser(ByRef wb) {
     wb.Navigate(args[10]) ; Navigate to webpage
     LoadWait(wb)          ; Wait for page load
 
+    ; Try to fill the webpage form
     Try {
       ; This form is strange, nice way below not working, so we must do it by this unclean way
       ;wb.Document.All.realcoords.Value := args[2] . args[3] . "° " . args[4] . "." . args[5] . " " . args[6] . args[7] . "° " . args[8] . "." . args[9]
@@ -555,9 +612,9 @@ Browser(ByRef wb) {
       wb.Document.All.captcha.Focus()
     } Catch e {
       MsgBox 16, % textError, % textErrorException . e.message . "`n" . e.extra
-      ExitApp
+      ExitApp, errorLvl
     }
-    
+
     ; Check result after page reload
     ; YES: <span id="congrats">
     ; NO:  <span id="nope">Nee, das war nix! Nochmal probieren!</span> # <SPAN id=nope>Nee, das war nix! Nochmal probieren!</SPAN>

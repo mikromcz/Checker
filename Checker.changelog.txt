@@ -1,8 +1,10 @@
-** 0.2.5.2 (2016/05/21) **
+** 0.2.5.3 (2016/06/12) **
   * pøidáno ovìøení na gccheck.com
   * pøidána nìjaká druhá verze gccounter.de
   * koneènì se AHK skript nezhroutí pokud na stránce nenalezne políèko k vyplnìní!
-  * pøidána možnost pøedání výsledku ovìøení do GeoGetu (standardnì, zápis do poznámky finálového waypointu)
+  * pøidána volitelná možnost pøedání výsledku ovìøení do GeoGetu (zápis do poznámky finálového waypointu)
+  * oprava parsování z certitudes.org
+  * na geochecker.com pøidán natvrdo k URL parametr "&language=English" aby byla stránka vždy anglicky
   * spousta malých oprav a úprav
 
 ** 0.2.3.0 (2016/02/23) **
