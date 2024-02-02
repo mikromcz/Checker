@@ -219,7 +219,7 @@ LoadWait(ByRef wb) {
 
   If (timeout = 0)
     timeout = 1
-
+  
   cnt := 0                                    ; Reset variable to zero
   Loop {                                      ; Otherwise sleep for .1 seconds untill the page starts loading
     Sleep, 100
@@ -1132,6 +1132,7 @@ Browser(ByRef wb) {
         wb.Document.All.OST2.Value := args[8]
         wb.Document.All.OST3.Value := args[9]
         
+        Sleep, 1000                                 ; Just slow it down little bit
         wb.Document.Forms[0].Submit()
       }
 
@@ -1148,7 +1149,46 @@ Browser(ByRef wb) {
     ; NO:  <h3 class="fail">Bohužel :(</h3>
     If (answer = 1)
       CheckAnwser(wb, "Smi)form-login {background-color: #E3F6CE;}", "Smi)form-login {background-color: #F6CECE;}")
+
+} Else If (args[1] = "gctoolbox") { ; =============================================> GCTOOLBOX (17)
+    ; URL: http://www.gctoolbox.de/index.php?goto=tools&showtool=coordinatechecker&solve=true&id=2062&lang=ger
+    ; Captcha: NO
+    Gui, Show,, % "Checker - " . args[1] ; Change title
+
+    wb.Navigate(args[10]) ; Navigate to webpage
+    LoadWait(wb)          ; Wait for page load
     
+    ;wb.Document.ParentWindow.ScrollTo(0,280) ; Scroll down because page has a huge picture in header
+
+    ; Try to fill the webpage form
+    Try {
+      If (wb.Document.getElementsByName("LatCC1x").Length <> 0) {
+        wb.Document.All.LatCC1x.Value := args[3]
+        wb.Document.All.LatCC2x.Value := args[4]
+        wb.Document.All.LatCC3x.Value := args[5]
+        
+        wb.Document.All.LonCC1x.Value := args[7]
+        wb.Document.All.LonCC2x.Value := args[8]
+        wb.Document.All.LonCC3x.Value := args[9]
+        
+        Sleep, 1000                                 ; Just slow it down little bit
+        wb.Document.Forms[2].Submit()
+      }
+
+    } Catch e {
+      If (debug != 1) {
+        MsgBox 16, % textError, % textErrorFill
+        ExitApp, exitCode
+      } Else
+        MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
+    }
+
+    ; Check result after page reload
+    ; YES: <h3 class="success">Výbornì!</h3>
+    ; NO:  <h3 class="fail">Bohužel :(</h3>
+    If (answer = 1)
+      CheckAnwser(wb, "Smi)tools/coordinatechecker/green.PNG", "Smi)tools/coordinatechecker/red.PNG")
+      
   } Else { ; =====================================================================> SERVICE ERROR
     MsgBox 16, % textError, % textErrorService
     If (debug != 1)

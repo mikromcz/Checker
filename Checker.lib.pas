@@ -40,9 +40,10 @@ const
   gcmRegex             = '(?i)(https?:)?\/\/(www\.)?(gc\.gcm\.cz\/validator|validator\.gcm\.cz)\/[^"''<\s]+';
   doxinaRegex          = '(?i)(https?:)?\/\/(www\.)?doxina\.filipruzicka\.net\/cache\.php\?id=[^"''<\s]+';
   geocachePlannerRegex = '(?i)(https?:)?\/\/(www\.)?geocache-planer\.de\/CAL\/checker\.php[^"''<\s]+';
+  gctoolboxRegex       = '(?i)(https?:)?\/\/(www\.)?gctoolbox\.de\/index\.php\?goto=tools&showtool=coordinatechecker[^"''<\s]+';
 
 var
-  debug, answer: Boolean;
+  debug, answer, history: Boolean;
   coords: String;
 
 {Update waypoint comment. Add custom string (correct|incorrect from ini) at the begining of the waypoint comment. String will be in curly brackets!}
@@ -68,6 +69,22 @@ begin
       GeoListUpdateID(GC.ID);                                    // Refresh chache in the list
     end;
   end;
+end;
+
+{Simple logging}
+procedure LogHistory(checkedCoords, checkerResult: String);
+var
+  logFile, s: String;
+begin
+  s := ReplaceString(GEOGET_SCRIPTFULLNAME, GEOGET_SCRIPTNAME, '') + 'Checker.csv';
+  
+  if FileExists(s) then begin
+    if GetFileSize(s) > 1000 then DeleteFile(s)
+    else logFile := FileToString(s);
+  end;
+  
+  logFile := logFile + CRLF + FormatDateTime('yyyy"."mm"."dd" "hh:nn:ss', Now()) + ';' + GC.ID + ';' + checkedCoords + ';' + checkerResult;
+  StringToFile(logFile, s);
 end;
 
 {Cleaning URLs, sometime its parsed wrong, with this it looks working great}
@@ -104,6 +121,7 @@ begin
     answer    := ini.ReadBool('Checker', 'answer', False);
     correct   := ini.ReadString('Checker', 'correct', 'CORRECT');
     incorrect := ini.ReadString('Checker', 'incorrect', 'INCORRECT');
+    history   := ini.ReadBool('Checker', 'history', False);
   finally
     ini.Free;
   end;
@@ -345,6 +363,18 @@ begin
         serviceUrl.Add(s);
         Inc(serviceNum);
       end;
+      {
+      GCTOOLBOX
+      url: http://www.gctoolbox.de/index.php?goto=tools&showtool=coordinatechecker&solve=true&id=2062&lang=ger
+      captcha: NO
+      }
+      s := RegExSubstitute(gctoolboxRegex, description, '$0#');
+      if s <> '' then begin
+        serviceName.Add('gctoolbox');
+        s := ReplaceString(s, 'lang=ger', 'lang=eng'); // Force ENGLISH
+        serviceUrl.Add(s);
+        Inc(serviceNum);
+      end;
       {Nothing found}
       if serviceNum = 0 then begin
         ShowMessage(_('Error: No coordinate checker URL found!'));
@@ -396,10 +426,12 @@ begin
           1: begin                                                             // If it WAS correct add special comment to the Final waypoint
                if debug then ShowMessage(_('Correct solution! :)'));
                if correct <> '' then UpdateWaypointComment(correct);
+               if history then LogHistory(coordinates, 'Correct');
              end;
           2: begin                                                             // If it WAS NOT correct add special comment to the Final waypoint
                if debug then ShowMessage(_('Incorrect solution! :('));
                if incorrect <> '' then UpdateWaypointComment(incorrect);
+               if history then LogHistory(coordinates, 'Incorrect');
              end;
           3: if debug then ShowMessage(_('Error'));
           else
