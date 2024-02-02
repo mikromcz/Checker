@@ -1,4 +1,4 @@
-** 2.13.0 (2017/04/26) **
+** 2.13.0/1 (2017/04/26) **
   * Optimalizace parsování (o 50% ménì pomalých regexù)
   * Další volitelný parametr do INI. fixcert (pokud je nastaven na 1, tak se vypne kontrola odvolání certifikátu. nezbytné pro gccheck.com)
   * geocheck.org: uznáme i "Zadané sou&#345;adnice nejsou zcela p&#345;esné" jako správné øešení

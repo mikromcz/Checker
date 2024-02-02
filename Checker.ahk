@@ -2,7 +2,7 @@
 ; Www: http://geoget.ararat.cz/doku.php/user:skript:checker
 ; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ; Author: mikrom, http://mikrom.cz
-; Version: 2.13.0
+; Version: 2.13.1
 ;
 ; Documentation: http://ahkscript.org/docs/AutoHotkey.htm
 ; FAQ: http://www.autohotkey.com/docs/FAQ.htm
@@ -35,11 +35,11 @@ Global certfix := 0  ; INI: Disable some strict settings for some HTTPS websites
 Global cnt := 0      ; Only counter that we increment while we are waiting for verification page
 
 ; Read setting from INI ^
-IniRead, debug,   %A_ScriptDir%\Checker.ini, % "Checker", % "debug"     ; For enabling debug mode, show some infos, ListVars, ..
-IniRead, proxy,   %A_ScriptDir%\Checker.ini, % "Checker", % "proxy"     ; If user is banned for many tries in short time, we try load page with proxyserver
-IniRead, iefix,   %A_ScriptDir%\Checker.ini, % "Checker", % "iefix"     ; Try to fix IE render engine to latest by changing registry
-IniRead, answer,  %A_ScriptDir%\Checker.ini, % "Checker", % "answer"    ; Define return check result
-IniRead, certfix, %A_ScriptDir%\Checker.ini, % "Checker", % "certfix"   ; Disable some strict settings for SSL certificates
+IniRead, debug,   %A_ScriptDir%\Checker.ini, % "Checker", % "debug"   ; For enabling debug mode, show some infos, ListVars, ..
+IniRead, proxy,   %A_ScriptDir%\Checker.ini, % "Checker", % "proxy"   ; If user is banned for many tries in short time, we try load page with proxyserver
+IniRead, iefix,   %A_ScriptDir%\Checker.ini, % "Checker", % "iefix"   ; Try to fix IE render engine to latest by changing registry
+IniRead, answer,  %A_ScriptDir%\Checker.ini, % "Checker", % "answer"  ; Define return check result
+IniRead, certfix, %A_ScriptDir%\Checker.ini, % "Checker", % "certfix" ; Disable some strict settings for SSL certificates
 
 ; Change icon of GUI title, tray, ...
 ; Icon from: http://www.iconarchive.com/show/colorful-long-shadow-icons-by-graphicloads/Hand-thumbs-up-like-2-icon.html
@@ -117,21 +117,21 @@ FixIE(Version=0, ExeName="") {
   }
 
   RegRead, PreviousValue, %Key%, %ExeName%
-  
+
   If (Version = "")
     RegDelete, %Key%, %ExeName%
   Else
     RegWrite, REG_DWORD, %Key%, %ExeName%, %Version%
 
   Return PreviousValue
-}
+} ; => FixIE()
 
 ; Fix IE settings for certificates (temporary change one setting in registry)
 ; "Revocation Information For The Security Certificate For This Site Is Not Available"
 ; "Nejsou k dispozici informace o odvolani certifikatu zabezpeceni tohoto serveru"
 ; Necessary for http://gccheck.com
 FixIEcert(Cert=0) {
-  Static Key := "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings"
+  Static Key  := "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings"
   , ValueName := "CertificateRevocation"
 
   RegRead, PreviousCertValue, %Key%, %ValueName%
@@ -142,7 +142,7 @@ FixIEcert(Cert=0) {
     RegWrite, REG_DWORD, %Key%, %ValueName%, 1
 
   Return PreviousCertValue
-}
+} ; => FixIEcert()
 
 ; Encode special characters to URI (for ex. "space" is %20)
 ; https://autohotkey.com/board/topic/75390-ahk-l-unicode-uri-encode-url-encode-function/
@@ -169,19 +169,19 @@ WM_KeyPress(wParam, lParam, nMsg, hWnd) {
 
   WinGetClass, ClassName, ahk_id %hWnd%
   If (ClassName = "Shell DocObject View" && wParam = 0x09) {
-    WinGet, hIES, ControlListHwnd, ahk_id %hWnd% ; Find child of 'Shell DocObject View'
+    WinGet, hIES, ControlListHwnd, ahk_id %hWnd%               ; Find child of 'Shell DocObject View'
     ControlFocus,, ahk_id %hIES%
     Return 0
   }
   If (ClassName = "Internet Explorer_Server") {
-    VarSetCapacity(MSG, 28, 0) ; MSG STructure http://goo.gl/4bHD9Z
+    VarSetCapacity(MSG, 28, 0)                                 ; MSG STructure http://goo.gl/4bHD9Z
     Loop, Parse, Vars, |, %A_Space%
       NumPut(%A_LoopField%, MSG, (A_Index-1) * 4)
-    Loop 2 ; IOleInPlaceActiveObject::TranslateAccelerator method http://goo.gl/XkGZYt
+    Loop 2                                                     ; IOleInPlaceActiveObject::TranslateAccelerator method http://goo.gl/XkGZYt
       r := DllCall(TranslateAccelerator, UInt, pipa, UInt,&MSG)
     Until wParam != 9 || WB.document.activeElement != ""
 
-    IfEqual, R, 0, Return, 0 ; S_OK: the message was translated to an accelerator.
+    IfEqual, R, 0, Return, 0                                   ; S_OK: the message was translated to an accelerator.
   }
 } ; => WM_KeyPress => Implement Tabstop for ActiveX > Shell.Explorer
 
@@ -277,7 +277,7 @@ CheckAnwser(ByRef wb, correct, incorrect) {
       ;}
     } Until (errorLvl != 0)                             ; Loop again and again until errorlevel is changed
   } Catch e {
-    If (debug != 0)
+    If (debug != 1)
       MsgBox 16, % textError, % textErrorException . e.extra
     Else
       MsgBox 16, % textError, % textErrorException . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
@@ -288,7 +288,7 @@ CheckAnwser(ByRef wb, correct, incorrect) {
 ; http://www.autohotkey.com/board/topic/47052-basic-webpage-controls-with-javascript-com-tutorial/
 ; http://www.autohotkey.com/board/topic/64563-basic-ahk-l-com-tutorial-for-webpages/
 Browser(ByRef wb) {
-  If (debug != 0)
+  If (debug != 1)
     wb.Silent := True ; Turn Off all IE warnings, such as "if JS can run on page etc."
 
   If (args[1] = "geocheck") { ; ==================================================> GEOCHECK (1)
@@ -366,7 +366,7 @@ Browser(ByRef wb) {
       wb.Document.All.usercaptcha.Focus() ; Focus on captcha field
     } Catch e {
       MsgBox 16, % textError, % textErrorFill
-      If (debug != 0)
+      If (debug != 1)
         ExitApp, errorLvl
     }
 
@@ -417,7 +417,7 @@ Browser(ByRef wb) {
         (l.+sningen er korrekt!!!)|
         (din l.+sning .+r r.+tt!!!)|
         (Tvé .+e.+ení je správné!!!)|
-		(Zadané sou.+adnice nejsou zcela p.+esné)"
+        (Zadané sou.+adnice nejsou zcela p.+esné)"
       )
       notokay :=
       (LTrim Join
@@ -440,7 +440,7 @@ Browser(ByRef wb) {
       CheckAnwser(wb, okay, notokay)
       ;CheckAnwser(wb, "Smi)správné", "Smi)správná")
     }
-  } Else If (args[1] = "geochecker") { ; ==========================================> GEOCHECKER (2)
+  } Else If (args[1] = "geochecker") { ; =========================================> GEOCHECKER (2)
     ; URL: http://geochecker.com/index.php?code=150e9c12665c476df9d1fcc30eeae605&action=check&wp=4743354e595a33&name=4d79646c6f   ...   &CaptchaChoice=Recaptcha
     ; Captcha: NO
     Gui, Show,, % "Checker - " . args[1] ; Change title
@@ -455,7 +455,7 @@ Browser(ByRef wb) {
       Sleep, 500
       wb.Document.All.button.Click()
     } Catch e {
-      If (debug != 0) {
+      If (debug != 1) {
         MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
       } Else
@@ -468,7 +468,7 @@ Browser(ByRef wb) {
     If (answer = 1)
       CheckAnwser(wb, "Smi)<div class=.?success.?", "Smi)<div class=.?wrong.?")
 
-  } Else If (args[1] = "evince") { ; ==============================================> EVINCE (3)
+  } Else If (args[1] = "evince") { ; =============================================> EVINCE (3)
     ; URL: http://evince.locusprime.net/cgi-bin/index.cgi?q=d0ZNzQeHKReGKzr
     ; Captcha: YES
     ;Gui, Show,, % "Checker - " . args[1] ; Change title
@@ -487,7 +487,7 @@ Browser(ByRef wb) {
     ;  wb.Document.All.recaptcha_response_field.Focus()
     ;} Catch e {
     ;  MsgBox 16, % textError, % textErrorFill
-    ;  If (debug != 0)
+    ;  If (debug != 1)
     ;    ExitApp, errorLvl
     ;}
 
@@ -501,7 +501,7 @@ Browser(ByRef wb) {
     MsgBox, 48, % textError, % textEvince
     ExitApp, errorLvl
 
-  } Else If (args[1] = "hermansky") { ; ===========================================> HERMANSKY (4)
+  } Else If (args[1] = "hermansky") { ; ==========================================> HERMANSKY (4)
     ; URL: http://geo.hermansky.net/index.php?co=checker&code=22377facb3ee0fbbf6e5e2b7dee042ee8687a55cd
     ; Captcha: NO
     Gui, Show,, % "Checker - " . args[1] ; Change title
@@ -540,7 +540,7 @@ Browser(ByRef wb) {
       Sleep, 500
       wb.Document.Forms[0].Submit()
     } Catch e {
-      If (debug != 0) {
+      If (debug != 1) {
         MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
       } Else
@@ -556,7 +556,7 @@ Browser(ByRef wb) {
     If (answer = 1)
       CheckAnwser(wb, "Smi)>Vaše souøadnice jsou spravnì, mùžete vyrazit na lov!<", "Smi)>Vaše souøadnice jsou špatnì, poèítejte znovu.<")
 
-  } Else If (args[1] = "komurka") { ; =============================================> KOMURKA (5)
+  } Else If (args[1] = "komurka") { ; ============================================> KOMURKA (5)
     ; URL: http://geo.komurka.cz/check.php?cache=GC2JCEQ
     ; Captcha: YES
     Gui, Show,, % "Checker - " . args[1] ; Change title
@@ -582,7 +582,7 @@ Browser(ByRef wb) {
       wb.Document.All.delka3.Value := args[9]
       wb.Document.All.code.Focus()
     } Catch e {
-      If (debug != 0) {
+      If (debug != 1) {
         MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
       } Else
@@ -595,7 +595,7 @@ Browser(ByRef wb) {
     If (answer = 1)
       CheckAnwser(wb, "Smi)src=.?images\/smile_green\.jpg.?", "Smi)src=.?images\/smile_red\.jpg.?")
 
-  } Else If (args[1] = "gccounter") { ; ===========================================> GCCOUNTER (5)
+  } Else If (args[1] = "gccounter") { ; ==========================================> GCCOUNTER (5)
     ; URL: http://gccounter.com/gcchecker.php?site=gcchecker_check&id=2076
     ; Captcha: NO
     Gui, Show,, % "Checker - " . args[1] ; Change title
@@ -622,7 +622,7 @@ Browser(ByRef wb) {
       Sleep, 500
       wb.Document.Forms[0].Submit()
     } Catch e {
-      If (debug != 0) {
+      If (debug != 1) {
         MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
       } Else
@@ -635,7 +635,7 @@ Browser(ByRef wb) {
     If (answer = 1)
       CheckAnwser(wb, "Smi)>Herzlichen Glückwunsch!<", "Smi)>Schade!<")
 
-  } Else If (args[1] = "gccounter2") { ; ===========================================> GCCOUNTER2 (6)
+  } Else If (args[1] = "gccounter2") { ; =========================================> GCCOUNTER2 (6)
     ; URL: http://gccounter.com/gcchecker.php?site=gcchecker_check&id=2076
     ; Captcha: NO
     Gui, Show,, % "Checker - " . args[1] ; Change title
@@ -664,7 +664,7 @@ Browser(ByRef wb) {
         If (inputs[A_index-1].Type = "submit")                             ; If some of them is type="submit"
           inputs[A_index-1].Click()                                        ; Click on it
     } Catch e {
-      If (debug != 0) {
+      If (debug != 1) {
         MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
       } Else
@@ -677,7 +677,7 @@ Browser(ByRef wb) {
     If (answer = 1)
       CheckAnwser(wb, "Smi)<h1 style=.?color: green.?.?>Richtig<\/h1>", "Smi)Leider stimmt die eingegebene Koordinate nicht")
 
-  } Else If (args[1] = "certitudes") { ; ==========================================> CERTITUDES (7)
+  } Else If (args[1] = "certitudes") { ; =========================================> CERTITUDES (7)
     ; URL: http://www.certitudes.org/certitude?wp=GC2QFYT
     ; Captcha: NO
     Gui, Show,, % "Checker - " . args[1] ; Change title
@@ -695,7 +695,7 @@ Browser(ByRef wb) {
         If (inputs[A_index-1].Type = "submit")                             ; If some of them is type="submit"
           inputs[A_index-1].Click()                                        ; Click on it
     } Catch e {
-      If (debug != 0) {
+      If (debug != 1) {
         MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
       } Else
@@ -708,7 +708,7 @@ Browser(ByRef wb) {
     If (answer = 1)
       CheckAnwser(wb, "Smi)src=.?\/images\/woohoo\.jpg.?", "Smi)src=.?\/images\/doh\.jpg.?")
 
-  } Else If (args[1] = "gpscache") { ; ============================================> GPS-CACHE (8)
+  } Else If (args[1] = "gpscache") { ; ===========================================> GPS-CACHE (8)
     ; URL: http://geochecker.gps-cache.de/check.aspx?id=7c52d196-b9d2-4b23-ad99-5d6e1bece187
     ; Captcha: YES
     Gui, Show,, % "Checker - " . args[1] ; Change title
@@ -719,12 +719,12 @@ Browser(ByRef wb) {
 
     ; Try to fill the webpage form
     Try {
-	  If (wb.Document.getElementsByName("ListView1$ctrl0$txtKoords").Length <> 0) {
+      If (wb.Document.getElementsByName("ListView1$ctrl0$txtKoords").Length <> 0) {
         wb.Document.All.ListView1_txtKoords_0.Value := args[2] . args[3] . " " . args[4] . "." . args[5] . " " . args[6] . args[7] . " " . args[8] . "." . args[9]
         wb.Document.All.ListView1_txtCaptchaCode_0.Focus()
-	  }
+      }
     } Catch e {
-      If (debug != 0) {
+      If (debug != 1) {
         MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
       } Else
@@ -737,7 +737,7 @@ Browser(ByRef wb) {
     If (answer = 1)
       CheckAnwser(wb, "Smi)images\/smiley-good-80\.png.?>", "Smi)images\/smiley-bad-80\.png.?>")
 
-  } Else If (args[1] = "gccheck") { ; =============================================> GCCHECK (9)
+  } Else If (args[1] = "gccheck") { ; ============================================> GCCHECK (9)
     ; URL: http://gccheck.com/GC5EJH7
     ; Captcha: YES
     Gui, Show,, % "Checker - " . args[1] ; Change title
@@ -754,7 +754,7 @@ Browser(ByRef wb) {
           inputs[A_index-1].Value := args[2] . args[3] . "° " . args[4] . "." . args[5] . " " . args[6] . args[7] . "° " . args[8] . "." . args[9]
       wb.Document.All.captcha.Focus()
     } Catch e {
-      If (debug != 0) {
+      If (debug != 1) {
         MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
       } Else
@@ -767,7 +767,7 @@ Browser(ByRef wb) {
     If (answer = 1)
       CheckAnwser(wb, "Smi)<span id=.?congrats.?>", "Smi)<span id=.?nope.?>")
 
-  } Else If (SubStr(args[1], 1, 10) = "challenge|") { ; ===============================> CHALLENGE (10)
+  } Else If (SubStr(args[1], 1, 10) = "challenge|") { ; ==========================> CHALLENGE (10)
     ; URL: http://project-gc.com/Challenges/GC5KDPR/11265
     ; Captcha: NO
     Gui, Show,, % "Checker - " . args[1] ; Change title
@@ -793,7 +793,7 @@ Browser(ByRef wb) {
         If (inputs[A_index-1].ID = "runChecker")                            ; If some of them is type="submit"
           inputs[A_index-1].Click()                                         ; Click on it
     } Catch e {
-      If (debug != 0) {
+      If (debug != 1) {
         MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
       } Else
@@ -806,7 +806,7 @@ Browser(ByRef wb) {
     If (answer = 1)
       CheckAnwser(wb, "Smi)<div id=.?challengeFulfilled.?", "Smi)<div id=.?challengeUnfulfilled.?")
 
-  } Else If (SubStr(args[1], 1, 10) = "challenge2") { ; ===============================> CHALLENGE2 (10.1)
+  } Else If (SubStr(args[1], 1, 10) = "challenge2") { ; ==========================> CHALLENGE2 (10.1)
     ; URL: http://project-gc.com/Challenges/GC27Z84
     ; Captcha: NO
     Gui, Show,, % "Checker - " . args[1] ; Change title
@@ -815,12 +815,12 @@ Browser(ByRef wb) {
     LoadWait(wb)          ; Wait for page load
 
     ; Check result after page reload
-    ; YES: 
-    ; NO:  
+    ; YES:
+    ; NO:
     ;If (answer = 1)
     ;  CheckAnwser(wb, "Smi)<div id=.?challengeFulfilled.?", "Smi)<div id=.?challengeUnfulfilled.?")
 
-  } Else If (args[1] = "gcappsGeochecker") { ; =============================================> GC-APPS GEOCHECKER (11.1)
+  } Else If (args[1] = "gcappsGeochecker") { ; ===================================> GC-APPS GEOCHECKER (11.1)
     ; URL: http://www.gc-apps.com/geochecker/show/b1a0a77fa830ddbb6aa4ed4c69057e79
     ; URL: http://www.gc-apps.com/index.php?option=com_geochecker&view=item&id=b1a0a77fa830ddbb6aa4ed4c69057e79
     ; Captcha: YES
@@ -848,7 +848,7 @@ Browser(ByRef wb) {
 
       wb.Document.All.show_captcha.Focus()
     } Catch e {
-      If (debug != 0) {
+      If (debug != 1) {
         MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
       } Else
@@ -861,7 +861,7 @@ Browser(ByRef wb) {
     If (answer = 1)
       CheckAnwser(wb, "Smi)class=.?alert alert-success.?", "Smi)class=.?alert alert-danger.?")
 
-  } Else If (args[1] = "gcappsMultichecker") { ; =============================================> GC-APPS MULTICHECKER (11.2)
+  } Else If (args[1] = "gcappsMultichecker") { ; =================================> GC-APPS MULTICHECKER (11.2)
     ; URL: http://www.gc-apps.com/multichecker/show/2d2eca9367b250181c6379c46292be32
     ; Captcha: ?
     Gui, Show,, % "Checker - " . args[1] ; Change title
@@ -869,7 +869,7 @@ Browser(ByRef wb) {
     wb.Navigate(args[10]) ; Navigate to webpage
     LoadWait(wb)          ; Wait for page load
 
-  } Else If (args[1] = "geocachefi") { ; =============================================> GEOCACHE.FI (12)
+  } Else If (args[1] = "geocachefi") { ; =========================================> GEOCACHE.FI (12)
     ; URL: http://www.geocache.fi/checker/?uid=M9KAR6VJJG5VCDCSZQCR&act=check&wp=GC4CEFD
     ; Captcha: YES
     Gui, Show,, % "Checker - " . args[1] ; Change title
@@ -896,7 +896,7 @@ Browser(ByRef wb) {
 
       wb.Document.All.seccode.Focus()
     } Catch e {
-      If (debug != 0) {
+      If (debug != 1) {
         MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
       } Else
@@ -907,7 +907,7 @@ Browser(ByRef wb) {
     ; YES: <font color="#00AA00" size=5><b>ETUSIVU UUSIKSI! SEH&Auml;N OSUI JA UPPOSI!</b></font>
     ; YES: <font color="#00AA00" size=5><b>GREAT! AWESOME! SPECTACULAR!</b></font><font size=3><p>Thats it! You got that one right!</font>
     ; NO:  <font color="#FF0000" size=5><b>EI, EI, EI :(</b></font>
-	; NO:  <font color="#FF0000" size=5><b>NO, NO, NO :(</b></font><font size=3><p>Unfortunately your solution was not right :( </font>
+    ; NO:  <font color="#FF0000" size=5><b>NO, NO, NO :(</b></font><font size=3><p>Unfortunately your solution was not right :( </font>
     If (answer = 1)
       CheckAnwser(wb, "Smi)Thats it! You got that one right!", "Smi)Unfortunately your solution was not right")
 
@@ -930,7 +930,7 @@ Browser(ByRef wb) {
       }
 
     } Catch e {
-      If (debug != 0) {
+      If (debug != 1) {
         MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
       } Else
@@ -943,7 +943,7 @@ Browser(ByRef wb) {
     If (answer = 1)
       CheckAnwser(wb, "Smi)class=.?text-success.?", "Smi)class=.?text-danger.?")
 
-  } Else If (args[1] = "gcm") { ; =============================================> GC.GCM.CZ (14)
+  } Else If (args[1] = "gcm") { ; ================================================> GC.GCM.CZ (14)
     ; URL: https://gc.gcm.cz/validator/index.php?uuid=7f401a15-231e-44c8-a6e6-bf8b9c69a624
     ; Captcha: YES
     Gui, Show,, % "Checker - " . args[1] ; Change title
@@ -969,7 +969,7 @@ Browser(ByRef wb) {
       wb.Document.All.captcha.Focus()
 
     } Catch e {
-      If (debug != 0) {
+      If (debug != 1) {
         MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
       } Else
@@ -991,9 +991,9 @@ Browser(ByRef wb) {
     MsgBox, 48, % textError, % textDoxina
     ExitApp, errorLvl
 
-  } Else { ; ======================================================================> SERVICE ERROR
+  } Else { ; =====================================================================> SERVICE ERROR
     MsgBox 16, % textError, % textErrorService
-    If (debug != 0)
+    If (debug != 1)
       ExitApp, errorLvl
   }
 
@@ -1010,7 +1010,7 @@ If iefix
 ; Apply registry settings for SSL certificates
 If certfix
   Global Cert := FixIEcert()
-  
+
 ; Call main function
 Browser(wb)
 Return

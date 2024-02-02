@@ -11,27 +11,27 @@
 {$include InstallTool.lib.pas}
 
 {Do install tasks here.}
-function InstallWork: string;
+function InstallWork: String;
 var
-  ini:TIniFile;
+  ini: TIniFile;
 begin
   {changelog}
-  if FileExists(GEOGET_SCRIPTDIR+'\Checker\Checker.changelog.txt') then ShowLongMessage(_('Changelog'), FileToString(GEOGET_SCRIPTDIR + '\Checker\Checker.changelog.txt'));
+  if FileExists(GEOGET_SCRIPTDIR + '\Checker\Checker.changelog.txt') then ShowLongMessage(_('Changelog'), FileToString(GEOGET_SCRIPTDIR + '\Checker\Checker.changelog.txt'));
 
   {clean after upgrade to version 0.2.0.0}
-  if FileExists(GEOGET_SCRIPTDIR+'\Checker\AutoIt3.exe') then DeleteFile(GEOGET_SCRIPTDIR+'\Checker\AutoIt3.exe');
-  if FileExists(GEOGET_SCRIPTDIR+'\Checker\AutoItConstants.au3') then DeleteFile(GEOGET_SCRIPTDIR+'\Checker\AutoItConstants.au3');
-  if FileExists(GEOGET_SCRIPTDIR+'\Checker\FileConstants.au3') then DeleteFile(GEOGET_SCRIPTDIR+'\Checker\FileConstants.au3');
-  if FileExists(GEOGET_SCRIPTDIR+'\Checker\Checker.au3') then DeleteFile(GEOGET_SCRIPTDIR+'\Checker\Checker.au3');
-  if FileExists(GEOGET_SCRIPTDIR+'\Checker\GUIConstantsEx.au3') then DeleteFile(GEOGET_SCRIPTDIR+'\Checker\GUIConstantsEx.au3');
-  if FileExists(GEOGET_SCRIPTDIR+'\Checker\IE.au3') then DeleteFile(GEOGET_SCRIPTDIR+'\Checker\IE.au3');
-  if FileExists(GEOGET_SCRIPTDIR+'\Checker\WinAPIError.au3') then DeleteFile(GEOGET_SCRIPTDIR+'\Checker\WinAPIError.au3');
-  if FileExists(GEOGET_SCRIPTDIR+'\Checker\WindowsConstants.au3') then DeleteFile(GEOGET_SCRIPTDIR+'\Checker\WindowsConstants.au3');
+  if FileExists(GEOGET_SCRIPTDIR + '\Checker\AutoIt3.exe') then DeleteFile(GEOGET_SCRIPTDIR + '\Checker\AutoIt3.exe');
+  if FileExists(GEOGET_SCRIPTDIR + '\Checker\AutoItConstants.au3') then DeleteFile(GEOGET_SCRIPTDIR + '\Checker\AutoItConstants.au3');
+  if FileExists(GEOGET_SCRIPTDIR + '\Checker\FileConstants.au3') then DeleteFile(GEOGET_SCRIPTDIR + '\Checker\FileConstants.au3');
+  if FileExists(GEOGET_SCRIPTDIR + '\Checker\Checker.au3') then DeleteFile(GEOGET_SCRIPTDIR + '\Checker\Checker.au3');
+  if FileExists(GEOGET_SCRIPTDIR + '\Checker\GUIConstantsEx.au3') then DeleteFile(GEOGET_SCRIPTDIR + '\Checker\GUIConstantsEx.au3');
+  if FileExists(GEOGET_SCRIPTDIR + '\Checker\IE.au3') then DeleteFile(GEOGET_SCRIPTDIR + '\Checker\IE.au3');
+  if FileExists(GEOGET_SCRIPTDIR + '\Checker\WinAPIError.au3') then DeleteFile(GEOGET_SCRIPTDIR + '\Checker\WinAPIError.au3');
+  if FileExists(GEOGET_SCRIPTDIR + '\Checker\WindowsConstants.au3') then DeleteFile(GEOGET_SCRIPTDIR + '\Checker\WindowsConstants.au3');
 
   {delete finar.txt}
-  if FileExists(GEOGET_SCRIPTDIR+'\Checker\finar.txt') then DeleteFile(GEOGET_SCRIPTDIR+'\Checker\finar.txt');
+  if FileExists(GEOGET_SCRIPTDIR + '\Checker\finar.txt') then DeleteFile(GEOGET_SCRIPTDIR + '\Checker\finar.txt');
   
-  ini := TIniFile.Create(GEOGET_SCRIPTDIR+'\Checker\Checker.ini');
+  ini := TIniFile.Create(GEOGET_SCRIPTDIR + '\Checker\Checker.ini');
   try
     {delete key finar from ini}
     if ini.ValueExists('Checker', 'finar') then ini.DeleteKey('Checker', 'finar');
@@ -43,9 +43,9 @@ begin
   end;
   
   {installtool}
-  InstallTool_MoveFile(GEOGET_SCRIPTDIR+'\Checker\AutoHotKey.exe', 'Checker');
+  InstallTool_MoveFile(GEOGET_SCRIPTDIR + '\Checker\AutoHotKey.exe', 'Checker');
   
-  result := '';  // run without error
+  result := '';  // Run without error
 end;
 
 {Do Uninstall tasks here.}
@@ -54,5 +54,5 @@ begin
   {installtool}
   InstallTool_RemoveFile('AutoHotkey.exe', 'Checker');
   
-  result := '';  // run without error
+  result := '';  // Run without error
 end;
