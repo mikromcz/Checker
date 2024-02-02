@@ -1,3 +1,6 @@
+** 0.1.2.1 (2015/03/19) **
+  * na geochecker.com pridali captchu, tak oprava overeni. nìkdy se napoprvé nenaète správnì obrázek, ale staèí si kliknout pro refresh obrázku
+
 ** 0.1.2.0 (2014/11/16) **
   * optimalizace kódu
   * doplnìní pøekladu

@@ -3,7 +3,7 @@
 ;; Www: http://geoget.ararat.cz/doku.php/user:skript:checker
 ;; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ;; Author: mikrom, http://mikrom.cz
-;; Version: 0.1.2.0
+;; Version: 0.1.2.1
 ;;
 ;; parameters  service     ns          dx          mx          sx          ew          dy          my          sy          url
 ;; eg.         checker     N           50          15          123         E           015         54          123         http://checker.org/check?=a56sjg4678gdg
@@ -64,10 +64,11 @@ Func Browser()
       _IELoadWait($oIE)                                                                 ;; Wait for a browser page load to complete before returning
 
     ;; ==========================================================================> GEOCHECKER
-    ;; url: http://www.geochecker.com/index.php?code=e380cf72d82fa02a81bf71505e8c535c&action=check&wp=4743324457584d&name=536b6c656e696b202d20477265656e20486f757365
+    ;; url: http://www.geochecker.com/index.php?code=150e9c12665c476df9d1fcc30eeae605&action=check&wp=4743354e595a33&name=4d79646c6f
+	;; url: http://www.geochecker.com/index.php?code=150e9c12665c476df9d1fcc30eeae605&action=check&wp=4743354e595a33&name=4d79646c6f&CaptchaChoice=Recaptcha
     ;; captcha: no
     Case "geochecker"
-      _IENavigate($oIE, $CmdLine[10])                                                                ;; Open url
+      _IENavigate($oIE, $CmdLine[10] & "&CaptchaChoice=Recaptcha")                                   ;; Open url, pridano &CaptchaChoice=Recaptcha pro alternativni captchu
       $oForm = _IEFormGetObjByName($oIE, "form")                                                     ;; Form name
       _IEFormElementSetValue(_IEFormElementGetObjByName($oForm, "LatString"), $CmdLine[2] & " " & _
                                                                               $CmdLine[3] & " " & _
@@ -79,10 +80,10 @@ Func Browser()
                                                                               $CmdLine[9])           ;; LonString
       _IEAction($oIE, "stop")                                                                        ;; Cancels any pending navigation or download operation and stops any dynamic page elements, such as background sounds and animations.
       Sleep(1000)                                                                                    ;; Wait a while
-      ;_IEAction(_IEFormElementGetObjByName($oForm, "button"), "click")                               ;; Submit
-      _IEFormSubmit($oForm)                                                                          ;; Submit 2nd version :)
+      ;_IEAction(_IEFormElementGetObjByName($oForm, "button"), "click")                               ;; Submit, v 2015 pridali captchu, tak uz neni potreba :(
+      ;;_IEFormSubmit($oForm)                                                                          ;; Submit 2nd version :)
       _IELoadWait($oIE)                                                                              ;; Wait for a browser page load to complete before returning
-      $oIE.document.parentwindow.scroll(0, 200)                                                      ;; Scroll a little bit down :)
+      ;$oIE.document.parentwindow.scroll(0, 200)                                                      ;; Scroll a little bit down :), taky uz od 2015 neni potreba
 
     ;; ==========================================================================> EVINCE
     ;; url: http://evince.locusprime.net/cgi-bin/index.cgi?q=d0ZNzQeHKReGKzr
