@@ -2,7 +2,7 @@
 ; Www: http://geoget.ararat.cz/doku.php/user:skript:checker
 ; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ; Author: mikrom, http://mikrom.cz
-; Version: 0.2.6.2
+; Version: 0.2.7.0
 ;
 ; Documentation: http://ahkscript.org/docs/AutoHotkey.htm
 ; FAQ: http://www.autohotkey.com/docs/FAQ.htm
@@ -252,7 +252,6 @@ Browser(ByRef wb) {
     Gui, Show,, % "Checker - " . args[1] ; Change title
     
     wb.Navigate(args[10]) ; Navigate to webpage
-    ;wb.Navigate("http://proxy.mikrom.cz/browse.php?u=" . UriEncode(args[10]) . "&b=8&f=norefer") ;wb.Navigate(args[10]) ; Navigate to webpage    
     LoadWait(wb)          ; Wait for page load
 
     ; Try to fill the webpage form
@@ -291,12 +290,14 @@ Browser(ByRef wb) {
         ; If there is no "onefield" and no "latdeg" input there is probably warning about reach max tries
         ; then, we try reload page with proxy server!
         ; <tr><th colspan="2">P&#345;íli? mnoho pokus&#367;</th></tr>
-        If (debug = 1)
-          MsgBox, % "Proxy"
 
         Sleep, 1000
 
-        wb.Navigate("http://proxy.mikrom.cz/browse.php?u=" . UriEncode(args[10]) . "&b=8&f=norefer") ; Navigate to webpage    
+        Gui, Show,, % "Checker - " . args[1] . " - PROXY" ; Change title
+        If (debug = 1)
+          wb.Navigate("https://geocaching.mikrom.cz/proxy/index.php?q=" . args[10] . "")        ; Navigate to webpage
+        Else
+          wb.Navigate("https://geocaching.mikrom.cz/proxy/index.php?q=" . args[10] . "&hl=1e7") ; Navigate to webpage
         LoadWait(wb)                                                                      ; Wait for page load
 
         ; Checking radiobuttons is little bit difficult
@@ -668,7 +669,7 @@ Browser(ByRef wb) {
     If (answer = 1)
       CheckAnwser(wb, "Smi)<span id=.?congrats.?>", "Smi)<span id=.?nope.?>")
 
-} Else If (SubStr(args[1], 1, 9) = "challenge") { ; ===============================> CHALLENGE (10)
+  } Else If (SubStr(args[1], 1, 9) = "challenge") { ; ===============================> CHALLENGE (10)
     ; URL: http://project-gc.com/Challenges/GC27Z84
     ; Captcha: NO
     Gui, Show,, % "Checker - " . args[1] ; Change title
@@ -704,6 +705,43 @@ Browser(ByRef wb) {
     ;If (answer = 1)
     ;  CheckAnwser(wb, "Smi)<img src=.?congrats.?>", "Smi)<img src=.?nope.?>")
 
+  } Else If (args[1] = "gcapps") { ; =============================================> GCAPPS (11)
+    ; URL: http://www.gc-apps.com/geochecker/show/b1a0a77fa830ddbb6aa4ed4c69057e79
+    ; URL: http://www.gc-apps.com/index.php?option=com_geochecker&view=item&id=b1a0a77fa830ddbb6aa4ed4c69057e79
+    ; Captcha: YES
+    Gui, Show,, % "Checker - " . args[1] ; Change title
+
+    wb.Navigate(args[10]) ; Navigate to webpage
+    LoadWait(wb)          ; Wait for page load
+
+    ; Try to fill the webpage form
+    Try {
+      If (args[2] = "N")
+        wb.Document.All.jform_ns.SelectedIndex := 0
+      If (args[2] = "S")
+        wb.Document.All.jform_ns.SelectedIndex := 1   
+      wb.Document.All.jform_nsa.Value := args[3]
+      wb.Document.All.jform_nsb.Value := args[4]
+      wb.Document.All.jform_nsc.Value := args[5]
+      If (args[6] = "W")
+        wb.Document.All.jform_we.SelectedIndex := 0
+      If (args[6] = "E")
+        wb.Document.All.jform_we.SelectedIndex := 1
+      wb.Document.All.jform_wea.Value := args[7]
+      wb.Document.All.jform_web.Value := args[8]
+      wb.Document.All.jform_wec.Value := args[9]
+      
+      wb.Document.All._captcha.Focus()
+    } Catch e {
+      MsgBox 16, % textError, % textErrorFill
+      ExitApp, errorLvl
+    }
+
+    ; Check result after page reload
+    ; YES: <div class="alert alert-success"> .. <img id="status-icon" border="0" src="/components/com_geochecker/assets/images/correct.png" /> .. <div id="status-msg">Richtig!
+    ; NO:  <div class="alert alert-danger"> .. <img id="status-icon" border="0" src="/components/com_geochecker/assets/images/wrong.png" /> .. <div id="status-msg">Falsch!
+    If (answer = 1)
+      CheckAnwser(wb, "Smi)class=.?alert alert-success.?", "Smi)class=.?alert alert-danger.?")
   } Else { ; ======================================================================> SERVICE ERROR
     MsgBox 16, % textError, % textErrorService
     ExitApp, errorLvl

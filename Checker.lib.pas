@@ -4,7 +4,7 @@
   Www: http://geoget.ararat.cz/doku.php/user:skript:checker
   Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
   Author: mikrom, http://mikrom.cz
-  Version: 0.2.6.0
+  Version: 0.2.7.0
 
   ToDo:
   * This is maybe interesting: http://www.regular-expressions.info/duplicatelines.html
@@ -23,6 +23,7 @@ const
   gpscacheRegex   = '(?i)https?:\/\/(www\.)?geochecker\.gps-cache\.de\/check\.aspx\?id\=([^"''<\s]+)';
   gccheckRegex    = '(?i)https?:\/\/(www\.)?gccheck\.com\/(GC[^"''<\s]+)';
   challengeRegex  = '(?i)https?:\/\/(www\.)?project-gc\.com\/Challenges\/GC[A-Z0-9]+\/\d+[^"''<\s]+';
+  gcappsRegex     = '(?i)https?:\/\/(www\.)?gc-apps\.com\/geochecker\/show\/([^"''<\s]+)'; // '(?i)https?:\/\/(www\.)?gc-apps\.com\/(geochecker\/show\/)|(index\.php\?option=com_geochecker&view=item&id=)([^"''<\s]+)';
 
 var
   debug, answer: Boolean;
@@ -205,6 +206,16 @@ begin
       url := RegExSubstitute(challengeRegex, description, '$0#'); // Parse URL from listing (on purpose it ends with '#')
       service := '"challenge|' + GEOGET_OWNER +'"'; //EncodeUrlElement(GEOGET_OWNER);
     end
+    {
+    GC-APPS
+    url: http://www.gc-apps.com/geochecker/show/b1a0a77fa830ddbb6aa4ed4c69057e79
+    url: http://www.gc-apps.com/index.php?option=com_geochecker&view=item&id=b1a0a77fa830ddbb6aa4ed4c69057e79
+    captcha: yes
+    }
+    else if RegexFind(gcappsRegex, description) then begin
+      url := RegExSubstitute(gcappsRegex, description, '$0#'); // Parse URL from listing (on purpose it ends with '#')
+      service := 'gcapps';
+    end 
     {Standard behavior}
     else begin
       ShowMessage(_('Error: No coordinate checker URL found!'));
@@ -225,11 +236,11 @@ begin
         0: if debug then ShowMessage(_('OK, neither correct or incorrect')); // AHK script run without error, but not found if result was correct or not
         1: begin                                                             // If it WAS correct add special comment to the Final waypoint
              if debug then ShowMessage(_('Correct solution! :)'));
-             UpdateWaypointComment(correct);
+             if correct <> '' then UpdateWaypointComment(correct);
            end;
         2: begin                                                             // If it WAS NOT correct add special comment to the Final waypoint
              if debug then ShowMessage(_('Incorrect solution! :('));
-             UpdateWaypointComment(incorrect);
+             if incorrect <> '' then UpdateWaypointComment(incorrect);
            end;
         3: if debug then ShowMessage(_('Error'));
       end;
