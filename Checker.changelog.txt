@@ -1,8 +1,12 @@
+** 2.16.0 (2017/10/13) **
+  * aktualizace AutoHotkey na verzi 1.1.26.01
+  * pøidána promìnná timeout do INI. Nyní je možno zmìnit výchozích 5s na více u nìkterých pomalých ovìøovaèù
+
 ** 2.15.0 (2017/06/13) **
   * BETA: teoreticky automatické pøihlášení na project-gc.com u challenge keší (INI: pgclogin=1)
   * ošetøeno parsování odkazù bez uvedeného protokolu HTTP/HTTPS, takže jen //gccheck.com
   * ovìøení na geocheck.org podporuje slovenštinu
-  * oprava parsování geochecker.com. Je upravený web s jedním polem na souøadnice (varianta s dvìmi poly zachována)
+  * oprava parsování geochecker.com. Je upravený web s jedním polem na souøadnice (varianta s dvìmi poli zachována)
 
 ** 2.14.0 (2017/06/01) **
   * pøidána podpora validator.gcm.cz (na gc.gcm.cz/validator je pøesmìrování)

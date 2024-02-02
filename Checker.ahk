@@ -1,9 +1,9 @@
 ; Checker AHK
-; Www: http://geoget.ararat.cz/doku.php/user:skript:checker
+; Www: https://www.geoget.cz/doku.php/user:skript:checker
 ; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ; Icon: https://icons8.com/icon/18401/Thumb-Up
 ; Author: mikrom, https://www.mikrom.cz
-; Version: 2.15.0
+; Version: 2.16.0
 ;
 ; Documentation: http://ahkscript.org/docs/AutoHotkey.htm
 ; FAQ: http://www.autohotkey.com/docs/FAQ.htm
@@ -36,17 +36,19 @@ Global certfix := 0  ; INI: Disable some strict settings for some HTTPS websites
 Global beep :=0      ; INI: Accoustic feedback for (in)correct verification
 Global copymsg := 0  ; INI: Copy owner's message to clipboard for possible next use
 Global pgclogin :=0  ; INI: Try to login to project-gc.com for challenge caches?
+Global timeout := 0  ; INI: You can specify webpage loading timeout (default 5s), change in the INI!
 Global cnt := 0      ; Only counter that we increment while we are waiting for verification page
 
 ; Read setting from INI
-IniRead, debug,    %A_ScriptDir%\Checker.ini, % "Checker", % "debug"    ; For enabling debug mode, show some infos, ListVars, ..
-IniRead, proxy,    %A_ScriptDir%\Checker.ini, % "Checker", % "proxy"    ; If user is banned for many tries in short time, we try load page with proxyserver
-IniRead, iefix,    %A_ScriptDir%\Checker.ini, % "Checker", % "iefix"    ; Try to fix IE render engine to latest by changing registry
-IniRead, answer,   %A_ScriptDir%\Checker.ini, % "Checker", % "answer"   ; Define return check result
-IniRead, certfix,  %A_ScriptDir%\Checker.ini, % "Checker", % "certfix"  ; Disable some strict settings for SSL certificates
-IniRead, beep,     %A_ScriptDir%\Checker.ini, % "Checker", % "beep"     ; Accoustic feedback for (in)correct verification
-IniRead, copymsg,  %A_ScriptDir%\Checker.ini, % "Checker", % "copymsg"  ; Copy owner's message to clipboard for possible next use
-IniRead, pgclogin, %A_ScriptDir%\Checker.ini, % "Checker", % "pgclogin" ; Try to login to project-gc.com page for challenge caches
+IniRead, debug,    %A_ScriptDir%\Checker.ini, % "Checker", % "debug", 0   ; For enabling debug mode, show some infos, ListVars, ..
+IniRead, proxy,    %A_ScriptDir%\Checker.ini, % "Checker", % "proxy", 0   ; If user is banned for many tries in short time, we try load page with proxyserver
+IniRead, iefix,    %A_ScriptDir%\Checker.ini, % "Checker", % "iefix", 1   ; Try to fix IE render engine to latest by changing registry
+IniRead, answer,   %A_ScriptDir%\Checker.ini, % "Checker", % "answer"     ; Define return check result
+IniRead, certfix,  %A_ScriptDir%\Checker.ini, % "Checker", % "certfix"    ; Disable some strict settings for SSL certificates
+IniRead, beep,     %A_ScriptDir%\Checker.ini, % "Checker", % "beep"       ; Accoustic feedback for (in)correct verification
+IniRead, copymsg,  %A_ScriptDir%\Checker.ini, % "Checker", % "copymsg"    ; Copy owner's message to clipboard for possible next use
+IniRead, pgclogin, %A_ScriptDir%\Checker.ini, % "Checker", % "pgclogin"   ; Try to login to project-gc.com page for challenge caches
+IniRead, timeout,  %A_ScriptDir%\Checker.ini, % "Checker", % "timeout", 5 ; You can specify webpage loading timeout (default 5s)
 
 ; Change icon of GUI title, tray, ...
 IfExist, %A_ScriptDir%\Checker.ico
@@ -213,6 +215,9 @@ LoadWait(ByRef wb) {
   If !wb                                      ; If wb is not a valid pointer then quit
     Return False
 
+  If (timeout = 0)
+    timeout = 1
+
   cnt := 0                                    ; Reset variable to zero
   Loop {                                      ; Otherwise sleep for .1 seconds untill the page starts loading
     Sleep, 100
@@ -223,7 +228,7 @@ LoadWait(ByRef wb) {
     Else
       GuiControl,, labelanswer, % cnt . "_1"
 
-    If (cnt >= 50)                            ; Timeout .1 x 10 = 1000ms, so 5 seconds?
+    If (cnt >= (timeout * 10))                ; Timeout 100ms * 10 * timeout(5) = 5s
       Return ;wb.Stop                         ; Cancels a pending navigation or download, and stops dynamic page elements, such as background sounds and animations.
   } Until (wb.Busy)
 
@@ -237,7 +242,7 @@ LoadWait(ByRef wb) {
     Else
       GuiControl,, labelanswer, % cnt . "_2"
 
-    If (cnt >= 50)                            ; Timeout .1 x 10 = 1000ms, so 5 seconds?
+    If (cnt >= (timeout * 10))                ; Timeout 100ms * 10 * timeout(5) = 5s
       Return ;wb.Stop                         ; Cancels a pending navigation or download, and stops dynamic page elements, such as background sounds and animations.
   } Until (!wb.Busy)
 
