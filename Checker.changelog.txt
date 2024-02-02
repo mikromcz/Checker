@@ -1,5 +1,9 @@
-** 0.2.4.0 (2016/04/12) **
+** 0.2.5.0 (2016/05/01) **
   * pøidáno ovìøení na gccheck.com
+  * pøidána nìjaká druhá verze gccounter.de
+  * koneènì se AHK skript nezhroutí pokud na stránce nenalezne políèko k vyplnìní!
+  * pøidána možnost pøedání výsledku ovìøení do GeoGetu (standardnì, zápis do poznámky finálového waypointu)
+  * spousta malých oprav a úprav
 
 ** 0.2.3.0 (2016/02/23) **
   * ošetøena chyba na geocheck.org
@@ -93,3 +97,8 @@
 
 ** 0.0.1.1 (2013/04/30) **
   * GIP verze
+
+** Thanks To **
+  * Icon from: http://www.iconarchive.com/show/colorful-long-shadow-icons-by-graphicloads/Hand-thumbs-up-like-2-icon.html
+  * ESC, TAB, Ctrl+C, Ctrl+V work because of this: http://ahkscript.org/boards/viewtopic.php?f=7&t=879
+  * Some help from @phaleth, https://kiwiirc.com/client/irc.freenode.net/#ahk

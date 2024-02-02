@@ -1,88 +1,112 @@
 {
-	Library of Function
+  Library of Functions
 
   Www: http://geoget.ararat.cz/doku.php/user:skript:checker
   Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
   Author: mikrom, http://mikrom.cz
-  Version: 0.2.4.0
+  Version: 0.2.4.2
 
-  tohle by mohlo bejt zajimavy: http://www.regular-expressions.info/duplicatelines.html
+  ToDo:
+  This is maybe interesting: http://www.regular-expressions.info/duplicatelines.html
 }
 
 const
-  {define search regex here, good test is here: https://regex101.com/}
+  {Define search regex here, good test is here: https://regex101.com/ or http://regexr.com/}
   geocheckRegex   = '(?i)https?:\/\/(www\.)?(geocheck\.org|geotjek\.dk)\/geo_inputchkcoord([^"''<\s]+)';
   geocheckerRegex = '(?i)https?:\/\/(www\.)?geochecker\.com\/index\.php([^"''<\s]+)';
   evinceRegex     = '(?i)https?:\/\/(www\.)?evince\.locusprime\.net\/cgi-bin\/([^"''<\s]+)';
   hermanskyRegex  = '(?i)https?:\/\/(www\.)?(geo\.hermansky\.net|speedygt\.ic\.cz\/gps)\/index\.php\?co\=checker([^"''<\s]+)';
   komurkaRegex    = '(?i)https?:\/\/(www\.)?geo\.komurka\.cz\/check\.php([^"''<\s]+)';
   gccounterRegex  = '(?i)https?:\/\/(www\.)?gccounter\.(de|com)\/gcchecker\.php([^"''<\s]+)';
+  gccounter2Regex = '(?i)https?:\/\/(www\.)?gccounter\.(de|com)\/GCchecker\/Check([^"''<\s]+)';
   certitudesRegex = '(?i)https?:\/\/(www\.)?certitudes\.org\/certitude\?wp\=([^"''<\s]+)';
   gpscacheRegex   = '(?i)https?:\/\/geochecker\.gps-cache\.de\/check\.aspx\?id\=([^"''<\s]+)';
   gccheckRegex    = '(?i)https?:\/\/gccheck\.com\/(GC[^"''<\s]+)';
 
 var
-  debug, finar:Boolean;
+  debug, finar, answer: Boolean;
 
-{ocisteni url, nekdy se to z listingu vyparsuje blbe, tohle to celkem uspesne resi}
-function TrimUrl(url:String):String;
+{Update waypoint comment. Add custom string (correct|incorrect from ini) at the begining of the waypoint comment. String will be in curly brackets!}
+procedure UpdateWaypointComment(ans: String);
+var
+  n: Integer;
+begin
+  for n:=0 to GC.Waypoints.Count-1 do begin // for all waypoints
+    if GC.Waypoints[n].IsSelected and GC.Waypoints[n].IsFinal then begin // which are SELECTED and FINAL
+      if GC.Waypoints[n].Comment <> '' then begin // if there is already some comment
+        if RegexFind('^\{[^}]+\}', GC.Waypoints[n].Comment) then // and have our tag at the begining
+          GC.Waypoints[n].UpdateComment(RegexReplace('^\{([^}]+)\}', GC.Waypoints[n].Comment, '{'+ans+'}', true)) // REPLACE the existing tag
+        else // else ADD tag at the begining
+          GC.Waypoints[n].UpdateComment('{'+ans+'} ' + GC.Waypoints[n].Comment);
+      end 
+      else // or if comment has no our tab, then ADD only tag
+        GC.Waypoints[n].UpdateComment('{'+ans+'}');
+      GeoListUpdateID(GC.ID);
+    end;
+  end;
+end;
+
+{Cleaning URLs, sometime its parsed wrong, with this it looks working great}
+function TrimUrl(url: String): String;
 begin
   if debug then ShowMessage(url);
-  url := RegexReplace('\n.*', url, '', false); // nekdy je to na dva radky
+  url := RegexReplace('\n.*', url, '', false); // Sometimes it is on two rows
   if debug then ShowMessage(url);
-  url := RegexReplace('#.*', url, '', false); // zabraneni dvojitym url pokud je v listingu vicekrat (www.neco.cz/odkazwww.neco.cz/odkaz)
+  url := RegexReplace('#.*', url, '', false); // Preventing doubled urls (www.neco.cz/odkazwww.neco.cz/odkaz)
   result := url;
 end;
 
-{oprava souradnic, nektere weby vyzaduji minuty jako dvojmistne cislo 2.123 => 02.123}
-function CorrectCoords(coords:String):String;
+{Add zeroes to one digit minutes in coordinates, some services need it 2.123 => 02.123}
+function CorrectCoords(coords: String): String;
 begin
   {                        N      50     30    123    E      015    29    456              N  50 30 123 E 015 29 456}
-  coords := RegexReplace('(N|S)\s(\d+)\s(\d+)\s(\d+)\s(E|W)\s(\d+)\s(\d)\s(\d+)', coords, '$1 $2 $3 $4 $5 $6 0$7 $8', true); // pro lat
-  result := RegexReplace('(N|S)\s(\d+)\s(\d)\s(\d+)\s(E|W)\s(\d+)\s(\d+)\s(\d+)', coords, '$1 $2 0$3 $4 $5 $6 $7 $8', true); // pro lon
+  coords := RegexReplace('(N|S)\s(\d+)\s(\d+)\s(\d+)\s(E|W)\s(\d+)\s(\d)\s(\d+)', coords, '$1 $2 $3 $4 $5 $6 0$7 $8', true); // For lat
+  result := RegexReplace('(N|S)\s(\d+)\s(\d)\s(\d+)\s(E|W)\s(\d+)\s(\d+)\s(\d+)', coords, '$1 $2 0$3 $4 $5 $6 $7 $8', true); // For lon
 end;
 
-{hlavni funkce. vpodstate jen propadavacka podle toho na co se narazi a nakonec se zavola autoit}
-procedure Checker(runFrom:String);
+{Main function. Mainly just sifting by service and call AHK at the end}
+procedure Checker(runFrom: String);
 var
-  coord, url, s, service, description:String;
-  n:Integer;
-  ini:TIniFile;
+  coord, url, s, service, description, correct, incorrect: String;
+  n: Integer;
+  ini: TIniFile;
 begin
-  {nacteme konfiguraci z ini}
+  {Read configuration from INI}
   ini := TIniFile.Create(GEOGET_SCRIPTDIR+'\Checker\Checker.ini');
   debug := ini.ReadBool('Checker', 'debug', False);
-  finar := ini.ReadBool('Checker', 'debug', False);
+  finar := ini.ReadBool('Checker', 'finar', False);
+  answer := ini.ReadBool('Checker', 'answer', False);
+  correct := ini.ReadString('Checker', 'correct', 'CORRECT');
+  incorrect :=ini.ReadString('Checker', 'incorrect', 'INCORRECT');
   ini.Free;
 
-  {v GC3PVWQ je odkaz na ovìøení v ShortDescription}
+  {This cache GC3PVWQ have url in short description, so we join short and long together}
   description := GC.ShortDescription + GC.LongDescription;
 
-  {zjistime zda bylo spusteno z GGP, nebo GGC skriptu}
+  {Check if this script runs from GGP or GGC script}
   case runFrom of
     'ggp': if GC.IsSelected then // for cache
              coord := FormatCoordNum(GC.CorrectedLatNum, GC.CorrectedLonNum)
            else begin // for waypoint
-             for n:=0 to GC.Waypoints.Count-1 do begin
+             for n:=0 to GC.Waypoints.Count-1 do
                if GC.Waypoints[n].IsSelected then coord := FormatCoordNum(GC.Waypoints[n].LatNum, GC.Waypoints[n].LonNum);
-             end;
            end;
     'ggc': coord := FormatCoordNum(GC.CorrectedLatNum, GC.CorrectedLonNum);
   end;
 
-  {pro jistotu zda jsou souradnice nenulove}
+  {Just for sure if coordinates are not zero}
   if coord <> '???' then begin
-    {N50°30.123' E015°29.456' rozdelime na jednotlive sekce oddelene mezerami => N 50 30 123 E 015 29 456}
+    {N50°30.123' E015°29.456' split to sections divided by spaces => N 50 30 123 E 015 29 456}
     coord := RegexReplace('(N|S)(\d+)°(\d+)\.(\d+)''\s(E|W)(\d+)°(\d+)\.(\d+)''', coord, '$1 $2 $3 $4 $5 $6 $7 $8', true);
 
-    {zjistit typ overovaci sluzby - geocheck.org, geochecker.com, evince.locusprime.net, atd..}
+    {Try to finf type of the checking service - geocheck.org, geochecker.com, evince.locusprime.net, etc..}
     {
     GEOCHECK
     url: geocheck.org/geo_inputchkcoord.php?gid=61241961c72ab1d-b813-47da-bf03-07c67bb81ac9
     captcha: yes
     }
     if RegexFind(geocheckRegex, description) then begin
-      url := RegExSubstitute(geocheckRegex, description, '$0#'); // parsnout url z listingu, description (konci '#')
+      url := RegExSubstitute(geocheckRegex, description, '$0#'); // Parse URL from listing (on purpose it ends with '#')
       service := 'geocheck';
     end
     {
@@ -91,7 +115,7 @@ begin
     captcha: no
     }
     else if RegexFind(geocheckerRegex, description) then begin
-      url := RegExSubstitute(geocheckerRegex, description, '$0#'); // parsnout url z listingu, description (konci '#')
+      url := RegExSubstitute(geocheckerRegex, description, '$0#'); // Parse URL from listing (on purpose it ends with '#')
       service := 'geochecker';
     end
     {
@@ -100,7 +124,7 @@ begin
     captcha: yes
     }
     else if RegexFind(evinceRegex, description) then begin
-      url := RegExSubstitute(evinceRegex, description, '$0#'); // parsnout url z listingu, description (konci '#')
+      url := RegExSubstitute(evinceRegex, description, '$0#'); // Parse URL from listing (on purpose it ends with '#')
       service := 'evince';
     end
     {
@@ -109,7 +133,7 @@ begin
     captcha: no
     }
     else if RegexFind(hermanskyRegex, description) then begin
-      url := RegExSubstitute(hermanskyRegex, description, '$0#'); // parsnout url z listingu, description (konci '#')
+      url := RegExSubstitute(hermanskyRegex, description, '$0#'); // Parse URL from listing (on purpose it ends with '#')
       service := 'hermansky';
     end
     {
@@ -118,7 +142,7 @@ begin
     captcha: yes
     }
     else if RegexFind(komurkaRegex, description) then begin
-      url := RegExSubstitute(komurkaRegex, description, '$0#'); // parsnout url z listingu, description (konci '#')
+      url := RegExSubstitute(komurkaRegex, description, '$0#'); // Parse URL from listing (on purpose it ends with '#')
       service := 'komurka';
     end
     {
@@ -127,8 +151,17 @@ begin
     captcha: no
     }
     else if RegexFind(gccounterRegex, description) then begin
-      url := RegExSubstitute(gccounterRegex, description, '$0#'); // parsnout url z listingu, description (konci '#')
+      url := RegExSubstitute(gccounterRegex, description, '$0#'); // Parse URL from listing (on purpose it ends with '#')
       service := 'gccounter';
+    end
+    {
+    GCCOUNTER2
+    url: http://gccounter.de/GCchecker/Check?cacheID=3545
+    captcha: no
+    }
+    else if RegexFind(gccounter2Regex, description) then begin
+      url := RegExSubstitute(gccounter2Regex, description, '$0#'); // Parse URL from listing (on purpose it ends with '#')
+      service := 'gccounter2';
     end
     {
     CERTITUDES
@@ -136,7 +169,7 @@ begin
     captcha: no
     }
     else if RegexFind(certitudesRegex, description) then begin
-      url := RegExSubstitute(certitudesRegex, description, '$0#'); // parsnout url z listingu, description (konci '#')
+      url := RegExSubstitute(certitudesRegex, description, '$0#'); // Parse URL from listing (on purpose it ends with '#')
       service := 'certitudes';
     end
     {
@@ -145,7 +178,7 @@ begin
     captcha: yes
     }
     else if RegexFind(gpscacheRegex, description) then begin
-      url := RegExSubstitute(gpscacheRegex, description, '$0#'); // parsnout url z listingu, description (konci '#')
+      url := RegExSubstitute(gpscacheRegex, description, '$0#'); // Parse URL from listing (on purpose it ends with '#')
       service := 'gpscache';
     end
     {
@@ -154,7 +187,7 @@ begin
     captcha: yes
     }
     else if RegexFind(gccheckRegex, description) then begin
-      url := RegExSubstitute(gccheckRegex, description, '$0#'); // parsnout url z listingu, description (konci '#')
+      url := RegExSubstitute(gccheckRegex, description, '$0#'); // Parse URL from listing (on purpose it ends with '#')
       service := 'gccheck';
     end
     {
@@ -166,23 +199,35 @@ begin
       url := 'http://gc.elanot.cz/index.php/data-final.html';
       service := 'finar';
     end
-    {standard behavior}
+    {Standard behavior}
     else begin
       ShowMessage(_('Error: No coordinate checker URL found!'));
       GeoAbort;
     end;
 
-    //s := '"'+GEOGET_SCRIPTDIR+'\Checker\AutoHotkey.exe" "'+GEOGET_SCRIPTDIR+'\Checker\Checker.ahk" '+service+' '+CorrectCoords(coord)+' "'+TrimUrl(url)+'"'
-    s := '"'+GEOGET_DATADIR+'\tools\AutoHotkey.exe" "'+GEOGET_SCRIPTDIR+'\Checker\Checker.ahk" '+service+' '+CorrectCoords(coord)+' "'+TrimUrl(url)+'"'
+    {Make command for running AHK}
+    s := '"' + GEOGET_DATADIR+'\tools\AutoHotkey.exe" "' + GEOGET_SCRIPTDIR+'\Checker\Checker.ahk" ' + service + ' ' + CorrectCoords(coord) + ' "' + TrimUrl(url) + '"';
     if debug then ShowMessage(s);
-    RunExecNoWait(s);
-    //if RunExec(s) = 1 then begin
-    //   ShowMessage('proslo overenim')
-    //end
-    //else begin
-    //  ShowMessage('neproslo overenim')
-    //end;
+    
+    {If we can get result of the check}
+    if answer then begin
+      case RunExec(s) of
+        0: if debug then ShowMessage(_('OK, neither correct or incorrect')); {AHK script run without error, but not found if result was correct or not}
+        1: begin {If it WAS correct add special comment to the Final waypoint}
+          if debug then ShowMessage(_('Correct solution! :)'));
+          UpdateWaypointComment(correct);
+        end;
+        2: begin {If it WAS NOT correct add special comment to the Final waypoint}
+          if debug then ShowMessage(_('Incorrect solution! :('));
+          UpdateWaypointComment(incorrect);
+        end;
+        3: if debug then ShowMessage(_('Error'));
+      end;
+    end
+    else
+      RunExecNoWait(s);
   end
-  {wrong coordinates, maybe they are zero}
-  else ShowMessage(_('Wrong coordinates. Maybe they are zero'));
+  {Wrong coordinates, maybe they are zero}
+  else
+    ShowMessage(_('Wrong coordinates. Maybe they are zero'));
 end;
