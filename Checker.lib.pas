@@ -4,7 +4,7 @@
   Www: http://geoget.ararat.cz/doku.php/user:skript:checker
   Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
   Author: mikrom, http://mikrom.cz
-  Version: 0.1.3.0
+  Version: 0.2.0.0
 
   tohle by mohlo bejt zajimavy: http://www.regular-expressions.info/duplicatelines.html
 }
@@ -129,8 +129,8 @@ begin
       GeoAbort;
     end;
 
-    if debug<>'0' then ShowMessage('"'+GEOGET_SCRIPTDIR+'\Checker\AutoIt3.exe" "'+GEOGET_SCRIPTDIR+'\Checker\Checker.au3" '+service+' '+CorrectCoords(coord)+' '+TrimUrl(url));
-    RunExecNoWait('"'+GEOGET_SCRIPTDIR+'\Checker\AutoIt3.exe" "'+GEOGET_SCRIPTDIR+'\Checker\Checker.au3" '+service+' '+CorrectCoords(coord)+' '+TrimUrl(url));
+    if debug<>'0' then ShowMessage('"'+GEOGET_SCRIPTDIR+'\Checker\AutoHotkey.exe" "'+GEOGET_SCRIPTDIR+'\Checker\Checker.ahk" '+service+' '+CorrectCoords(coord)+' "'+TrimUrl(url)+'"');
+    RunExecNoWait('"'+GEOGET_SCRIPTDIR+'\Checker\AutoHotkey.exe" "'+GEOGET_SCRIPTDIR+'\Checker\Checker.ahk" '+service+' '+CorrectCoords(coord)+' "'+TrimUrl(url)+'"');
   end
   {wrong coordinates, maybe they are zero}
   else ShowMessage(_('Wrong coordinates. Maybe they are zero'));
