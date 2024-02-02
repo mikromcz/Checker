@@ -1,3 +1,7 @@
+=== 0.1.0.2 (2014/05/04) ===
+  * pøidán plugin GGC, takže lze spustit z okna listingu
+  * benevolentnìjší chování - pokud je vybrán bod ovìøují se jeho korigované souøadnice, pokud waypoint tak souø. waypointu. žádná vazba na "Final"
+
 === 0.1.0.1 (2014/05/01) ===
   * pøidáno posunutí stránky s výsledkem pokud nebylo na první pohled vidìt úspìšné ovìøení
   * oprava chyb z verze 0.1.0.0
