@@ -3,7 +3,7 @@
 ; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ; Icon: https://icons8.com/icon/18401/Thumb-Up
 ; Author: mikrom, https://www.mikrom.cz
-; Version: 3.00.0
+; Version: 3.00.1
 ;
 ; Documentation: http://ahkscript.org/docs/AutoHotkey.htm
 ; FAQ: http://www.autohotkey.com/docs/FAQ.htm
@@ -307,9 +307,8 @@ LoadWait(ByRef wb)
     ;    Sleep, 100
     ;} Until (wb.Document.Readystate = "Complete")
 
-    Return True
-
     Sleep, 1000                                                                     ; Just for sure
+    Return True
 } ; => LoadWait()
 
 ; Function for check returned page for the information if verification was successful or not

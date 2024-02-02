@@ -1,4 +1,4 @@
-** 3.00.0 (2021/02/23) **
+** 3.00.0 (2021/05/01) **
   * pøidána podpora GZ Checker (https://infin.ity.me.uk/GZInput.php) - ale ten web je dìlaný v MS FrontPage a moc nejde
   * pøidána podpora geotjek.org
   * pøidána podpora puzzle-checker.com (GC80HFF, GC8X0WQ, ...) se vším všudy (ovìøení správnosti, zkopírování poznámky)
@@ -7,7 +7,7 @@
   * pøidána podpora gccc.eu
   * pøidána podpora gocaching.de
   * pøidána možnost zavolat ggp/gge po ovìøení
-  * aktualizace AutoHotkey na 1.1.33.02
+  * aktualizace AutoHotkey na 1.1.33.08
   * pøidána podpora LittleDebugHelper (http://ggplg.valicek.name/plugin/DebugHelper)
 
 ** 2.22.0 (2019/06/05) **
