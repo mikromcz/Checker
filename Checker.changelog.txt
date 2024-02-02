@@ -1,3 +1,10 @@
+** 2.20.0 (2018/07/24) **
+  * oprava logování do Checker.csv
+  * oprava dávky pro Combine
+  * doplnìno parsování nbsp ve zprávì z checkeru (ownersMessage)
+  * aktualizace autohotkey na 1.1.29.01
+  * v INI pøibyla možnost writenotfound a notfound
+
 ** 2.19.0 (2018/05/01) **
   * pøidána podpora gctoolbox.de
   * aktualizace AutoHotkey na 1.1.28.02

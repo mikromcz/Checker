@@ -4,12 +4,16 @@
   Www: https://www.geoget.cz/doku.php/user:skript:checker
   Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
   Author: mikrom, http://mikrom.cz
-  Version: 2.18.0
+  Version: 2.20.0
 
   ToDo:
   * This is maybe interesting: http://www.regular-expressions.info/duplicatelines.html
   * pokud se najde více stejných ovìøení napø MoM: GC213AF, GC6DJTY
   * na GC2R6R8, GC4W3B2 padá AHK
+  
+  * Arne1: mám takový nápad - zatím jsem nebádal zda to bude realizovatelné.
+           Když je ovìøovaèem Certitude, tak by se mohl kouknout do poznámky u keše, zda tam není øádek uvozený "certitude:" (napøíklad)
+           a ten text za tím pak použil pro ovìøení.
 }
 
 {Minimum GeoGet version}
@@ -79,7 +83,7 @@ begin
   s := ReplaceString(GEOGET_SCRIPTFULLNAME, GEOGET_SCRIPTNAME, '') + 'Checker.csv';
   
   if FileExists(s) then begin
-    if GetFileSize(s) > 1000 then DeleteFile(s)
+    if GetFileSize(s) > 100000 then DeleteFile(s)
     else logFile := FileToString(s);
   end;
   
@@ -108,7 +112,8 @@ end;
 {Main function. Mainly just sifting by service and call AHK at the end}
 procedure Checker(runFrom: String);
 var
-  url, s, coordinates, service, description, correct, incorrect: String;
+  url, s, coordinates, service, description, correct, incorrect, notfound: String;
+  writenotfound: Boolean;
   i, n: Integer;
   ini: TIniFile;
   serviceName, serviceUrl: TStringList;
@@ -117,11 +122,13 @@ begin
   {Read configuration from INI}
   ini := TIniFile.Create(GEOGET_SCRIPTDIR+'\Checker\Checker.ini');
   try
-    debug     := ini.ReadBool('Checker', 'debug', False);
-    answer    := ini.ReadBool('Checker', 'answer', False);
-    correct   := ini.ReadString('Checker', 'correct', 'CORRECT');
-    incorrect := ini.ReadString('Checker', 'incorrect', 'INCORRECT');
-    history   := ini.ReadBool('Checker', 'history', False);
+    debug         := ini.ReadBool('Checker', 'debug', False);
+    answer        := ini.ReadBool('Checker', 'answer', False);
+    correct       := ini.ReadString('Checker', 'correct', 'CORRECT');
+    incorrect     := ini.ReadString('Checker', 'incorrect', 'INCORRECT');
+    history       := ini.ReadBool('Checker', 'history', False);
+    writenotfound := ini.ReadBool('Checker', 'writenotfound', False);
+    notfound      := ini.ReadString('Checker', 'notfound', ' NOTFOUND');
   finally
     ini.Free;
   end;
@@ -378,6 +385,7 @@ begin
       {Nothing found}
       if serviceNum = 0 then begin
         ShowMessage(_('Error: No coordinate checker URL found!'));
+        if writenotfound then UpdateWaypointComment(notfound);
         if debug then StringToFile(description, GEOGET_SCRIPTDIR + '\Checker\description.html');
         GeoAbort;
       end;

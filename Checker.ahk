@@ -3,7 +3,7 @@
 ; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ; Icon: https://icons8.com/icon/18401/Thumb-Up
 ; Author: mikrom, https://www.mikrom.cz
-; Version: 2.18.0
+; Version: 2.20.0
 ;
 ; Documentation: http://ahkscript.org/docs/AutoHotkey.htm
 ; FAQ: http://www.autohotkey.com/docs/FAQ.htm
@@ -292,14 +292,14 @@ CheckAnwser(ByRef wb, correct, incorrect) {
           If (args[1] = "geocheck") {
             ; <tr><td colspan="2">xxx</td></tr>
             RegexMatch(wb.Document.body.innerHTML, "Smi)<tr><td colspan=.?2.?>(.*?)<\/td><\/tr>", ownersMessage) ; Find proper part of HTML
-            ownersMessage := RegExReplace(ownersMessage, "<(""[^""]*""|'[^']*'|[^'"">])*>", "")                  ; Strip HTML tags and put in clipboard
+            ownersMessage := RegExReplace(ownersMessage, "<(""[^""]*""|'[^']*'|[^'"">])*>|&nbsp;", "")           ; Strip HTML tags and put in clipboard
             If (ownersMessage != "")                                                                             ; If not empty
               Clipboard := ownersMessage
           }
           If (args[1] = "gccheck") {
             ; <div id="hint">Macht Kein T5 daraus.</div>
             RegexMatch(wb.Document.body.innerHTML, "Smi)<div id=.?hint.?>(.*?)<\/div>", ownersMessage) ; Find proper part of HTML
-            ownersMessage := RegExReplace(ownersMessage, "<(""[^""]*""|'[^']*'|[^'"">])*>", "")        ; Strip HTML tags and put in clipboard
+            ownersMessage := RegExReplace(ownersMessage, "<(""[^""]*""|'[^']*'|[^'"">])*>|&nbsp;", "") ; Strip HTML tags and put in clipboard
             If (ownersMessage != "")                                                                   ; If not empty
               Clipboard := ownersMessage
           }
