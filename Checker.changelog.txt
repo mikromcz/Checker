@@ -1,3 +1,9 @@
+** 2.21.0 (2018/10/25) **
+ * autoclose okna o prekroceni limitu
+ * masivní oprava parsování ownersMessage, takže už to tøeba na GC2R6R8, GC4W3B2 nespadne
+ * gccounter.de a gccounter.com je mrtev - "Dieser Service wird nicht mehr fortgeführt!"
+ * aktualizace AutoHotkey na 1.1.30.00
+
 ** 2.20.0 (2018/07/24) **
   * oprava logování do Checker.csv
   * oprava dávky pro Combine

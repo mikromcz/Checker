@@ -3,7 +3,7 @@
 ; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ; Icon: https://icons8.com/icon/18401/Thumb-Up
 ; Author: mikrom, https://www.mikrom.cz
-; Version: 2.20.0
+; Version: 2.21.0
 ;
 ; Documentation: http://ahkscript.org/docs/AutoHotkey.htm
 ; FAQ: http://www.autohotkey.com/docs/FAQ.htm
@@ -61,7 +61,7 @@ If (A_Language = "0405") { ; Czech
   Global textErrorFill       := "Chyba: Nelze vyplnit sou¯adnice!`n`nPravdÏpodobnÏ se naËetla öpatn· str·nka, nap¯Ìklad ozn·menÌ o p¯ekroËenÌ limitu."
   Global textErrorException  := "Ajaj, tohle se nemÏlo st·t.`n`nV˝jimka: "
   Global textErrorParam      := "Chyba: Neplatn˝ poËet parametr˘!`n`nPovolenÈ parametry jsou:`n[service] [N|S] [Dx] [Mx] [Sx] [E|W] [Dy] [My] [Sy] [URL]`n`nPouûity byly tyto:`n"
-  Global textErrorService    := "Chyba: Pouûita nepodporovan· sluûba!`nPodporov·ny jsou: geocheck, geochecker, evince, hermansky, komurka, gccounter, gccounter2, certitudes, gpscache, gccheck, challenge!."
+  Global textErrorService    := "Chyba: Pouûita nepodporovan· sluûba!`nPodporov·ny jsou: geocheck, geochecker, evince, hermansky, komurka, gccounter, gccounter2, certitudes, gpscache, gccheck, challenge, challenge2, gcappsGeochecker, gcappsMultichecker, geowii, gcm, doxina, geocacheplanner, gctoolbox, nanochecker!."
   Global textErrorTimeout    := "Chyba: Vypröel Ëasov˝ limit naËÌt·nÌ str·nky.`nZkuste F5 pro obnovenÌ."
   Global textErrorGeocheck   := "Chyba: ChybÌ n·zev a/nebo kÛd keöe.`nKeö je pravdÏpodobnÏ smaz·na z geocheck.org.`nOvÏ¯enÌ asi neprojde, ale za pokus to stojÌ."
   Global textDonate          := "Zvaûte podporu pluginu p¯es <a href=""http://goo.gl/dCKefD"">PayPal</a>, nebo mi napiöte <a href=""mailto:mikrom@mikrom.cz"">email</a>"
@@ -70,15 +70,16 @@ If (A_Language = "0405") { ; Czech
   Global textAnswerChecking  := "Kontroluji..."
   Global textAnswerCorrect   := "Spr·vnÏ!"
   Global textAnswerIncorrect := "äpatnÏ!"
-  Global textEvince          := "UpozornÏnÌ: Web evince.locusprime.net je mrtev. Nelze nic vyplnit/ovÏ¯it.`nKontaktuj autora keöe aù zmÏnÌ sluûbu pro ovÏ¯enÌ."
-  Global textDoxina          := "UpozornÏnÌ: Web doxina.filipruzicka.net je mrtev. Nelze nic vyplnit/ovÏ¯it.`nKontaktuj autora keöe aù zmÏnÌ sluûbu pro ovÏ¯enÌ."
-  Global textKomurka         := "UpozornÏnÌ: Web geo.komurka.cz je mrtev. Nelze nic vyplnit/ovÏ¯it.`nKontaktuj autora keöe aù zmÏnÌ sluûbu pro ovÏ¯enÌ."
+  Global textDeadEvince      := "UpozornÏnÌ: Web evince.locusprime.net je mrtev. Nelze nic vyplnit/ovÏ¯it.`nKontaktuj autora keöe aù zmÏnÌ sluûbu pro ovÏ¯enÌ."
+  Global textDeadDoxina      := "UpozornÏnÌ: Web doxina.filipruzicka.net je mrtev. Nelze nic vyplnit/ovÏ¯it.`nKontaktuj autora keöe aù zmÏnÌ sluûbu pro ovÏ¯enÌ."
+  Global textDeadKomurka     := "UpozornÏnÌ: Web geo.komurka.cz je mrtev. Nelze nic vyplnit/ovÏ¯it.`nKontaktuj autora keöe aù zmÏnÌ sluûbu pro ovÏ¯enÌ."
+  Global textDeadGccounter   := "UpozornÏnÌ: Web gccounter.de/gccounter.com je mrtev. Nelze nic vyplnit/ovÏ¯it.`nKontaktuj autora keöe aù zmÏnÌ sluûbu pro ovÏ¯enÌ."
 } Else { ; Other = English
   Global textError           := "Error"
   Global textErrorFill       := "Error: Can't fill coordinates!`n`nProbably wrong page loaded, like limit exceeded."
   Global textErrorException  := "Oops, this should not happen.`n`nException: "
   Global textErrorParam      := "Error: Invalid number of parameters!`n`nAllowed parameters are:`n[service] [N|S] [Dx] [Mx] [Sx] [E|W] [Dy] [My] [Sy] [URL]`n`nReceived parameters are:`n"
-  Global textErrorService    := "Error: Invalid service selected!`nUse only: geocheck, geochecker, evince, hermansky, komurka, gccounter, gccounter2, certitudes, gpscache, gccheck, challenge!."
+  Global textErrorService    := "Error: Invalid service selected!`nUse only: geocheck, geochecker, evince, hermansky, komurka, gccounter, gccounter2, certitudes, gpscache, gccheck, challenge, challenge2, gcappsGeochecker, gcappsMultichecker, geowii, gcm, doxina, geocacheplanner, gctoolbox, nanochecker!."
   Global textErrorTimeout    := "Error: Timeout while page load.`nTry press F5 for reload."
   Global textErrorGeocheck   := "Error: Cache name and/or code missing.`nCache is probably deleted from geocheck.org.`nVerification probably fail, but worth for try."
   Global textDonate          := "You can donate plugin by <a href=""http://goo.gl/dCKefD"">PayPal</a>, or send me an <a href=""mailto:mikrom@mikrom.cz"">email</a>"
@@ -87,9 +88,10 @@ If (A_Language = "0405") { ; Czech
   Global textAnswerChecking  := "Checking..."
   Global textAnswerCorrect   := "Correct!"
   Global textAnswerIncorrect := "Incorrect!"
-  Global textEvince          := "Warning: Site evince.locusprime.net is dead. It is not possible to fill/check anything.`nContact author of the cache to change verification service."
-  Global textDoxina          := "Warning: Site doxina.filipruzicka.net is dead. It is not possible to fill/check anything.`nContact author of the cache to change verification service."
-  Global textKomurka         := "Warning: Site geo.komurka.cz is dead. It is not possible to fill/check anything.`nContact author of the cache to change verification service."
+  Global textDeadEvince      := "Warning: Site evince.locusprime.net is dead. It is not possible to fill/check anything.`nContact author of the cache to change verification service."
+  Global textDeadDoxina      := "Warning: Site doxina.filipruzicka.net is dead. It is not possible to fill/check anything.`nContact author of the cache to change verification service."
+  Global textDeadKomurka     := "Warning: Site geo.komurka.cz is dead. It is not possible to fill/check anything.`nContact author of the cache to change verification service."
+  Global textDeadGccounter   := "Warning: Site gccounter.de/gccounter.com is dead. It is not possible to fill/check anything.`nContact author of the cache to change verification service."
 }
 
 ; Add CMD paremeters to (pseudo) array. It's not necessary, parameters are in variables %1%, %2%, .. but seems not to work in my case.
@@ -292,15 +294,15 @@ CheckAnwser(ByRef wb, correct, incorrect) {
           If (args[1] = "geocheck") {
             ; <tr><td colspan="2">xxx</td></tr>
             RegexMatch(wb.Document.body.innerHTML, "Smi)<tr><td colspan=.?2.?>(.*?)<\/td><\/tr>", ownersMessage) ; Find proper part of HTML
-            ownersMessage := RegExReplace(ownersMessage, "<(""[^""]*""|'[^']*'|[^'"">])*>|&nbsp;", "")           ; Strip HTML tags and put in clipboard
+            ownersMessage := RegExReplace(ownersMessage, "(?=<!--)([\s\S]*?)-->|<[^>]*>|&nbsp;|\n", "")          ; Strip HTML tags and put in clipboard
             If (ownersMessage != "")                                                                             ; If not empty
               Clipboard := ownersMessage
           }
           If (args[1] = "gccheck") {
             ; <div id="hint">Macht Kein T5 daraus.</div>
-            RegexMatch(wb.Document.body.innerHTML, "Smi)<div id=.?hint.?>(.*?)<\/div>", ownersMessage) ; Find proper part of HTML
-            ownersMessage := RegExReplace(ownersMessage, "<(""[^""]*""|'[^']*'|[^'"">])*>|&nbsp;", "") ; Strip HTML tags and put in clipboard
-            If (ownersMessage != "")                                                                   ; If not empty
+            RegexMatch(wb.Document.body.innerHTML, "Smi)<div id=.?hint.?>(.*?)<\/div>", ownersMessage)  ; Find proper part of HTML
+            ownersMessage := RegExReplace(ownersMessage, "(?=<!--)([\s\S]*?)-->|<[^>]*>|&nbsp;|\n", "") ; Strip HTML tags and put in clipboard
+            If (ownersMessage != "")                                                                    ; If not empty
               Clipboard := ownersMessage
           }
           ;If (args[1] = "geocachefi") {
@@ -467,7 +469,7 @@ Browser(ByRef wb) {
       wb.Document.All.usercaptcha.Focus() ; Focus on captcha field
 
     } Catch e {
-      MsgBox 16, % textError, % textErrorFill
+      MsgBox 16, % textError, % textErrorFill, 5
       If (debug != 1)
         ExitApp, exitCode
     }
@@ -573,7 +575,7 @@ Browser(ByRef wb) {
       wb.Document.All.button.Click()
     } Catch e {
       If (debug != 1) {
-        MsgBox 16, % textError, % textErrorFill
+        MsgBox 16, % textError, % textErrorFill, 5
         ExitApp, exitCode
       } Else
         MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
@@ -588,12 +590,13 @@ Browser(ByRef wb) {
   } Else If (args[1] = "evince") { ; =============================================> EVINCE (3)
     ; URL: http://evince.locusprime.net/cgi-bin/index.cgi?q=d0ZNzQeHKReGKzr
     ; Captcha: YES
+    
     ;Gui, Show,, % "Checker - " . args[1] ; Change title
-
+    ;
     ;wb.Navigate(args[10]) ; Navigate to webpage
     ;LoadWait(wb)          ; Wait for page load
-
-    ; Try to fill the webpage form
+    ;
+    ;; Try to fill the webpage form
     ;Try {
     ;  wb.Document.All.NorthSouth.Value := args[2]
     ;  wb.Document.All.LatDeg.Value := args[3]
@@ -603,19 +606,19 @@ Browser(ByRef wb) {
     ;  wb.Document.All.LonMin.Value := args[8] . "." . args[9]
     ;  wb.Document.All.recaptcha_response_field.Focus()
     ;} Catch e {
-    ;  MsgBox 16, % textError, % textErrorFill
+    ;  MsgBox 16, % textError, % textErrorFill, 5
     ;  If (debug != 1)
     ;    ExitApp, exitCode
     ;}
-
-    ; Check result after page reload
-    ; YES: <span style="font-size: large; font-weight: bold; color: rgb(206, 0, 0);">Congratulations!</span> # <SPAN style="FONT-SIZE: large; FONT-WEIGHT: bold; COLOR: rgb(206,0,0)"><BR>Congratulations! </SPAN>
-    ; NO:  <span style="font-size: large; font-weight: bold; color: rgb(206, 0, 0);">Sorry!</span> # <SPAN style="FONT-SIZE: large; FONT-WEIGHT: bold; COLOR: rgb(206,0,0)">Sorry! </SPAN>
+    ;
+    ;; Check result after page reload
+    ;; YES: <span style="font-size: large; font-weight: bold; color: rgb(206, 0, 0);">Congratulations!</span> # <SPAN style="FONT-SIZE: large; FONT-WEIGHT: bold; COLOR: rgb(206,0,0)"><BR>Congratulations! </SPAN>
+    ;; NO:  <span style="font-size: large; font-weight: bold; color: rgb(206, 0, 0);">Sorry!</span> # <SPAN style="FONT-SIZE: large; FONT-WEIGHT: bold; COLOR: rgb(206,0,0)">Sorry! </SPAN>
     ;If (answer = 1)
     ;  CheckAnwser(wb, "Smi)Congratulations!", "Smi)Sorry!")
 
     ; Since 2017 website looks dead
-    MsgBox, 48, % textError, % textEvince
+    MsgBox, 48, % textError, % textDeadEvince
     ExitApp, exitCode
 
   } Else If (args[1] = "hermansky") { ; ==========================================> HERMANSKY (4)
@@ -658,7 +661,7 @@ Browser(ByRef wb) {
       wb.Document.Forms[0].Submit()
     } Catch e {
       If (debug != 1) {
-        MsgBox 16, % textError, % textErrorFill
+        MsgBox 16, % textError, % textErrorFill, 5
         ExitApp, exitCode
       } Else
         MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
@@ -676,12 +679,13 @@ Browser(ByRef wb) {
   } Else If (args[1] = "komurka") { ; ============================================> KOMURKA (5)
     ; URL: http://geo.komurka.cz/check.php?cache=GC2JCEQ
     ; Captcha: YES
+    
     ;Gui, Show,, % "Checker - " . args[1] ; Change title
-
+    ;
     ;wb.Navigate(args[10]) ; Navigate to webpage
     ;LoadWait(wb)          ; Wait for page load
-
-    ; Try to fill the webpage form
+    ;
+    ;; Try to fill the webpage form
     ;Try {
     ;  If (args[2] = "N")
     ;    wb.Document.All.select1.SelectedIndex := 0
@@ -700,103 +704,113 @@ Browser(ByRef wb) {
     ;  wb.Document.All.code.Focus()
     ;} Catch e {
     ;  If (debug != 1) {
-    ;    MsgBox 16, % textError, % textErrorFill
+    ;    MsgBox 16, % textError, % textErrorFill, 5
     ;    ExitApp, exitCode
     ;  } Else
     ;    MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
     ;}
-
-    ; Check result after page reload
-    ; YES: <img src="images/smile_green.jpg"> # <IMG src="images/smile_green.jpg">
-    ; NO:  <img src="images/smile_red.jpg"> # <IMG src="images/smile_red.jpg">
+    ;
+    ;; Check result after page reload
+    ;; YES: <img src="images/smile_green.jpg"> # <IMG src="images/smile_green.jpg">
+    ;; NO:  <img src="images/smile_red.jpg"> # <IMG src="images/smile_red.jpg">
     ;If (answer = 1)
     ;  CheckAnwser(wb, "Smi)src=.?images\/smile_green\.jpg.?", "Smi)src=.?images\/smile_red\.jpg.?")
 
-	; Since 2017 website looks dead
-    MsgBox, 48, % textError, % textKomurka
+	  ; Since 2017 website looks dead
+    MsgBox, 48, % textError, % textDeadKomurka
     ExitApp, exitCode
 	
   } Else If (args[1] = "gccounter") { ; ==========================================> GCCOUNTER (5)
     ; URL: http://gccounter.com/gcchecker.php?site=gcchecker_check&id=2076
     ; Captcha: NO
-    Gui, Show,, % "Checker - " . args[1] ; Change title
-
-    wb.Navigate(args[10]) ; Navigate to webpage
-    LoadWait(wb)          ; Wait for page load
-
-    ; Try to fill the webpage form
-    Try {
-      If (args[2] = "N")
-        wb.Document.All.Lat_R.SelectedIndex := 0
-      If (args[2] = "S")
-        wb.Document.All.Lat_R.SelectedIndex := 1
-      wb.Document.All.Lat_G.Value := args[3]
-      wb.Document.All.Lat_M.Value := args[4]
-      wb.Document.All.Lat_MM.Value := args[5]
-      If (args[6] = "E")
-        wb.Document.All.Lon_R.SelectedIndex := 0
-      If (args[6] = "W")
-        wb.Document.All.Lon_R.SelectedIndex := 1
-      wb.Document.All.Lon_G.Value := args[7]
-      wb.Document.All.Lon_M.Value := args[8]
-      wb.Document.All.Lon_MM.Value := args[9]
-      Sleep, 500
-      wb.Document.Forms[0].Submit()
-    } Catch e {
-      If (debug != 1) {
-        MsgBox 16, % textError, % textErrorFill
-        ExitApp, exitCode
-      } Else
-        MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
-    }
-
-    ; Check result after page reload
-    ; YES: <h2 align="center" style="color:green">Herzlichen Gl¸ckwunsch!</h2>
-    ; NO:  <h2 align="center" style="color:red">Schade!</h2> # <H2 style="COLOR: red" align=center>Schade!</H2>
-    If (answer = 1)
-      CheckAnwser(wb, "Smi)>Herzlichen Gl¸ckwunsch!<", "Smi)>Schade!<")
+    
+    ;Gui, Show,, % "Checker - " . args[1] ; Change title
+    ;
+    ;wb.Navigate(args[10]) ; Navigate to webpage
+    ;LoadWait(wb)          ; Wait for page load
+    ;
+    ;; Try to fill the webpage form
+    ;Try {
+    ;  If (args[2] = "N")
+    ;    wb.Document.All.Lat_R.SelectedIndex := 0
+    ;  If (args[2] = "S")
+    ;    wb.Document.All.Lat_R.SelectedIndex := 1
+    ;  wb.Document.All.Lat_G.Value := args[3]
+    ;  wb.Document.All.Lat_M.Value := args[4]
+    ;  wb.Document.All.Lat_MM.Value := args[5]
+    ;  If (args[6] = "E")
+    ;    wb.Document.All.Lon_R.SelectedIndex := 0
+    ;  If (args[6] = "W")
+    ;    wb.Document.All.Lon_R.SelectedIndex := 1
+    ;  wb.Document.All.Lon_G.Value := args[7]
+    ;  wb.Document.All.Lon_M.Value := args[8]
+    ;  wb.Document.All.Lon_MM.Value := args[9]
+    ;  Sleep, 500
+    ;  wb.Document.Forms[0].Submit()
+    ;} Catch e {
+    ;  If (debug != 1) {
+    ;    MsgBox 16, % textError, % textErrorFill, 5
+    ;    ExitApp, exitCode
+    ;  } Else
+    ;    MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
+    ;}
+    ;
+    ;; Check result after page reload
+    ;; YES: <h2 align="center" style="color:green">Herzlichen Gl¸ckwunsch!</h2>
+    ;; NO:  <h2 align="center" style="color:red">Schade!</h2> # <H2 style="COLOR: red" align=center>Schade!</H2>
+    ;If (answer = 1)
+    ;  CheckAnwser(wb, "Smi)>Herzlichen Gl¸ckwunsch!<", "Smi)>Schade!<")
+    
+    ; Since 10/2018 website is dead
+    MsgBox, 48, % textError, % textDeadGccounter
+    ExitApp, exitCode
 
   } Else If (args[1] = "gccounter2") { ; =========================================> GCCOUNTER2 (6)
     ; URL: http://gccounter.com/gcchecker.php?site=gcchecker_check&id=2076
     ; Captcha: NO
-    Gui, Show,, % "Checker - " . args[1] ; Change title
-
-    wb.Navigate(args[10]) ; Navigate to webpage
-    LoadWait(wb)          ; Wait for page load
-
-    ; Try to fill the webpage form
-    Try {
-      If (args[2] = "N")
-        wb.Document.All.latNS.SelectedIndex := 0
-      If (args[2] = "S")
-        wb.Document.All.latNS.SelectedIndex := 1
-      wb.Document.All.latD.Value := args[3]
-      wb.Document.All.latM.Value := args[4] . "." . args[5]
-      If (args[6] = "E")
-        wb.Document.All.lonEW.SelectedIndex := 0
-      If (args[6] = "W")
-        wb.Document.All.lonEW.SelectedIndex := 1
-      wb.Document.All.lonD.Value := args[7]
-      wb.Document.All.lonM.Value := args[8] . "." . args[9]
-      Sleep, 500
-
-      ; This form is difficult to submit, so we must do it by this unclean way
-      Loop, % (inputs := wb.Document.getElementsByTagName("input")).Length ; For all tags <input>
-        If (inputs[A_index-1].Type = "submit")                             ; If some of them is type="submit"
-          inputs[A_index-1].Click()                                        ; Click on it
-    } Catch e {
-      If (debug != 1) {
-        MsgBox 16, % textError, % textErrorFill
-        ExitApp, exitCode
-      } Else
-        MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
-    }
-
-    ; Check result after page reload
-    ; YES: <h1 style="color: green;">Richtig</h1> # <H1 style="COLOR: green">Richtig</H1>
-    ; NO:  <li>Leider stimmt die eingegebene Koordinate nicht.</li> # <LI>Leider stimmt die eingegebene Koordinate nicht. </LI>
-    If (answer = 1)
-      CheckAnwser(wb, "Smi)<h1 style=.?color: green.?.?>Richtig<\/h1>", "Smi)Leider stimmt die eingegebene Koordinate nicht")
+    
+    ;Gui, Show,, % "Checker - " . args[1] ; Change title
+    ;
+    ;wb.Navigate(args[10]) ; Navigate to webpage
+    ;LoadWait(wb)          ; Wait for page load
+    ;
+    ;; Try to fill the webpage form
+    ;Try {
+    ;  If (args[2] = "N")
+    ;    wb.Document.All.latNS.SelectedIndex := 0
+    ;  If (args[2] = "S")
+    ;    wb.Document.All.latNS.SelectedIndex := 1
+    ;  wb.Document.All.latD.Value := args[3]
+    ;  wb.Document.All.latM.Value := args[4] . "." . args[5]
+    ;  If (args[6] = "E")
+    ;    wb.Document.All.lonEW.SelectedIndex := 0
+    ;  If (args[6] = "W")
+    ;    wb.Document.All.lonEW.SelectedIndex := 1
+    ;  wb.Document.All.lonD.Value := args[7]
+    ;  wb.Document.All.lonM.Value := args[8] . "." . args[9]
+    ;  Sleep, 500
+    ;
+    ;  ; This form is difficult to submit, so we must do it by this unclean way
+    ;  Loop, % (inputs := wb.Document.getElementsByTagName("input")).Length ; For all tags <input>
+    ;    If (inputs[A_index-1].Type = "submit")                             ; If some of them is type="submit"
+    ;      inputs[A_index-1].Click()                                        ; Click on it
+    ;} Catch e {
+    ;  If (debug != 1) {
+    ;    MsgBox 16, % textError, % textErrorFill, 5
+    ;    ExitApp, exitCode
+    ;  } Else
+    ;    MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
+    ;}
+    ;
+    ;; Check result after page reload
+    ;; YES: <h1 style="color: green;">Richtig</h1> # <H1 style="COLOR: green">Richtig</H1>
+    ;; NO:  <li>Leider stimmt die eingegebene Koordinate nicht.</li> # <LI>Leider stimmt die eingegebene Koordinate nicht. </LI>
+    ;If (answer = 1)
+    ;  CheckAnwser(wb, "Smi)<h1 style=.?color: green.?.?>Richtig<\/h1>", "Smi)Leider stimmt die eingegebene Koordinate nicht")
+    
+    ; Since 10/2018 website is dead
+    MsgBox, 48, % textError, % textDeadGccounter
+    ExitApp, exitCode
 
   } Else If (args[1] = "certitudes") { ; =========================================> CERTITUDES (7)
     ; URL: http://www.certitudes.org/certitude?wp=GC2QFYT
@@ -817,7 +831,7 @@ Browser(ByRef wb) {
           inputs[A_index-1].Click()                                        ; Click on it
     } Catch e {
       If (debug != 1) {
-        MsgBox 16, % textError, % textErrorFill
+        MsgBox 16, % textError, % textErrorFill, 5
         ExitApp, exitCode
       } Else
         MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
@@ -846,7 +860,7 @@ Browser(ByRef wb) {
       }
     } Catch e {
       If (debug != 1) {
-        MsgBox 16, % textError, % textErrorFill
+        MsgBox 16, % textError, % textErrorFill, 5
         ExitApp, exitCode
       } Else
         MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
@@ -876,7 +890,7 @@ Browser(ByRef wb) {
       wb.Document.All.captcha.Focus()
     } Catch e {
       If (debug != 1) {
-        MsgBox 16, % textError, % textErrorFill
+        MsgBox 16, % textError, % textErrorFill, 5
         ExitApp, exitCode
       } Else
         MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
@@ -915,7 +929,7 @@ Browser(ByRef wb) {
           inputs[A_index-1].Click()                                         ; Click on it
     } Catch e {
       If (debug != 1) {
-        MsgBox 16, % textError, % textErrorFill
+        MsgBox 16, % textError, % textErrorFill, 5
         ExitApp, exitCode
       } Else
         MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
@@ -971,7 +985,7 @@ Browser(ByRef wb) {
       wb.Document.All.try_captcha.Focus()
     } Catch e {
       If (debug != 1) {
-        MsgBox 16, % textError, % textErrorFill
+        MsgBox 16, % textError, % textErrorFill, 5
         ExitApp, exitCode
       } Else
         MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
@@ -1019,7 +1033,7 @@ Browser(ByRef wb) {
       wb.Document.All.seccode.Focus()
     } Catch e {
       If (debug != 1) {
-        MsgBox 16, % textError, % textErrorFill
+        MsgBox 16, % textError, % textErrorFill, 5
         ExitApp, exitCode
       } Else
         MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
@@ -1053,7 +1067,7 @@ Browser(ByRef wb) {
 
     } Catch e {
       If (debug != 1) {
-        MsgBox 16, % textError, % textErrorFill
+        MsgBox 16, % textError, % textErrorFill, 5
         ExitApp, exitCode
       } Else
         MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
@@ -1092,7 +1106,7 @@ Browser(ByRef wb) {
 
     } Catch e {
       If (debug != 1) {
-        MsgBox 16, % textError, % textErrorFill
+        MsgBox 16, % textError, % textErrorFill, 5
         ExitApp, exitCode
       } Else
         MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
@@ -1110,7 +1124,7 @@ Browser(ByRef wb) {
     Gui, Show,, % "Checker - " . args[1] ; Change title
 
     ; Since 2017 website looks dead
-    MsgBox, 48, % textError, % textDoxina
+    MsgBox, 48, % textError, % textDeadDoxina
     ExitApp, exitCode
 
   } Else If (args[1] = "geocacheplanner") { ; =============================================> GEOCACHEPLANNER (16)
@@ -1138,7 +1152,7 @@ Browser(ByRef wb) {
 
     } Catch e {
       If (debug != 1) {
-        MsgBox 16, % textError, % textErrorFill
+        MsgBox 16, % textError, % textErrorFill, 5
         ExitApp, exitCode
       } Else
         MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
@@ -1177,7 +1191,7 @@ Browser(ByRef wb) {
 
     } Catch e {
       If (debug != 1) {
-        MsgBox 16, % textError, % textErrorFill
+        MsgBox 16, % textError, % textErrorFill, 5
         ExitApp, exitCode
       } Else
         MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
@@ -1189,6 +1203,22 @@ Browser(ByRef wb) {
     If (answer = 1)
       CheckAnwser(wb, "Smi)tools/coordinatechecker/green.PNG", "Smi)tools/coordinatechecker/red.PNG")
       
+  } Else If (args[1] = "nanochecker") { ; ============================================> NANOCHECKER (18)
+    ; URL: https://nanochecker.sternli.ch/?g=GC662FD
+    ; Captcha: YES
+    Gui, Show,, % "Checker - " . args[1] ; Change title
+
+    wb.Navigate(args[10]) ; Navigate to webpage
+    LoadWait(wb)          ; Wait for page load
+
+    ; Try to fill the webpage form
+
+    ; Check result after page reload
+    ; YES: <p class='nc-index-p 
+    ; NO:  <p class='nc-index-p nc-text-red'>
+    ;If (answer = 1)
+    ;  CheckAnwser(wb, "Smi)<span id=.?congrats.?>", "Smi)<span id=.?nope.?>")
+
   } Else { ; =====================================================================> SERVICE ERROR
     MsgBox 16, % textError, % textErrorService
     If (debug != 1)

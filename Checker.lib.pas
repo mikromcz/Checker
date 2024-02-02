@@ -4,20 +4,20 @@
   Www: https://www.geoget.cz/doku.php/user:skript:checker
   Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
   Author: mikrom, http://mikrom.cz
-  Version: 2.20.0
+  Version: 2.21.0
 
   ToDo:
   * This is maybe interesting: http://www.regular-expressions.info/duplicatelines.html
   * pokud se najde více stejných ovìøení napø MoM: GC213AF, GC6DJTY
-  * na GC2R6R8, GC4W3B2 padá AHK
   
   * Arne1: mám takový nápad - zatím jsem nebádal zda to bude realizovatelné.
            Když je ovìøovaèem Certitude, tak by se mohl kouknout do poznámky u keše, zda tam není øádek uvozený "certitude:" (napøíklad)
            a ten text za tím pak použil pro ovìøení.
+
 }
 
 {Minimum GeoGet version}
-{$V 2.9.9}
+{$V 2.9.15}
 
 uses
   Checker;
@@ -45,6 +45,7 @@ const
   doxinaRegex          = '(?i)(https?:)?\/\/(www\.)?doxina\.filipruzicka\.net\/cache\.php\?id=[^"''<\s]+';
   geocachePlannerRegex = '(?i)(https?:)?\/\/(www\.)?geocache-planer\.de\/CAL\/checker\.php[^"''<\s]+';
   gctoolboxRegex       = '(?i)(https?:)?\/\/(www\.)?gctoolbox\.de\/index\.php\?goto=tools&showtool=coordinatechecker[^"''<\s]+';
+  nanocheckerRegex     = '(?i)(https?:)?\/\/(www\.)?nanochecker\.sternli\.ch\/\?g=[^"''<\s]+';
 
 var
   debug, answer, history: Boolean;
@@ -112,7 +113,7 @@ end;
 {Main function. Mainly just sifting by service and call AHK at the end}
 procedure Checker(runFrom: String);
 var
-  url, s, coordinates, service, description, correct, incorrect, notfound: String;
+  url, s, t, coordinates, service, description, correct, incorrect, notfound: String;
   writenotfound: Boolean;
   i, n: Integer;
   ini: TIniFile;
@@ -212,7 +213,7 @@ begin
         Inc(serviceNum);
       end;
       {
-      GCCOUNTER
+      GCCOUNTER - DEAD
       url: http://gccounter.com/gcchecker.php?site=gcchecker_check&id=2076
       captcha: no
       }
@@ -223,7 +224,7 @@ begin
         Inc(serviceNum);
       end;
       {
-      GCCOUNTER2
+      GCCOUNTER2 - DEAD
       url: http://gccounter.de/GCchecker/Check?cacheID=3545
       captcha: no
       }
@@ -240,7 +241,14 @@ begin
       }
       s := RegExSubstitute(certitudesRegex, description, '$0#');
       if s <> '' then begin
-        serviceName.Add('certitudes');
+      
+        // look for note "certitudes: xxx"
+        t := RegExSubstitute('certitudes:(.+)', GC.Comment, '$1');
+        if t <> '' then
+          serviceName.Add('certitudes|' + t)
+        else
+          serviceName.Add('certitudes');
+        
         serviceUrl.Add(s);
         Inc(serviceNum);
       end;
@@ -379,6 +387,24 @@ begin
       if s <> '' then begin
         serviceName.Add('gctoolbox');
         s := ReplaceString(s, 'lang=ger', 'lang=eng'); // Force ENGLISH
+        serviceUrl.Add(s);
+        Inc(serviceNum);
+      end;
+      {
+      NANOCHECKER
+      url: https://nanochecker.sternli.ch/?g=GC662FD
+      captcha: YES
+      }
+      s := RegExSubstitute(nanocheckerRegex, description, '$0#');
+      if s <> '' then begin
+      
+        // look for note "nanochecker: xxx"
+        t := RegExSubstitute('nanochecker:(.+)', GC.Comment, '$1');
+        if t <> '' then
+          serviceName.Add('nanochecker|' + t)
+        else
+          serviceName.Add('nanochecker');
+
         serviceUrl.Add(s);
         Inc(serviceNum);
       end;
