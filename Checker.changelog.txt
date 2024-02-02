@@ -1,8 +1,12 @@
-** 2.0.0.0 (2015/07/??) **
+** 0.2.0.1 (2015/07/07) **
+  * pøidána ikona
+  * oprava jedné mezery navíc
+
+** 0.2.0.0 (2015/07/06) **
   * pøepsání celého "browseru" z AutoIt do AutoHotkey (OpenSource, nevyžaduje k chodu další knihovny)
   * obsahuje všechny novinky z betaverze 0.1.3.0 co vyšla na fóru
-  *  * oprava vytuhávání na geocheck.org, geochecker.com
-  *  * v otevøeném oknì funguje F5
+    * oprava vytuhávání na geocheck.org, geochecker.com
+    * v otevøeném oknì funguje F5
   * obsahuje vlastní lokalizaci (pokud bìží na èeských Windows je èesky, pokud ne, tak anglicky)
   * pøidána podpora "1 pole" u geocheck.org
 

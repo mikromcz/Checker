@@ -2,7 +2,7 @@
 ; Www: http://geoget.ararat.cz/doku.php/user:skript:checker
 ; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ; Author: mikrom, http://mikrom.cz
-; Version: 0.2.0.0
+; Version: 0.2.0.1
 ;
 ; Documentation: http://ahkscript.org/docs/AutoHotkey.htm
 ; FAQ: http://www.autohotkey.com/docs/FAQ.htm
@@ -15,6 +15,8 @@
 #SingleInstance, Force ; http://ahkscript.org/docs/commands/_SingleInstance.htm
 #NoTrayIcon ; http://ahkscript.org/docs/commands/_NoTrayIcon.htm
 #NoEnv ; http://ahkscript.org/docs/commands/_NoEnv.htm
+
+Menu, Tray, Icon, %A_ScriptDir%\Checker.ico,,1 ; Change icon of GUI title, tray, ...
 
 ; Language switch,
 If (A_Language = "0405") { ; Czech
@@ -85,7 +87,7 @@ LoadURL(wb,url) {
 ; Create GUI
 ; http://www.autohotkey.com/docs/commands/Gui.htm
 Gui, +Resize +OwnDialogs +MinSize640x480 ; Allow change GUI size, MsgBoxes is owned by main window, Set minimal window size
-Gui, Add, Link, x5 y+0 vHint, % textHint . ".  " . textDonate . "."
+Gui, Add, Link, x5 y+0 vHint, % textHint . ". " . textDonate . "."
 Gui, Add, ActiveX, x0 y0 w1000 h580 vWB, Shell.Explorer ; The final parameter is the name of the ActiveX component.
 Gui, Show, Center w1000 h600, % "Checker"
 
