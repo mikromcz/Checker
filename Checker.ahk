@@ -3,7 +3,7 @@
 ; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ; Icon: https://icons8.com/icon/18401/Thumb-Up
 ; Author: mikrom, https://www.mikrom.cz
-; Version: 2.23.0
+; Version: 3.00.0
 ;
 ; Documentation: http://ahkscript.org/docs/AutoHotkey.htm
 ; FAQ: http://www.autohotkey.com/docs/FAQ.htm
@@ -61,7 +61,7 @@ IfExist, %A_ScriptDir%\Checker.ico
 If (A_Language = "0405")        ; Czech
 {
     Global textError            := "Chyba"
-    Global textErrorFill        := "Chyba: Nelze vyplnit souøadnice!`n`nPravdìpodobnì se naèetla špatná stránka, napøíklad oznámení o pøekroèení limitu."
+    Global textErrorFill        := "Chyba: Nelze vyplnit souøadnice!`n`nPravdìpodobnì se naèetla špatná stránka, napøíklad oznámení o pøekroèení limitu.`nZkuste to ještì jednou, a pokud se bude chyba opakovat, dejte mi vìdìt."
     Global textErrorException   := "Ajaj, tohle se nemìlo stát.`n`nVýjimka: "
     Global textErrorParam       := "Chyba: Neplatný poèet parametrù!`n`nPovolené parametry jsou:`n[service] [N|S] [Dx] [Mx] [Sx] [E|W] [Dy] [My] [Sy] [URL]`n`nPoužity byly tyto:`n"
     Global textErrorService     := "Chyba: Použita nepodporovaná služba!`nPodporovány jsou: geocheck, geochecker, evince, hermansky, komurka, gccounter, gccounter2, certitudes, gpscache, gccheck, challenge, challenge2, gcappsGeochecker, gcappsMultichecker, geowii, gcm, doxina, geocacheplanner, gctoolbox, nanochecker!."
@@ -81,7 +81,7 @@ If (A_Language = "0405")        ; Czech
 Else                            ; Other = English
 {
     Global textError            := "Error"
-    Global textErrorFill        := "Error: Can't fill coordinates!`n`nProbably wrong page loaded, like limit exceeded."
+    Global textErrorFill        := "Error: Can't fill coordinates!`n`nProbably wrong page loaded, like limit exceeded.`nTry it again, and if it fails again let me know."
     Global textErrorException   := "Oops, this should not happen.`n`nException: "
     Global textErrorParam       := "Error: Invalid number of parameters!`n`nAllowed parameters are:`n[service] [N|S] [Dx] [Mx] [Sx] [E|W] [Dy] [My] [Sy] [URL]`n`nReceived parameters are:`n"
     Global textErrorService     := "Error: Invalid service selected!`nUse only: geocheck, geochecker, evince, hermansky, komurka, gccounter, gccounter2, certitudes, gpscache, gccheck, challenge, challenge2, gcappsGeochecker, gcappsMultichecker, geowii, gcm, doxina, geocacheplanner, gctoolbox, nanochecker!."
@@ -117,7 +117,7 @@ If (args.MaxIndex() != 10)
 ; Create GUI
 Gui, +Resize +OwnDialogs +MinSize640x480                                            ; Allow change GUI size, MsgBoxes is owned by main window, Set minimal window size
 Gui, Add, ActiveX, x0 y0 w1000 h580 vWB, Shell.Explorer                             ; The final parameter is the name of the ActiveX component.
-Gui, Add, Link, x5 y+0 vHint, % textHint . ". " . textDonate . "."                  ; Hint and donate text at the bottom
+Gui, Add, Link, x5 y+0 vHint, % textHint . ". " . textDonate . "."                 ; Hint and donate text at the bottom
 Gui, Add, Text, x940 w60 vLabelAnswer, % " "                                        ; Label for showing verification status Success|Error
 Gui, Show, Center w1000 h600, % "Checker"                                           ; Show the main window (with title Checker)
 
@@ -266,7 +266,7 @@ LoadWait(ByRef wb)
         Sleep, 100
 
         cnt++                                                                       ; Incremet counter
-        If (mod(cnt, 2) = 0)                                                        ; Modulo divide to determine if counter is Even or Odd
+        If (mod(cnt, 2) = 0)                                                       ; Modulo divide to determine if counter is Even or Odd
         {
             GuiControl,, labelanswer, % textLoading                                 ; Flashing sign "Loading..."
         }
@@ -277,7 +277,7 @@ LoadWait(ByRef wb)
 
         If (cnt >= (timeout * 10))                                                  ; Timeout 100ms * 10 * timeout(5) = 5s
         {
-            Return ;wb.Stop                                                         ; Cancels a pending navigation or download, and stops dynamic page elements, such as background sounds and animations.
+            Return ;wb.Stop                                                          ; Cancels a pending navigation or download, and stops dynamic page elements, such as background sounds and animations.
         }
     } Until (wb.Busy)
 
@@ -400,7 +400,7 @@ CheckAnwser(ByRef wb, correct, incorrect)
                             Clipboard := ownersMessage
                         }
                     }
-                    
+
                     ;If (args[1] = "geocachefi")
                     ;{
                     ;    <p><b>Cache owners greetings:</b><br>Sinä teit sen! Mene ja löydä kätkö!<br><br>You got it! Go and find the cache!<br><br></td></tr>
@@ -417,12 +417,12 @@ CheckAnwser(ByRef wb, correct, incorrect)
                     ;{
                     ;    <div class="alert alert-success text-center">...</div><div><p>xxxxxxxxxxxx</p></div>
                     ;}
-                    
+
                     If ((debug != 1) and (ownersMessage != ""))
                     {
                         MsgBox, % Clipboard
                     }
-                    
+
                 } ;=> copymsg
 
                 If (beep = 1)
@@ -989,10 +989,10 @@ Browser(ByRef wb)
         ; Captcha: NO
 
         ;Gui, Show,, % "Checker - " . args[1] ; Change title
-        
+
         ;wb.Navigate(args[10]) ; Navigate to webpage
         ;LoadWait(wb)          ; Wait for page load
-        
+
         ; Try to fill the webpage form
         ;Try
         ;{
@@ -1023,7 +1023,7 @@ Browser(ByRef wb)
         ;    Else
         ;        MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
         ;}
-        
+
         ; Check result after page reload
         ; YES: <h2 align="center" style="color:green">Herzlichen Glückwunsch!</h2>
         ; NO:  <h2 align="center" style="color:red">Schade!</h2> # <H2 style="COLOR: red" align=center>Schade!</H2>
@@ -1145,7 +1145,7 @@ Browser(ByRef wb)
 
         wb.Navigate(args[10])                                                       ; Navigate to webpage
         LoadWait(wb)                                                                ; Wait for page load
-        
+
         wb.Document.ParentWindow.ScrollTo(0,240)                                    ; Scroll down because page has a huge picture in header
 
         ; Try to fill the webpage form
@@ -1317,7 +1317,7 @@ Browser(ByRef wb)
 
         wb.Navigate(args[10])                                                       ; Navigate to webpage
         LoadWait(wb)                                                                ; Wait for page load
-        
+
         wb.Document.ParentWindow.ScrollTo(0,140)                                    ; Scroll down because page has a huge picture in header
 
         ; Try to fill the webpage form
@@ -1701,7 +1701,7 @@ Browser(ByRef wb)
         ;}
 
     }
-    Else If (args[1] = "gzchecker") ; ============================================> NANOCHECKER (18)
+    Else If (args[1] = "gzchecker") ; ============================================> GZCHECKER (19)
     {
         ; URL: http://infin.ity.me.uk/GZ.php?MC=RR074
         ; Captcha: YES
@@ -1714,36 +1714,96 @@ Browser(ByRef wb)
         ; Try to fill the webpage form
         Try
         {
-            If (args[2] = "N")
+
+            If (wb.Document.All.Name.Value = "")
             {
-                wb.Document.All.Lat.SelectedIndex := 0
+                ; Display hidden field -> Type username "anonymous" -> Find Continue button and click on it -> Fill coordinates
+
+                wb.Document.getElementByID("Anon").Style.Display := "block" ; Simulate click on No and set anonymous name field visible
+                wb.Document.getElementByID("Name").Value := "Checker"       ; fill your name (maxlength= 10)
+
+                ; Click on: <input type="button" value="Continue" onclick="LogOut()">
+                Loop, % (inputs := wb.Document.getElementsByTagName("input")).Length                   ; For all tags <input>
+                {
+                    If ((inputs[A_index-1].Type = "button") && (inputs[A_index-1].Value = "Continue")) ; If some of them is type="button" and value="Continue"
+                    {
+                        inputs[A_index-1].Click()                                                       ; Click on it
+                        Break
+                    }
+                }
+
+                Sleep, 1000 ; Wait for page to load
+
+                ; Call GZchecker
+                GoSub, GZchecker
+                Return
+
             }
-            
-            If (args[2] = "S")
+            Else
             {
-                wb.Document.All.Lat.SelectedIndex := 1
+                ; Just fill cordinates
+
+                ; Call GZchecker
+                GoSub, GZchecker
+                Return
             }
-            
-            wb.Document.All.LatD.Value := args[3]
-            wb.Document.All.LatM.Value := args[4]
-            wb.Document.All.LatMD.Value := args[5]
-            
-            If (args[6] = "E")
-            {
-                wb.Document.All.Long.SelectedIndex := 0
-            }
-            
-            If (args[6] = "W")
-            {
-                wb.Document.All.Long.SelectedIndex := 1
-            }
-            
-            wb.Document.All.LongD.Value := args[7]
-            wb.Document.All.LongM.Value := args[8]
-            wb.Document.All.LongMD.Value := args[9]
-            
-            ; Focus Solution Comment field
-            wb.Document.All.SolComm.Focus()
+
+            ; Because we'll use it twice, we can call this with Gosub
+            GZchecker:
+                If (args[2] = "N")
+                {
+                    wb.Document.All.Lat.SelectedIndex := 0
+                }
+
+                If (args[2] = "S")
+                {
+                    wb.Document.All.Lat.SelectedIndex := 1
+                }
+
+                wb.Document.All.LatD.Value := args[3]
+                wb.Document.All.LatM.Value := args[4]
+                wb.Document.All.LatMD.Value := args[5]
+
+                If (args[6] = "E")
+                {
+                    wb.Document.All.Long.SelectedIndex := 0
+                }
+
+                If (args[6] = "W")
+                {
+                    wb.Document.All.Long.SelectedIndex := 1
+                }
+
+                wb.Document.All.LongD.Value := args[7]
+                wb.Document.All.LongM.Value := args[8]
+                wb.Document.All.LongMD.Value := args[9]
+
+                ; Untick checkbox "Allow username to be displayed"
+                wb.Document.All.Tick.Checked := False
+
+                ; Focus Solution Comment field
+                ;wb.Document.All.SolComm.Focus()
+
+                ;Sleep, 1000
+                
+                ; (1) Click on Submit: <input type="button" value="Submit" id="B1" name="B1" onclick="vetall();">
+                ;wb.Document.All.B1.Value := "muehehe"
+                ;wb.Document.All.B1.Click()
+
+                ; (2) This form is difficult to submit, so we need to do it by this unclean way
+                ;Loop, % (inputs := wb.Document.getElementsByTagName("input")).Length   ; For all tags <input>
+                ;{
+                ;    If (inputs[A_index-1].ID = "B1")                            ; If some of them is type="submit"
+                ;    {
+                ;        inputs[A_index-1].Value := "muhehe"
+                ;        inputs[A_index-1].Click()                                       ; Click on it
+                ;    }
+                ;}
+                
+                ; (3) Call vetall() directly -> "object not defined"
+                ;wb.navigate("javascript:vetall();")
+
+            Return
 
         }
         Catch e
@@ -1758,7 +1818,7 @@ Browser(ByRef wb)
                 MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
             }
         }
-        
+
         ; Check result after page reload
         ; YES: <p>Your solution of <b><font color=green>N 51&deg; 44.395'     E 000&deg; 43.983'</font></b> is CORRECT <font color=green>mikrom</font>.</p>
         ; NO:  <div id=Failed name=Failed>&nbsp;</div> // ???
@@ -1768,7 +1828,7 @@ Browser(ByRef wb)
         }
 
     }
-    Else If (args[1] = "puzzlechecker") ; ============================================> PUZZLECHECKER (19)
+    Else If (args[1] = "puzzlechecker") ; ============================================> PUZZLECHECKER (20)
     {
         ; URL: https://puzzle-checker.com/?wp=GC80HFF
         ; Captcha: YES
@@ -1777,7 +1837,7 @@ Browser(ByRef wb)
 
         wb.Navigate(args[10] . "&lang=cs")                                          ; Navigate to webpage
         LoadWait(wb)                                                                ; Wait for page load
-        
+
         wb.Document.ParentWindow.ScrollTo(0,200)                                   ; Scroll down because page has a huge picture in header
 
         ; Try to fill the webpage form
@@ -1795,7 +1855,7 @@ Browser(ByRef wb)
             wb.Document.All.lat1.Value := args[3]
             wb.Document.All.lat2.Value := args[4]
             wb.Document.All.lat3.Value := args[5]
-            
+
             ; Checking radiobuttons is little bit difficult
             Loop, % (lat := wb.Document.getElementsByName("longdir")).Length   ; Get elements named "lat"
             {
@@ -1822,13 +1882,149 @@ Browser(ByRef wb)
                 MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
             }
         }
-        
+
         ; Check result after page reload
         ; YES: <p align="center" class="greenb">Gratulujeme! Vaše øešení je správnì!</p> + <div class="tipblock" style="width:640px"><h3>Cache: TMK 1807 - Figures<BR>GC kód: <a href="http://coord.info/GC80HFF" target="_blank">GC80HFF</a><BR>Souøadnice: N62&deg; 32.396 E17&deg; 27.523<BR>		Informace: Bonuskod: 4306</h3><BR> ... </div>
         ; NO:  <p align="center" class="redb">Vaše odpovìï není správnì!</p>
         If (answer = 1)
         {
             CheckAnwser(wb, "Smi)class=.?greenb.?", "Smi)class=.?redb.?")
+        }
+
+    }
+    Else If (args[1] = "gocaching") ; ============================================> GOCACHING (21)
+    {
+        ; URL: http://www.gocaching.de/cochecker.php?check=406
+        ; Captcha: YES
+
+        Gui, Show,, % "Checker - " . args[1]                                        ; Change title
+
+        wb.Navigate(args[10])                                                       ; Navigate to webpage
+        LoadWait(wb)                                                                ; Wait for page load
+
+        ; Try to fill the webpage form
+        Try
+        {
+            ; Checking radiobuttons is little bit difficult
+            Loop, % (lat := wb.Document.getElementsByName("ck_lat")).Length    ; Get elements named "lat"
+            {
+                If (lat[A_index-1].Value = args[2])                             ; If some of them is equal args[2]
+                {
+                    lat[A_index-1].Checked := True                              ; Check it
+                }
+            }
+
+            wb.Document.All.ck_lat1.Value := args[3]
+            wb.Document.All.ck_lat2.Value := args[4]
+            wb.Document.All.ck_lat3.Value := args[5]
+
+            ; Checking radiobuttons is little bit difficult
+            Loop, % (lat := wb.Document.getElementsByName("ck_lng")).Length   ; Get elements named "lat"
+            {
+                If (lat[A_index-1].Value = args[6])                             ; If some of them is equal args[2]
+                {
+                    lat[A_index-1].Checked := True                              ; Check it
+                }
+            }
+
+            wb.Document.All.ck_lng1.Value := args[7]
+            wb.Document.All.ck_lng2.Value := args[8]
+            wb.Document.All.ck_lng3.Value := args[9]
+            
+            ; Solving captcha
+            ; <font size="-1" class="smallFont">Gibt bitte die Lösung zu folgenden Aufgabe ein:<br>2 + 7 = <input name="recaptcha_response_field" value="" size="2"><br></font>
+            RegExMatch(wb.Document.body.innerHTML, "Smi)ein:\<br\>([0-9]+) ([+-]+) ([0-9]+) = \<input", formula)
+            ;MsgBox % formula1 . " ... " . formula2 . " ... " . formula3
+            If (formula2 == "+")
+            {
+                wb.Document.All.recaptcha_response_field.Value := formula1 + formula3
+            }
+            Else If (formula2 == "-")
+            {
+                wb.Document.All.recaptcha_response_field.Value := formula1 - formula3
+            }
+            
+            ; Submit form
+            wb.Document.All.submit.Click()
+            
+        }
+        Catch e
+        {
+            If (debug != 1)
+            {
+                MsgBox 16, % textError, % textErrorFill, 5
+                ExitApp, exitCode
+            }
+            Else
+            {
+                MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
+            }
+        }
+        
+        ; Check result after page reload
+        ; YES: <tr>
+        ;        <td rowspan="2"><img src="http://www.gocaching.de/./images/coc_true.gif" border="0" width="174" height="174" alt="Richtig" title="Richtig"></td>
+        ;        <td align="center" valign="top"><font size="+1" class="subTitleFont"><hr>Richtig<hr></font></td>
+        ;      </tr>
+        ; NO:  <tr>
+        ;        <td rowspan="2"><img src="http://www.gocaching.de/./images/coc_false.gif" border="0" width="174" height="174" alt="Falsch" title="Falsch"></td>
+        ;        <td align="center" valign="top"><font size="+1" class="subTitleFont"><hr>Falsch<hr></font></td>
+        ;      </tr>
+        If (answer = 1)
+        {
+            CheckAnwser(wb, "Smi)coc_true.gif", "Smi)coc_false.gif")
+        }
+        
+    }
+    Else If (args[1] = "gccc") ; ============================================> GCCC (22)
+    {
+        ; URL: http://gccc.eu/?page=GC6FBFA
+        ; Captcha: NO
+
+        Gui, Show,, % "Checker - " . args[1]                                        ; Change title
+
+        wb.Navigate(args[10])                                                       ; Navigate to webpage
+        LoadWait(wb)                                                                ; Wait for page load
+
+        ; Try to fill the webpage form
+        Try
+        {
+            wb.Document.All.BG.Value := args[3]
+            wb.Document.All.BM.Value := args[4]
+            wb.Document.All.BT.Value := args[5]
+
+            If (StrLen(args[7]) = 3)                                                ; Remove leading zero 015° --> 15°
+            {
+                wb.Document.All.LG.Value := SubStr(args[7], 2, 2)
+            }
+            Else
+            {
+                wb.Document.All.LG.Value := args[7]
+            }
+            wb.Document.All.LM.Value := args[8]
+            wb.Document.All.LT.Value := args[9]
+            
+            wb.Document.Forms[0].Submit()
+        }
+        Catch e
+        {
+            If (debug != 1)
+            {
+                MsgBox 16, % textError, % textErrorFill, 5
+                ExitApp, exitCode
+            }
+            Else
+            {
+                MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
+            }
+        }
+
+        ; Check result after page reload
+        ; YES: <h2 style="color:green">TREFFER! OK! RICHTIG!</h2>
+        ; NO:  <h2 style="color:red">Sorry, leider FALSCH - nicht getroffen!</h2>
+        If (answer = 1)
+        {
+            CheckAnwser(wb, "Smi)TREFFER! OK! RICHTIG!", "Smi)Sorry, leider FALSCH - nicht getroffen!")
         }
 
     }

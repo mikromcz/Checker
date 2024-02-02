@@ -5,7 +5,7 @@
     Www: https://www.geoget.cz/doku.php/user:skript:checker
     Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
     Author: mikrom, http://mikrom.cz
-    Version: 2.22.0
+    Version: 3.0.0
 }
 
 {$include InstallTool.lib.pas}
@@ -87,7 +87,12 @@ begin
     end;
     
     {installtool}
-    InstallTool_MoveFile(GEOGET_SCRIPTDIR + '\Checker\AutoHotKey.exe', 'Checker');
+    if FileExists(GEOGET_SCRIPTDIR + '\Checker\AutoHotkeyU32.exe') then begin
+        if RenameFile(GEOGET_SCRIPTDIR + '\Checker\AutoHotkeyU32.exe', GEOGET_SCRIPTDIR + '\Checker\AutoHotkey.exe') then begin
+            InstallTool_MoveFile(GEOGET_SCRIPTDIR + '\Checker\AutoHotKey.exe', 'Checker');
+        end;
+    end;
+    
     
     result := ''; // Run without error
 end;
