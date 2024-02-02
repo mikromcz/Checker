@@ -1,8 +1,15 @@
+** 2.22.0 (2019/06/05) **
+  * u keše GC823B0 je odkaz na checker v hintu, takže nyní budeme prohledávat i hint
+  * kosmetické úpravy v kódu
+  * aktualizace AutoHotkey na 1.1.30.03
+  * opìt povolen gccounter.com, vypadá to, že web je zase funkèní
+  * pøidána podpora pro geotjek.eu
+
 ** 2.21.0 (2018/10/25) **
- * autoclose okna o prekroceni limitu
- * masivní oprava parsování ownersMessage, takže už to tøeba na GC2R6R8, GC4W3B2 nespadne
- * gccounter.de a gccounter.com je mrtev - "Dieser Service wird nicht mehr fortgeführt!"
- * aktualizace AutoHotkey na 1.1.30.00
+  * autoclose okna o prekroceni limitu
+  * masivní oprava parsování ownersMessage, takže už to tøeba na GC2R6R8, GC4W3B2 nespadne
+  * gccounter.de a gccounter.com je mrtev - "Dieser Service wird nicht mehr fortgeführt!"
+  * aktualizace AutoHotkey na 1.1.30.00
 
 ** 2.20.0 (2018/07/24) **
   * oprava logování do Checker.csv
