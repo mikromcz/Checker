@@ -1,3 +1,11 @@
+** 2.12.0 (2017/03/15) **
+  * oprava webu hermansky.net (nìkdy pøibudou vteøiny, nìkdy ne, tak si poradíme s obìmi variantami)
+  * zrušena podpora Evince (jen zakomentováno v Checker.ahk)
+  * dovede si poradit s více ovìøovaèi v listingu (napø: GC5GVRK, GC39D30)
+  * gccheck.com má problémy s certifikátem pro HTTPS, s tím nic neudìlám
+  * doplnìní cz pøekladu
+  * aktualizace AutoHotkey na nejnovìjší verzi 1.1.25.01
+  
 ** 2.11.1 (2017/02/16) **
   * pøidána podpora gc.gcm.cz
   * oprava parsování geocache.fi

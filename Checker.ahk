@@ -2,7 +2,7 @@
 ; Www: http://geoget.ararat.cz/doku.php/user:skript:checker
 ; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ; Author: mikrom, http://mikrom.cz
-; Version: 2.11.0
+; Version: 2.12.0
 ;
 ; Documentation: http://ahkscript.org/docs/AutoHotkey.htm
 ; FAQ: http://www.autohotkey.com/docs/FAQ.htm
@@ -44,6 +44,7 @@ IniRead, answer, %A_ScriptDir%\Checker.ini, % "Checker", % "answer" ; Define ret
 Menu, Tray, Icon, %A_ScriptDir%\Checker.ico,,1
 
 ; Language switch
+; https://autohotkey.com/docs/misc/Languages.htm
 If (A_Language = "0405") { ; Czech
   global textError           := "Chyba"
   global textErrorFill       := "Chyba: Nelze vyplnit souøadnice!`n`nPravdìpodobnì se naèetla špatná stránka, napøíklad oznámení o pøekroèení limitu."
@@ -53,9 +54,11 @@ If (A_Language = "0405") { ; Czech
   global textErrorTimeout    := "Chyba: Vypršel èasový limit naèítání stránky.`nZkuste F5 pro obnovení."
   global textDonate          := "Zvažte podporu pluginu pøes <a href=""http://goo.gl/dCKefD"">PayPal</a>, nebo mi napište <a href=""mailto:mikrom@mikrom.cz"">email</a>"
   global textHint            := "Pro ukonèení mùžete použít ESC a pro obnovení stránky F5"
+  global textLoading         := "Naèítám..."
   global textAnswerChecking  := "Kontroluji..."
   global textAnswerCorrect   := "Správnì!"
   global textAnswerIncorrect := "Špatnì!"
+  global textEvince          := "Upozornìní: Web http://evince.locusprime.net je mrtev. Nelze nic vyplnit/ovìøit."
 } Else { ; Other = English
   global textError           := "Error"
   global textErrorFill       := "Error: Can't fill coordinates!`n`nProbably wrong page loaded, like limit exceeded."
@@ -65,9 +68,11 @@ If (A_Language = "0405") { ; Czech
   global textErrorTimeout    := "Error: Timeout while page load.`nTry press F5 for reload."
   global textDonate          := "You can donate plugin by <a href=""http://goo.gl/dCKefD"">PayPal</a>, or send me an <a href=""mailto:mikrom@mikrom.cz"">email</a>"
   global textHint            := "You can use ESC for quit and F5 for page reload"
+  global textLoading         := "Loading..."
   global textAnswerChecking  := "Checking..."
   global textAnswerCorrect   := "Correct!"
   global textAnswerIncorrect := "Incorrect!"
+  global textEvince          := "Warning: Site http://evince.locusprime.net is dead. It is not possible to fill/check anything."
 }
 
 ; Add CMD paremeters to (pseudo) array. It's not necessary, parameters are in variables %1%, %2%, .. but seems not to work in my case.
@@ -172,35 +177,59 @@ WM_KeyPress(wParam, lParam, nMsg, hWnd) {
 ; http://www.autohotkey.com/board/topic/77243-need-help-for-a-custom-browser/
 ; http://p.ahkscript.org/?p=21044572
 LoadWait(ByRef wb) {
-  If !wb          ; If wb is not a valid pointer then quit
+  If !wb                                      ; If wb is not a valid pointer then quit
     Return False
-  Loop            ; Otherwise sleep for .1 seconds untill the page starts loading
+
+  cnt := 0                                    ; Reset variable to zero
+  Loop {                                      ; Otherwise sleep for .1 seconds untill the page starts loading
     Sleep, 100
-  Until (wb.Busy)
-  Loop            ; Once it starts loading wait until completes
+
+    cnt++                                     ; Incremet counter
+    If (mod(cnt, 2) = 0)                      ; Modulo divide to determine if counter is Even or Odd
+      GuiControl,, labelanswer, % textLoading ; Flashing sign "Loading..."
+    Else
+      GuiControl,, labelanswer, % cnt . "_1"
+
+    If cnt >= 50                              ; Timeout .1 x 10 = 1000ms, so 5 seconds?
+      Return ;wb.Stop                         ; Cancels a pending navigation or download, and stops dynamic page elements, such as background sounds and animations.
+  } Until (wb.Busy)
+
+  cnt := 0                                    ; Reset variable to zero
+  Loop {                                      ; Once it starts loading wait until completes
     Sleep, 100
-  Until (!wb.busy)
-  ;Loop           ; Optional check to wait for the page to completely load - NOT WORK FOR ME, hangs at some pages
+
+    cnt++                                     ; Incremet counter
+    If (mod(cnt, 2) = 0)                      ; Modulo divide to determine if counter is Even or Odd
+      GuiControl,, labelanswer, % textLoading ; Flashing sign "Loading..."
+    Else
+      GuiControl,, labelanswer, % cnt . "_2"
+
+    If cnt >= 50                              ; Timeout .1 x 10 = 1000ms, so 5 seconds?
+      Return ;wb.Stop                         ; Cancels a pending navigation or download, and stops dynamic page elements, such as background sounds and animations.
+  } Until (!wb.Busy)
+
+  ;Loop                                       ; Optional check to wait for the page to completely load - NOT WORK FOR ME, hangs at some pages
   ;  Sleep, 100
   ;Until (wb.Document.Readystate = "Complete")
-	Return True
 
-  Sleep, 500      ; Just for sure
-  ;wb.Stop        ; Cancels a pending navigation or download, and stops dynamic page elements, such as background sounds and animations.
+  Return True
+
+  Sleep, 500                                  ; Just for sure
 } ; => LoadWait()
 
 ; Function for check returned page for the information if verification was successful or not
 CheckAnwser(ByRef wb, correct, incorrect) {
   If (debug = 1)
     FileAppend, % "Correct: " . correct . "`nIncorrect: " . incorrect . "`n`n" . wb.Document.body.innerHTML, %A_ScriptDir%/debug.html
-  
+
   Try {
+    cnt := 0                                            ; Reset variable to zero
     Loop {
       Sleep, 200
 
-      cnt++                                               ; Incremet counter
-      If (mod(cnt, 2) = 0)                                ; Modulo divide to determine if counter is Even or Odd
-        GuiControl,, labelanswer, % textAnswerChecking    ; Flashing sign "Checking..."
+      cnt++                                             ; Incremet counter
+      If (mod(cnt, 2) = 0)                              ; Modulo divide to determine if counter is Even or Odd
+        GuiControl,, labelanswer, % textAnswerChecking  ; Flashing sign "Checking..."
       Else
         GuiControl,, labelanswer, % " "
 
@@ -233,9 +262,12 @@ CheckAnwser(ByRef wb, correct, incorrect) {
 
         ;errorLvl := 3
       ;}
-    } Until (errorLvl != 0)                               ; Loop again and again until errorlevel is changed
+    } Until (errorLvl != 0)                             ; Loop again and again until errorlevel is changed
   } Catch e {
+    If (debug = 0) 
       MsgBox 16, % textError, % textErrorException . e.extra
+    Else
+      MsgBox 16, % textError, % textErrorException . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
   }
 } ;=> CheckAnwser()
 
@@ -250,7 +282,7 @@ Browser(ByRef wb) {
     ; URL: http://geocheck.org/geo_inputchkcoord.php?gid=61241961c72ab1d-b813-47da-bf03-07c67bb81ac9
     ; Captcha: YES
     Gui, Show,, % "Checker - " . args[1] ; Change title
-    
+
     wb.Navigate(args[10]) ; Navigate to webpage
     LoadWait(wb)          ; Wait for page load
 
@@ -392,6 +424,7 @@ Browser(ByRef wb) {
         (Bohu.+el, zadaná odpov.+ není správná)"
       )
       CheckAnwser(wb, okay, notokay)
+      ;CheckAnwser(wb, "Smi)správné", "Smi)správná")
     }
   } Else If (args[1] = "geochecker") { ; ==========================================> GEOCHECKER (2)
     ; URL: http://geochecker.com/index.php?code=150e9c12665c476df9d1fcc30eeae605&action=check&wp=4743354e595a33&name=4d79646c6f   ...   &CaptchaChoice=Recaptcha
@@ -408,9 +441,11 @@ Browser(ByRef wb) {
       Sleep, 500
       wb.Document.All.button.Click()
     } Catch e {
-      MsgBox 16, % textError, % textErrorFill
-      If (debug = 0)
+      If (debug = 0) {
+        MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
+      } Else
+        MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
     }
 
     ; Check result after page reload
@@ -422,32 +457,36 @@ Browser(ByRef wb) {
   } Else If (args[1] = "evince") { ; ==============================================> EVINCE (3)
     ; URL: http://evince.locusprime.net/cgi-bin/index.cgi?q=d0ZNzQeHKReGKzr
     ; Captcha: YES
-    Gui, Show,, % "Checker - " . args[1] ; Change title
+    ;Gui, Show,, % "Checker - " . args[1] ; Change title
 
-    wb.Navigate(args[10]) ; Navigate to webpage
-    LoadWait(wb)          ; Wait for page load
+    ;wb.Navigate(args[10]) ; Navigate to webpage
+    ;LoadWait(wb)          ; Wait for page load
 
     ; Try to fill the webpage form
-    Try {
-      wb.Document.All.NorthSouth.Value := args[2]
-      wb.Document.All.LatDeg.Value := args[3]
-      wb.Document.All.LatMin.Value := args[4] . "." . args[5]
-      wb.Document.All.EastWest.Value := args[6]
-      wb.Document.All.LonDeg.Value := args[7]
-      wb.Document.All.LonMin.Value := args[8] . "." . args[9]
-      wb.Document.All.recaptcha_response_field.Focus()
-    } Catch e {
-      MsgBox 16, % textError, % textErrorFill
-      If (debug = 0)
-        ExitApp, errorLvl
-    }
+    ;Try {
+    ;  wb.Document.All.NorthSouth.Value := args[2]
+    ;  wb.Document.All.LatDeg.Value := args[3]
+    ;  wb.Document.All.LatMin.Value := args[4] . "." . args[5]
+    ;  wb.Document.All.EastWest.Value := args[6]
+    ;  wb.Document.All.LonDeg.Value := args[7]
+    ;  wb.Document.All.LonMin.Value := args[8] . "." . args[9]
+    ;  wb.Document.All.recaptcha_response_field.Focus()
+    ;} Catch e {
+    ;  MsgBox 16, % textError, % textErrorFill
+    ;  If (debug = 0)
+    ;    ExitApp, errorLvl
+    ;}
 
     ; Check result after page reload
     ; YES: <span style="font-size: large; font-weight: bold; color: rgb(206, 0, 0);">Congratulations!</span> # <SPAN style="FONT-SIZE: large; FONT-WEIGHT: bold; COLOR: rgb(206,0,0)"><BR>Congratulations! </SPAN>
     ; NO:  <span style="font-size: large; font-weight: bold; color: rgb(206, 0, 0);">Sorry!</span> # <SPAN style="FONT-SIZE: large; FONT-WEIGHT: bold; COLOR: rgb(206,0,0)">Sorry! </SPAN>
-    If (answer = 1)
-      CheckAnwser(wb, "Smi)Congratulations!", "Smi)Sorry!")
+    ;If (answer = 1)
+    ;  CheckAnwser(wb, "Smi)Congratulations!", "Smi)Sorry!")
 
+    ; Since 2017 website looks dead
+    MsgBox, 48, % textError, % textEvince
+    ExitApp, errorLvl
+    
   } Else If (args[1] = "hermansky") { ; ===========================================> HERMANSKY (4)
     ; URL: http://geo.hermansky.net/index.php?co=checker&code=22377facb3ee0fbbf6e5e2b7dee042ee8687a55cd
     ; Captcha: NO
@@ -455,22 +494,43 @@ Browser(ByRef wb) {
 
     wb.Navigate(args[10])                    ; Navigate to webpage
     LoadWait(wb)                             ; Wait for page load
+
     wb.Document.ParentWindow.ScrollTo(0,370) ; Scroll down because page has a huge picture in header
 
     ; Try to fill the webpage form
     Try {
-      wb.Document.All.vyska.Value := args[2]
-      wb.Document.All.stupne21.Value := args[3]
-      wb.Document.All.minuty21.Value := args[4] . "." . args[5]
-      wb.Document.All.sirka.Value := args[6]
-      wb.Document.All.stupne22.Value := args[7]
-      wb.Document.All.minuty22.Value := args[8] . "." . args[9]
+      ; Page is somehow in two different versions (DegMin vs. DegMinSec)
+      If (wb.Document.getElementsByName("vteriny11").Length = 0) { ; For classic old DegMin version
+        If (debug = 1)
+          MsgBox, % "Deg Min version"
+          
+        wb.Document.All.vyska.Value := args[2]
+        wb.Document.All.stupne21.Value := args[3]
+        wb.Document.All.minuty21.Value := args[4] . "." . args[5]
+        wb.Document.All.sirka.Value := args[6]
+        wb.Document.All.stupne22.Value := args[7]
+        wb.Document.All.minuty22.Value := args[8] . "." . args[9]
+      } Else If (wb.Document.getElementsByName("vteriny11").Length <> 0) { ; For new DegMinSec version
+        If (debug = 1)
+          MsgBox, % "Deg Min Sec version"
+          
+        wb.Document.All.vyska.Value := args[2]
+        wb.Document.All.stupne11.Value := args[3]
+        wb.Document.All.minuty11.Value := args[4]
+        wb.Document.All.vteriny11.Value := args[5]
+        wb.Document.All.sirka.Value := args[6]
+        wb.Document.All.stupne12.Value := args[7]
+        wb.Document.All.minuty12.Value := args[8]
+        wb.Document.All.vteriny12.Value := args[9]
+      }
       Sleep, 500
       wb.Document.Forms[0].Submit()
     } Catch e {
-      MsgBox 16, % textError, % textErrorFill
-      If (debug = 0)
+      If (debug = 0) {
+        MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
+      } Else
+        MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
     }
 
     Sleep, 1000
@@ -508,9 +568,11 @@ Browser(ByRef wb) {
       wb.Document.All.delka3.Value := args[9]
       wb.Document.All.code.Focus()
     } Catch e {
-      MsgBox 16, % textError, % textErrorFill
-      If (debug = 0)
+      If (debug = 0) {
+        MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
+      } Else
+        MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
     }
 
     ; Check result after page reload
@@ -546,9 +608,11 @@ Browser(ByRef wb) {
       Sleep, 500
       wb.Document.Forms[0].Submit()
     } Catch e {
-      MsgBox 16, % textError, % textErrorFill
-      If (debug = 0)
+      If (debug = 0) {
+        MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
+      } Else
+        MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
     }
 
     ; Check result after page reload
@@ -586,9 +650,11 @@ Browser(ByRef wb) {
         If (inputs[A_index-1].Type = "submit")                             ; If some of them is type="submit"
           inputs[A_index-1].Click()                                        ; Click on it
     } Catch e {
-      MsgBox 16, % textError, % textErrorFill
-      If (debug = 0)
+      If (debug = 0) {
+        MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
+      } Else
+        MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
     }
 
     ; Check result after page reload
@@ -615,9 +681,11 @@ Browser(ByRef wb) {
         If (inputs[A_index-1].Type = "submit")                             ; If some of them is type="submit"
           inputs[A_index-1].Click()                                        ; Click on it
     } Catch e {
-      MsgBox 16, % textError, % textErrorFill
-      If (debug = 0)
+      If (debug = 0) {
+        MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
+      } Else
+        MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
     }
 
     ; Check result after page reload
@@ -640,9 +708,11 @@ Browser(ByRef wb) {
       wb.Document.All.ListView1_txtKoords_0.Value := args[2] . args[3] . " " . args[4] . "." . args[5] . " " . args[6] . args[7] . " " . args[8] . "." . args[9]
       wb.Document.All.ListView1_txtCaptchaCode_0.Focus()
     } Catch e {
-      MsgBox 16, % textError, % textErrorFill
-      If (debug = 0)
+      If (debug = 0) {
+        MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
+      } Else
+        MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
     }
 
     ; Check result after page reload
@@ -655,7 +725,7 @@ Browser(ByRef wb) {
     ; URL: http://gccheck.com/GC5EJH7
     ; Captcha: YES
     Gui, Show,, % "Checker - " . args[1] ; Change title
-
+    
     wb.Navigate(args[10]) ; Navigate to webpage
     LoadWait(wb)          ; Wait for page load
 
@@ -668,9 +738,11 @@ Browser(ByRef wb) {
           inputs[A_index-1].Value := args[2] . args[3] . "° " . args[4] . "." . args[5] . " " . args[6] . args[7] . "° " . args[8] . "." . args[9]
       wb.Document.All.captcha.Focus()
     } Catch e {
-      MsgBox 16, % textError, % textErrorFill
-      If (debug = 0)
+      If (debug = 0) {
+        MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
+      } Else
+        MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
     }
 
     ; Check result after page reload
@@ -705,9 +777,11 @@ Browser(ByRef wb) {
         If (inputs[A_index-1].ID = "runChecker")                            ; If some of them is type="submit"
           inputs[A_index-1].Click()                                         ; Click on it
     } Catch e {
-      MsgBox 16, % textError, % textErrorFill
-      If (debug = 0)
+      If (debug = 0) {
+        MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
+      } Else
+        MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
     }
 
     ; Check result after page reload
@@ -730,7 +804,7 @@ Browser(ByRef wb) {
       If (args[2] = "N")
         wb.Document.All.jform_ns.SelectedIndex := 0
       If (args[2] = "S")
-        wb.Document.All.jform_ns.SelectedIndex := 1   
+        wb.Document.All.jform_ns.SelectedIndex := 1
       wb.Document.All.jform_nsa.Value := args[3]
       wb.Document.All.jform_nsb.Value := args[4]
       wb.Document.All.jform_nsc.Value := args[5]
@@ -741,12 +815,14 @@ Browser(ByRef wb) {
       wb.Document.All.jform_wea.Value := args[7]
       wb.Document.All.jform_web.Value := args[8]
       wb.Document.All.jform_wec.Value := args[9]
-      
+
       wb.Document.All._captcha.Focus()
     } Catch e {
-      MsgBox 16, % textError, % textErrorFill
-      If (debug = 0)
+      If (debug = 0) {
+        MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
+      } Else
+        MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
     }
 
     ; Check result after page reload
@@ -754,7 +830,7 @@ Browser(ByRef wb) {
     ; NO:  <div class="alert alert-danger"> .. <img id="status-icon" border="0" src="/components/com_geochecker/assets/images/wrong.png" /> .. <div id="status-msg">Falsch!
     If (answer = 1)
       CheckAnwser(wb, "Smi)class=.?alert alert-success.?", "Smi)class=.?alert alert-danger.?")
-      
+
   } Else If (args[1] = "gcappsMultichecker") { ; =============================================> GC-APPS MULTICHECKER (11.2)
     ; URL: http://www.gc-apps.com/multichecker/show/2d2eca9367b250181c6379c46292be32
     ; Captcha: ?
@@ -776,7 +852,7 @@ Browser(ByRef wb) {
       If (args[2] = "N")
         wb.Document.All.ns.SelectedIndex := 0
       If (args[2] = "S")
-        wb.Document.All.ns.SelectedIndex := 1   
+        wb.Document.All.ns.SelectedIndex := 1
       wb.Document.All.cachelat1.Value := args[3]
       wb.Document.All.cachelat2.Value := args[4]
       wb.Document.All.cachelat3.Value := args[5]
@@ -787,12 +863,14 @@ Browser(ByRef wb) {
       wb.Document.All.cachelon1.Value := args[7]
       wb.Document.All.cachelon2.Value := args[8]
       wb.Document.All.cachelon3.Value := args[9]
-      
+
       wb.Document.All.seccode.Focus()
     } Catch e {
-      MsgBox 16, % textError, % textErrorFill
-      If (debug = 0)
+      If (debug = 0) {
+        MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
+      } Else
+        MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
     }
 
     ; Check result after page reload
@@ -802,7 +880,7 @@ Browser(ByRef wb) {
     ; NO:  <font color="#FF0000" size=5><b>EI, EI, EI :(</b></font>
     If (answer = 1)
       CheckAnwser(wb, "Smi)<font color=.?#00AA00.? size=.?5.?>", "Smi)<font color=.?#FF0000.? size=.?5.?>")
-      
+
   } Else If (args[1] = "geowii") { ; =============================================> GEOWII (13)
     ; URL: http://geowii.miga.lv/wii/GC55D0E
     ; Captcha: -
@@ -820,11 +898,13 @@ Browser(ByRef wb) {
         wb.Document.All.verifyCoordinates.Value := args[2] . args[3] . "° " . args[4] . "." . args[5] . " " . args[6] . args[7] . "° " . args[8] . "." . args[9]
         ;wb.Document.Forms[0].Submit()
       }
-      
+
     } Catch e {
-      MsgBox 16, % textError, % textErrorFill
-      If (debug = 0)
+      If (debug = 0) {
+        MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
+      } Else
+        MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
     }
 
     ; Check result after page reload
@@ -832,7 +912,7 @@ Browser(ByRef wb) {
     ; NO:  <h4 class="text-danger">The coordinates you entered <strong>N 56&#176; 56.784 E 024&#176; 05.911</strong> are incorrect.</h4>
     If (answer = 1)
       CheckAnwser(wb, "Smi)class=.?text-success.?", "Smi)class=.?text-danger.?")
-      
+
   } Else If (args[1] = "gcm") { ; =============================================> GC.GCM.CZ (14)
     ; URL: https://gc.gcm.cz/validator/index.php?uuid=7f401a15-231e-44c8-a6e6-bf8b9c69a624
     ; Captcha: YES
@@ -846,7 +926,7 @@ Browser(ByRef wb) {
       If (args[2] = "N")
         wb.Document.All.lat_ns.SelectedIndex := 0
       If (args[2] = "S")
-        wb.Document.All.lat_ns.SelectedIndex := 1   
+        wb.Document.All.lat_ns.SelectedIndex := 1
       wb.Document.All.lat_deg.Value := args[3]
       wb.Document.All.lat_min.Value := args[4] . "." . args[5]
       If (args[6] = "E")
@@ -855,13 +935,15 @@ Browser(ByRef wb) {
         wb.Document.All.lon_ew.SelectedIndex := 1
       wb.Document.All.lon_deg.Value := args[7]
       wb.Document.All.lon_min.Value := args[8] . "." . args[9]
-      
+
       wb.Document.All.captcha.Focus()
-      
+
     } Catch e {
-      MsgBox 16, % textError, % textErrorFill
-      If (debug = 0)
+      If (debug = 0) {
+        MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
+      } Else
+        MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
     }
 
     ; Check result after page reload
@@ -869,7 +951,7 @@ Browser(ByRef wb) {
     ; NO:  <h3 class="fail">Bohužel :(</h3>
     If (answer = 1)
       CheckAnwser(wb, "Smi)class=.?success.?", "Smi)class=.?fail.?")
-      
+
   } Else { ; ======================================================================> SERVICE ERROR
     MsgBox 16, % textError, % textErrorService
     If (debug = 0)
