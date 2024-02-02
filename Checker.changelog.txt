@@ -1,3 +1,6 @@
+** 0.2.9.0 (2017/01/25) **
+  * pøidána podpora www.geocache.fi
+
 ** 0.2.8.0 (2017/01/22) **
   * pokud se bìhem instalace zjistí, že v INI neexistuje klíè iefix, tak ho radìji zapíšeme s hodnotou 1 (true)
 

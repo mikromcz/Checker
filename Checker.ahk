@@ -2,7 +2,7 @@
 ; Www: http://geoget.ararat.cz/doku.php/user:skript:checker
 ; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ; Author: mikrom, http://mikrom.cz
-; Version: 0.2.7.1
+; Version: 0.2.9.0
 ;
 ; Documentation: http://ahkscript.org/docs/AutoHotkey.htm
 ; FAQ: http://www.autohotkey.com/docs/FAQ.htm
@@ -192,8 +192,8 @@ LoadWait(ByRef wb) {
 ; Function for check returned page for the information if verification was successful or not
 CheckAnwser(ByRef wb, correct, incorrect) {
   If (debug = 1)
-    MsgBox, % "Correct: " . correct . "`nIncorrect: " . incorrect . "`n`n" . wb.Document.body.innerHTML
-
+    FileAppend, % "Correct: " . correct . "`nIncorrect: " . incorrect . "`n`n" . wb.Document.body.innerHTML, %A_ScriptDir%/debug.html
+  
   Try {
     Loop {
       Sleep, 200
@@ -751,6 +751,45 @@ Browser(ByRef wb) {
     wb.Navigate(args[10]) ; Navigate to webpage
     LoadWait(wb)          ; Wait for page load
 
+  } Else If (args[1] = "geocachefi") { ; =============================================> GEOCACHE.FI (12)
+    ; URL: http://www.geocache.fi/checker/?uid=M9KAR6VJJG5VCDCSZQCR&act=check&wp=GC4CEFD
+    ; Captcha: YES
+    Gui, Show,, % "Checker - " . args[1] ; Change title
+
+    wb.Navigate(args[10]) ; Navigate to webpage
+    LoadWait(wb)          ; Wait for page load
+
+    ; Try to fill the webpage form
+    Try {
+      If (args[2] = "N")
+        wb.Document.All.ns.SelectedIndex := 0
+      If (args[2] = "S")
+        wb.Document.All.ns.SelectedIndex := 1   
+      wb.Document.All.cachelat1.Value := args[3]
+      wb.Document.All.cachelat2.Value := args[4]
+      wb.Document.All.cachelat3.Value := args[5]
+      If (args[6] = "E")
+        wb.Document.All.ew.SelectedIndex := 0
+      If (args[6] = "W")
+        wb.Document.All.ew.SelectedIndex := 1
+      wb.Document.All.cachelon1.Value := args[7]
+      wb.Document.All.cachelon2.Value := args[8]
+      wb.Document.All.cachelon3.Value := args[9]
+      
+      wb.Document.All.seccode.Focus()
+    } Catch e {
+      MsgBox 16, % textError, % textErrorFill
+      ExitApp, errorLvl
+    }
+
+    ; Check result after page reload
+    ; YES: <font color="#00AA00" size=5><b>ETUSIVU UUSIKSI! SEH&Auml;N OSUI JA UPPOSI!</b></font>
+    ; YES: <font color="#00AA00" size=5><b>SEH&Auml;N MENI KUIN STR&Ouml;MS&Ouml;SS&Auml;! WAUDE!</b></font>
+    ; YES: <font color="#00AA00" size=5><b>WHOPII!!!! NAPPIIN MENI!</b></font>
+    ; NO:  <font color="#FF0000" size=5><b>EI, EI, EI :(</b></font>
+    If (answer = 1)
+      CheckAnwser(wb, "Smi)<font color=.?#00AA00.? size=.?5.?>", "Smi)<font color=.?#FF0000.? size=.?5.?>")
+      
   } Else { ; ======================================================================> SERVICE ERROR
     MsgBox 16, % textError, % textErrorService
     ExitApp, errorLvl
@@ -768,6 +807,12 @@ Return
 ; F5 for reload page (and fill form again)
 F5:: ; http://ahkscript.org/docs/KeyList.htm
   Browser(wb)
+Return
+
+; F6 for save HTML to debug2.html
+F6::
+If (debug = 1)
+  FileAppend, % wb.Document.body.innerHTML, %A_ScriptDir%/debug2.html
 Return
 
 ; Run when GUI is resized

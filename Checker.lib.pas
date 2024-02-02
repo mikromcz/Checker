@@ -4,7 +4,7 @@
   Www: http://geoget.ararat.cz/doku.php/user:skript:checker
   Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
   Author: mikrom, http://mikrom.cz
-  Version: 0.2.8.0
+  Version: 0.2.9.0
 
   ToDo:
   * This is maybe interesting: http://www.regular-expressions.info/duplicatelines.html
@@ -25,6 +25,7 @@ const
   challengeRegex   = '(?i)https?:\/\/(www\.)?project-gc\.com\/Challenges\/GC[A-Z0-9]+\/\d+[^"''<\s]+';
   gcappsGeoRegex   = '(?i)https?:\/\/(www\.)?gc-apps\.com\/geochecker\/show\/([^"''<\s]+)'; // '(?i)https?:\/\/(www\.)?gc-apps\.com\/(geochecker\/show\/)|(index\.php\?option=com_geochecker&view=item&id=)([^"''<\s]+)';
   gcappsMultiRegex = '(?i)https?:\/\/(www\.)?gc-apps\.com\/multichecker\/show\/([^"''<\s]+)';
+  geocacheFiRegex  = '(?i)https?:\/\/(www\.)?geocache\.fi\/checker\/\?.+wp\=([^"''<\s]+)';
 var
   debug, answer: Boolean;
   coords: String;
@@ -227,6 +228,15 @@ begin
     else if RegexFind(gcappsMultiRegex, description) then begin
       url := RegExSubstitute(gcappsMultiRegex, description, '$0#'); // Parse URL from listing (on purpose it ends with '#')
       service := 'gcappsMultichecker';
+    end
+    {
+    GEOCACHE.FI
+    url: http://www.geocache.fi/checker/?uid=M9KAR6VJJG5VCDCSZQCR&act=check&wp=GC4CEFD
+    captcha: yes
+    }
+    else if RegexFind(geocacheFiRegex, description) then begin
+      url := RegExSubstitute(geocacheFiRegex, description, '$0#'); // Parse URL from listing (on purpose it ends with '#')
+      service := 'geocachefi';
     end 
     {Standard behavior}
     else begin
