@@ -1,5 +1,8 @@
 ; checker
-; mikrom, http://mikrom.cz
+; Www: http://geoget.ararat.cz/doku.php/user:skript:checker
+; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
+; Author: mikrom, http://mikrom.cz
+; Version: 0.0.1.5
 ;
 ; parameters  service     ns          dx          mx          sx          ew          dy          my          sy          url
 ; eg.         checker     N           50          15          123         E           015         54          123         http://checker.org/check?=a56sjg4678gdg
@@ -17,9 +20,8 @@ EndIf
 
 Switch $CmdLine[1]
   Case "geocheck"
-    $title = "GeoCheck - Check your coordinates"
     ShellExecute($CmdLine[10])
-    If WinWaitActive($title, "", 30) Then
+    If WinWaitActive("[REGEXPTITLE:Geo(Chec|Tje)k]", "", 30) Then
       Sleep(1000)
       Send("{TAB 37}")
       If($CmdLine[2] = "N") Then
@@ -51,9 +53,8 @@ Switch $CmdLine[1]
     EndIf
     Exit
   Case "geochecker"
-    $title = "GeoChecker link for "
     ShellExecute($CmdLine[10])
-    If WinWaitActive($title, "", 30) Then
+    If WinWaitActive("GeoChecker ", "", 30) Then
       Sleep(1000)
       Send("{TAB 17}")
       Send($CmdLine[2])
@@ -79,9 +80,8 @@ Switch $CmdLine[1]
     EndIf
     Exit
   Case "evince"
-    $title = "evince - coordinate verification"
     ShellExecute($CmdLine[10])
-    If WinWaitActive($title, "", 30) Then
+    If WinWaitActive("evince - ", "", 30) Then
       Sleep(1000)
       Send("+{TAB}")
       Send($CmdLine[2])
@@ -105,9 +105,8 @@ Switch $CmdLine[1]
     EndIf
     Exit
   Case "hermansky"
-    $title = "GPS Pøevodník / Kontrolor"
     ShellExecute($CmdLine[10])
-    If WinWaitActive($title, "", 30) Then
+    If WinWaitActive("GPS Pøevodník / Kontrolor", "", 30) Then
       Sleep(1000)
       Send("{TAB 7}")
       Send($CmdLine[2])
@@ -132,9 +131,8 @@ Switch $CmdLine[1]
     EndIf
     Exit
   Case "komurka"
-    $title = ".:: http://geo.komurka.cz ::."
     ShellExecute($CmdLine[10])
-    If WinWaitActive($title, "", 30) Then
+    If WinWaitActive(".:: http://geo.komurka.cz ::.", "", 30) Then
       Sleep(1000)
       Send("{TAB 3}")
       Send($CmdLine[2])
@@ -158,9 +156,8 @@ Switch $CmdLine[1]
     EndIf
     Exit
   Case "gccounter"
-    $title = "GCCounter"
     ShellExecute($CmdLine[10])
-    If WinWaitActive($title, "", 30) Then
+    If WinWaitActive("GCCounter", "", 30) Then
       Sleep(1000)
       Send("{TAB 3}")
       Send($CmdLine[2])
@@ -180,6 +177,15 @@ Switch $CmdLine[1]
       Send($CmdLine[9])
       Send("{TAB}")
       Sleep(2000)
+      Send("{ENTER}")
+    Else
+      MsgBox(0, "Error", "Error: Timeout!")
+    EndIf
+    Exit
+  Case "certitudes"
+    ShellExecute($CmdLine[10])
+    If WinWaitActive("Certitude:", "", 30) Then
+      Sleep(1000)
       Send("{ENTER}")
     Else
       MsgBox(0, "Error", "Error: Timeout!")

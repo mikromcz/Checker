@@ -1,7 +1,10 @@
 {
 	General Plugin Script
-  author: mikrom, http://mikrom.cz
-  web: -
+
+  Www: http://geoget.ararat.cz/doku.php/user:skript:checker
+  Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
+  Author: mikrom, http://mikrom.cz
+  Version: 0.0.1.4
 }
 
 function PluginCaption: string;
@@ -16,7 +19,7 @@ end;
 
 function PluginIcon: string;
 begin
-  Result:=DecodeBase64('Qk02AwAAAAAAADYAAAAoAAAAEAAAABAAAAABABgAAAAAAAAAAADEDgAAxA4AAAAAAAAAAAAA3AD/3AD/3AD/3AD/3AD/3AD/3AD/3AD/3AD/3AD/3AD/3AD/3AD/3AD/3AD/3AD/3AD/7fH2ytjmpr3VjarIc5e8W4axSnmpRnanOGygQnOlusze3AD/3AD/3AD/3AD/vtDjTX+xT4S4V43AW4/EZZjMaZvPaJvOdajair3veazfTX+x3AD/3AD/3AD/3AD/Woy/cqfZgbTleazedKfZcKPVbJ/SaZzPc6bYjsHxU4e6Nmqducvd3AD/3AD/3AD/WY/Eir3sf7Lie67fdqnbcqXXbqHTap3Pdajak8b0k8b0g7fnYpXH3AD/3AD/3AD/X5TJj8Lvg7bmf7LieazddKfYb6LUap3Qd6rbmMv2dKjYRnqtRnqtvtDi3AD/3AD/ZJnOlMfyiLvog7bkfbDfd6racaTVa57Qeq3dndD5ndD5ndD5jcHtbJ7R3AD/3AD/caPUg7npl8rzj8LtibzphbjmgrXjf7Lhh7rootX7kcTwVIa5VIa5VIa5wtTm3AD/y97wdqfYcKTYd67glsnzlcjzlcjzlcjzlcjzptn+lcjzlcjzlcjzgLbndqfY3AD/3AD/3AD/5e74lbzjdKjbms72mcz2mcz2pNf8qt3/qt3/qt3/qt3/qt3/c6fa3AD/3AD/3AD/3AD/3AD/mL7ld6vem8/3nM/4iL7sWIu9ZprNZZnNdqncdqncutPt3AD/3AD/3AD/3AD/3AD/3AD/krngb6PWms71mcz2mcz0aZnK4erz3AD/3AD/3AD/3AD/3AD/3AD/3AD/3AD/3AD/3AD/krngb6PWmcz1nM/4d63bm7ra3AD/3AD/3AD/3AD/3AD/3AD/3AD/3AD/3AD/3AD/3AD/krngeK3fnM/4mc31a5zN3AD/3AD/3AD/3AD/3AD/3AD/3AD/3AD/3AD/3AD/3AD/7fP6d6fYoNT5jcPtbqDR3AD/3AD/3AD/3AD/3AD/3AD/3AD/3AD/3AD/3AD/3AD/3AD/zN/xd6fYdabWytzu3AD/3AD/3AD/3AD/');
+  Result:=DecodeBase64('iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAn5JREFUeNqUU01oU0EQns1LXvKatwmJ1dZQCzU9WLw1JaI9Kb0piAiNf0XqofQggj83KYKmB08eBD0UCx4s9eBBLxqllpJDkSBYG7GUBIKSggQT0/z0mff2rbPpa0hSFBz42JndmW9mdmdJ7LIdNB1gy+AgxK8QaJOQySHCONiYyZ+jntg5OP3MALtQFAeAWybATADOW4L9aEaO33o8WcptlOJP7sq8iUCIvcWQACQsQDMaW5d6QiODnBGqeDqJYYBkWglUJ9lN0CbXJJd6uO/oqbAw0omF5G8GnwRBl0rAaYd/EtSDj01Mnydgp4auldeWF9ZqjMcO+m3w1xYsmaQeGhwcnz5HbDItfkt+eT03m6KkontdZArPf1l+7xBviXgF0Y2NQIAQOONQ6MDQlegYcnuEl+x2gyTLu7K8j154cGJWvyEqGBI3jSXTroFw8ED45BFmAAXYvsmtYhHcPh9UCoVG8OZGKmuYwOot6IxfDI3eHFW7+wI1TYNqRQOG180YAxPhdLnARWl9b/7+9Rc7JFj1qzqBwYC69/YGKpjJ0HXQa7UWUK8XfLivqCqM35s5W87nyvGZ209LNYjXCWomOBg6mAKYpQ7MzM3tqRK6OM98XS3E5h4lrOyNSmzYgiwcDFF2UzDHYDEzQhfkvf2HfJGrU8P7VJJVZLLYIVuDhP+A576nf3o6A3sM4WyhUQGuIsHSm5fZlQ9LWQybb34NaSQI+VTyY0/+R7Za3sxXK8VCFfdNQvBhCdjwEkmHooDH65Mzq8ufTSBRCY8EhsfugB1Hc1HT+UomvR6E9Ho/2vuRIIDoRvisYRMzUcU5eSgKb/5vhLd9v/+VPwIMAHaYM3koihLpAAAAAElFTkSuQmCC');
 end;
 
 function PluginFlags: string;
@@ -30,14 +33,20 @@ var
   n:Integer;
 begin
   if GC.IsSelected then begin // for cache
-    //ShowMessage('Warning: Corrected coordinates used!');
-    s:=FormatCoordNum(GC.CorrectedLatNum,GC.CorrectedLonNum);
+    if GC.HaveFinal then begin
+      //ShowMessage(_('Warning: Corrected coordinates used!'));
+      s:=FormatCoordNum(GC.CorrectedLatNum,GC.CorrectedLonNum);
+    end
+    else begin
+      ShowMessage(_('Warning: No final waypoint found!'));
+      s:='';
+    end;
   end
   else begin // for waypoint
     for n := 0 to GC.Waypoints.Count - 1 do begin
       if GC.Waypoints[n].IsSelected then begin
         if GC.Waypoints[n].IsFinal then s:=FormatCoordNum(GC.Waypoints[n].LatNum,GC.Waypoints[n].LonNum)
-        else ShowMessage('Error: Is not final!');
+        else ShowMessage(_('Error: Is not final!'));
       end;
     end;
   end;
@@ -55,8 +64,8 @@ begin
     sy:=RegExSubstitute('(N|S)(\d+)°(\d+)\.(\d+)''\s(E|W)(\d+)°(\d+)\.(\d+)''',s,'$8'); // 620
 
     {zjistit typ overovaci sluzby - geocheck.org, geochecker.com, evince.locusprime.net}
-    if RegexFind('(https?://|www\.)geocheck\.org\/geo_inputchkcoord([^"'']+)',GC.LongDescription) then begin
-      url:=RegExSubstitute('(https?://|www\.)geocheck\.org\/geo_inputchkcoord([^"'']+)',GC.LongDescription,'$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
+    if RegexFind('(https?://|www\.)(geocheck\.org|geotjek\.dk)\/geo_inputchkcoord([^"'']+)',GC.LongDescription) then begin
+      url:=RegExSubstitute('(https?://|www\.)(geocheck\.org|geotjek\.dk)\/geo_inputchkcoord([^"'']+)',GC.LongDescription,'$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
       url:=RegexReplace('#.*',url,'',false); // zabraneni dvojitym url pokud je v listingu vicekrat (www.neco.cz/odkazwww.neco.cz/odkaz)
       service:='geocheck';
     end
@@ -85,12 +94,17 @@ begin
       url:=RegexReplace('#.*',url,'',false); // zabraneni dvojitym url pokud je v listingu vicekrat (www.neco.cz/odkazwww.neco.cz/odkaz)
       service:='gccounter';
     end
+    else if RegexFind('(https?://|www\.)certitudes\.org\/certitude\?wp\=([^"'']+)',GC.LongDescription) then begin
+      url:=RegExSubstitute('(https?://|www\.)certitudes\.org\/certitude\?wp\=([^"'']+)',GC.LongDescription,'$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
+      url:=RegexReplace('#.*',url,'',false); // zabraneni dvojitym url pokud je v listingu vicekrat (www.neco.cz/odkazwww.neco.cz/odkaz)
+      service:='certitudes';
+    end
     else begin
       ShowMessage('error: ani geocheck.org, ani geochecker.com, ani evince, ani hermansky!');
       GeoAbort;
     end;
 
     //ShowMessage(GEOGET_SCRIPTDIR+'\checker\checker.exe '+service+' '+ns+' '+dx+' '+mx+' '+sx+' '+ew+' '+dy+' '+my+' '+sy+' '+url);
-    RunExec(GEOGET_SCRIPTDIR+'\checker\AutoIt3.exe '+GEOGET_SCRIPTDIR+'\checker\checker.au3 '+service+' '+ns+' '+dx+' '+mx+' '+sx+' '+ew+' '+dy+' '+my+' '+sy+' '+url);
+    RunExec('"'+GEOGET_SCRIPTDIR+'\checker\AutoIt3.exe" "'+GEOGET_SCRIPTDIR+'\checker\checker.au3" '+service+' '+ns+' '+dx+' '+mx+' '+sx+' '+ew+' '+dy+' '+my+' '+sy+' '+url);
   end;
 end;
