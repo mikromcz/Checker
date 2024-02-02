@@ -1,3 +1,9 @@
+** 2.15.0 (2017/06/13) **
+  * BETA: teoreticky automatické pøihlášení na project-gc.com u challenge keší (INI: pgclogin=1)
+  * ošetøeno parsování odkazù bez uvedeného protokolu HTTP/HTTPS, takže jen //gccheck.com
+  * ovìøení na geocheck.org podporuje slovenštinu
+  * oprava parsování geochecker.com. Je upravený web s jedním polem na souøadnice (varianta s dvìmi poly zachována)
+
 ** 2.14.0 (2017/06/01) **
   * pøidána podpora validator.gcm.cz (na gc.gcm.cz/validator je pøesmìrování)
   * nìkdy, asi pokud je keš na geocheck.org smazaná se sice objeví souøadnice, ale nelze je ovìøit - uživatel je na to upozornìn

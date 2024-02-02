@@ -3,7 +3,7 @@
 ; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ; Icon: https://icons8.com/icon/18401/Thumb-Up
 ; Author: mikrom, https://www.mikrom.cz
-; Version: 2.14.0
+; Version: 2.15.0
 ;
 ; Documentation: http://ahkscript.org/docs/AutoHotkey.htm
 ; FAQ: http://www.autohotkey.com/docs/FAQ.htm
@@ -35,19 +35,20 @@ Global iefix := 0    ; INI: Try to fix IE render engine to latest by changing re
 Global certfix := 0  ; INI: Disable some strict settings for some HTTPS websites, change in the INI!
 Global beep :=0      ; INI: Accoustic feedback for (in)correct verification
 Global copymsg := 0  ; INI: Copy owner's message to clipboard for possible next use
+Global pgclogin :=0  ; INI: Try to login to project-gc.com for challenge caches?
 Global cnt := 0      ; Only counter that we increment while we are waiting for verification page
 
-; Read setting from INI ^
-IniRead, debug,   %A_ScriptDir%\Checker.ini, % "Checker", % "debug"   ; For enabling debug mode, show some infos, ListVars, ..
-IniRead, proxy,   %A_ScriptDir%\Checker.ini, % "Checker", % "proxy"   ; If user is banned for many tries in short time, we try load page with proxyserver
-IniRead, iefix,   %A_ScriptDir%\Checker.ini, % "Checker", % "iefix"   ; Try to fix IE render engine to latest by changing registry
-IniRead, answer,  %A_ScriptDir%\Checker.ini, % "Checker", % "answer"  ; Define return check result
-IniRead, certfix, %A_ScriptDir%\Checker.ini, % "Checker", % "certfix" ; Disable some strict settings for SSL certificates
-IniRead, beep,    %A_ScriptDir%\Checker.ini, % "Checker", % "beep"    ; Accoustic feedback for (in)correct verification
-IniRead, copymsg, %A_ScriptDir%\Checker.ini, % "Checker", % "copymsg" ; Copy owner's message to clipboard for possible next use
+; Read setting from INI
+IniRead, debug,    %A_ScriptDir%\Checker.ini, % "Checker", % "debug"    ; For enabling debug mode, show some infos, ListVars, ..
+IniRead, proxy,    %A_ScriptDir%\Checker.ini, % "Checker", % "proxy"    ; If user is banned for many tries in short time, we try load page with proxyserver
+IniRead, iefix,    %A_ScriptDir%\Checker.ini, % "Checker", % "iefix"    ; Try to fix IE render engine to latest by changing registry
+IniRead, answer,   %A_ScriptDir%\Checker.ini, % "Checker", % "answer"   ; Define return check result
+IniRead, certfix,  %A_ScriptDir%\Checker.ini, % "Checker", % "certfix"  ; Disable some strict settings for SSL certificates
+IniRead, beep,     %A_ScriptDir%\Checker.ini, % "Checker", % "beep"     ; Accoustic feedback for (in)correct verification
+IniRead, copymsg,  %A_ScriptDir%\Checker.ini, % "Checker", % "copymsg"  ; Copy owner's message to clipboard for possible next use
+IniRead, pgclogin, %A_ScriptDir%\Checker.ini, % "Checker", % "pgclogin" ; Try to login to project-gc.com page for challenge caches
 
 ; Change icon of GUI title, tray, ...
-; Icon from: http://www.iconarchive.com/show/colorful-long-shadow-icons-by-graphicloads/Hand-thumbs-up-like-2-icon.html
 IfExist, %A_ScriptDir%\Checker.ico
   Menu, Tray, Icon, %A_ScriptDir%\Checker.ico,,1
 
@@ -154,12 +155,23 @@ FixIEcert(Cert=0) {
 ; Encode special characters to URI (for ex. "space" is %20)
 ; https://autohotkey.com/board/topic/75390-ahk-l-unicode-uri-encode-url-encode-function/
 UriEncode(Uri) {
-    oSC := ComObjCreate("ScriptControl")
-    oSC.Language := "JScript"
-    Script := "var Encoded = encodeURIComponent(""" . Uri . """)"
-    oSC.ExecuteStatement(Script)
-    Return, oSC.Eval("Encoded")
+  oSC := ComObjCreate("ScriptControl")
+  oSC.Language := "JScript"
+  Script := "var Encoded = encodeURIComponent(""" . Uri . """)"
+  oSC.ExecuteStatement(Script)
+  Return, oSC.Eval("Encoded")
 }
+
+; Get groundspeak login from GeoGet's groundspeak.config.pas
+ConfigPas(varName) {
+  path := SubStr(A_ScriptName,1,-4)                       ; Returns Checker (from Checker.ahk)
+  path := StrReplace(A_ScriptDir, path)                   ; Returns path to the GeoGet's script directory (ending with \)
+  path := path . "groundspeak.config.pas"                 ; Okay now we should have full absolute path to the config file
+  FileRead, file, % path                                  ; Read config file in to the variable
+
+  RegExMatch(file, "Smi)" . varName . " = '([^']+)", out) ; Return username in out1
+  Return, out1                                            ; 1 is SubPattern "1" from regex
+} ;=> ConfigPas()
 
 ; Implement Tabstop for ActiveX > Shell.Explorer
 ; Because without this TAB, ESC, maybe Ctrl+C, Ctrl+V not work in Shell.Explorer
@@ -262,21 +274,27 @@ CheckAnwser(ByRef wb, correct, incorrect) {
         GuiControl, Font, labelanswer                   ; Apply color to labelanswer
         GuiControl,, labelanswer, % textAnswerCorrect   ; Show the TEXT
         Gui, Show,, % "Checker - " . args[1] . " - " . textAnswerCorrect
-        
+
         ; Copy owner's message to the clipboard
         If (copymsg = 1) {
+          ownersMessage := ""
+
           ; NO: geochecker, evince, hermansky, komurka, gcm, doxina, gccounter2, gccounter
           ; YES: geocheck, gccheck, geocachefi, gpscache, certitudes, gcappsgeo
           ; CHECK: gcappsMultichecker, geowii
           If (args[1] = "geocheck") {
             ; <tr><td colspan="2">xxx</td></tr>
             RegexMatch(wb.Document.body.innerHTML, "Smi)<tr><td colspan=.?2.?>(.*?)<\/td><\/tr>", ownersMessage) ; Find proper part of HTML
-            Clipboard := RegExReplace(ownersMessage, "<(""[^""]*""|'[^']*'|[^'"">])*>", "")                      ; Strip HTML tags and put in clipboard
+            ownersMessage := RegExReplace(ownersMessage, "<(""[^""]*""|'[^']*'|[^'"">])*>", "")                  ; Strip HTML tags and put in clipboard
+            If (ownersMessage != "")                                                                             ; If not empty
+              Clipboard := ownersMessage
           }
           If (args[1] = "gccheck") {
             ; <div id="hint">Macht Kein T5 daraus.</div>
             RegexMatch(wb.Document.body.innerHTML, "Smi)<div id=.?hint.?>(.*?)<\/div>", ownersMessage) ; Find proper part of HTML
-            Clipboard := RegExReplace(ownersMessage, "<(""[^""]*""|'[^']*'|[^'"">])*>", "")                      ; Strip HTML tags and put in clipboard
+            ownersMessage := RegExReplace(ownersMessage, "<(""[^""]*""|'[^']*'|[^'"">])*>", "")        ; Strip HTML tags and put in clipboard
+            If (ownersMessage != "")                                                                   ; If not empty
+              Clipboard := ownersMessage
           }
           ;If (args[1] = "geocachefi") {
           ;  <p><b>Cache owners greetings:</b><br>Sinä teit sen! Mene ja löydä kätkö!<br><br>You got it! Go and find the cache!<br><br></td></tr>
@@ -290,6 +308,8 @@ CheckAnwser(ByRef wb, correct, incorrect) {
           ;If (args[1] = "gsappsgeo") {
           ;  <div class="alert alert-success text-center">...</div><div><p>xxxxxxxxxxxx</p></div>
           ;}
+          If ((debug != 1) and (ownersMessage != ""))
+            MsgBox, % Clipboard
         } ;=> copymsg
 
         If (beep = 1)
@@ -318,6 +338,33 @@ CheckAnwser(ByRef wb, correct, incorrect) {
 
         ;errorLvl := 3
       ;}
+
+      ; Workaround for login to project-gc.com
+      If (pgclogin = 1) {
+        If ((SubStr(args[1], 1, 10) = "challenge|") or (SubStr(args[1], 1, 10) = "challenge2")) {
+          If RegExMatch(wb.document.body.innerHTML, "Smi)<a href=.?\/User\/Login.?>") {  ; If there is login URL go to the login page
+            wb.Navigate("https://project-gc.com/oauth.php")
+            LoadWait(wb)
+          }
+          If (wb.Document.getElementsByName("uxAllowAccessButton").Length <> 0) {        ; If there is Allow button click it
+            ; This form is difficult to submit, so we must do it by this unclean way
+            Loop, % (inputs := wb.Document.getElementsByTagName("input")).Length         ; For all tags <input>
+              If (inputs[A_index-1].Name = "uxAllowAccessButton")                        ; If some of them is type="submit"
+                inputs[A_index-1].Click()                                                ; Click on it
+            LoadWait(wb)
+          }
+          If (RegExMatch(wb.document.body.innerHTML, "Smi)<section class=.?login.?>")) { ; If there is login form fill it
+            wb.Document.All.Username.Value := ConfigPas("gsUsername")
+            wb.Document.All.Username.Value := ConfigPas("gsPassword")
+            ; This form is difficult to submit, so we must do it by this unclean way
+            Loop, % (inputs := wb.Document.getElementsByTagName("input")).Length         ; For all tags <input>
+              If (inputs[A_index-1].Type = "submit")                                     ; If some of them is type="submit"
+                inputs[A_index-1].Click()                                                ; Click on it
+            LoadWait(wb)
+          }
+          Browser(wb)
+        }
+      } ;=> ProjectGC
     } Until (errorLvl != 0)                             ; Loop again and again until errorlevel is changed
   } Catch e {
     If (debug != 1)
@@ -344,54 +391,17 @@ Browser(ByRef wb) {
 
     ; Try to fill the webpage form
     Try {
-      ;If (wb.Document.All.cachename.Value <> "") { ; Sometimes fields can be filled, but cache name and code is missing
-    If (wb.Document.All.cachename.Value = "")
-      MsgBox 16, % textError, % textErrorGeocheck
+      ; Sometimes fields can be filled, but cache name and code is missing
+      If (wb.Document.All.cachename.Value = "") 
+        MsgBox 16, % textError, % textErrorGeocheck
 
-        ; Page can be switched to two versions of form, standard or one field
-        If (wb.Document.getElementsByName("coordOneField").Length = 0) { ; For classic six field version
-          If (debug = 1)
-            MsgBox, % "Six field version"
+      ; Page can be switched to two versions of form, standard or one field
+      If (wb.Document.getElementsByName("coordOneField").Length = 0) { ; For classic six field version
+        If (debug = 1)
+          MsgBox, % "Six field version"
 
-          ; Determine if page has fillable element - right page
-          If (wb.Document.getElementsByName("latdeg").Length <> 0) {
-            ; Checking radiobuttons is little bit difficult
-            Loop, % (lat := wb.Document.getElementsByName("lat")).Length ; Get elements named "lat"
-              If (lat[A_index-1].Value = args[2])                        ; If some of them is equal args[2]
-                lat[A_index-1].Checked := True                           ; Check it
-
-            wb.Document.All.latdeg.Value := args[3]
-            wb.Document.All.latmin.Value := args[4]
-            wb.Document.All.latdec.Value := args[5]
-
-            ; Checking radiobuttons is little bit difficult
-            Loop, % (lon := wb.Document.getElementsByName("lon")).Length ; Get elements named "lon"
-              If (lon[A_index-1].Value = args[6])                        ; If some of them is equal args[6]
-                lon[A_index-1].Checked := True                           ; Check it
-
-            wb.Document.All.londeg.Value := args[7]
-            wb.Document.All.lonmin.Value := args[8]
-            wb.Document.All.londec.Value := args[9]
-          }
-        } Else If (wb.Document.getElementsByName("coordOneField").Length <> 0) { ; For one field version
-          If (debug = 1)
-            MsgBox, % "One field version"
-          wb.Document.All.coordOneField.Value := args[2] . args[3] . " " . args[4] . "." . args[5] . " " . args[6] . args[7] . " " . args[8] . "." . args[9]
-        } Else If (proxy = 1) {
-          ; Proxy
-          ; If there is no "onefield" and no "latdeg" input there is probably warning about reach max tries
-          ; then, we try reload page with proxy server!
-          ; <tr><th colspan="2">P&#345;íli? mnoho pokus&#367;</th></tr>
-
-          Sleep, 1000
-
-          Gui, Show,, % "Checker - " . args[1] . " - PROXY" ; Change title
-          If (debug = 1)
-            wb.Navigate("https://geocaching.mikrom.cz/proxy/index.php?q=" . args[10] . "")        ; Navigate to webpage
-          Else
-          wb.Navigate("https://geocaching.mikrom.cz/proxy/index.php?q=" . args[10] . "&hl=1e7") ; Navigate to webpage
-          LoadWait(wb)                                                                            ; Wait for page load
-
+        ; Determine if page has fillable element - right page
+        If (wb.Document.getElementsByName("latdeg").Length <> 0) {
           ; Checking radiobuttons is little bit difficult
           Loop, % (lat := wb.Document.getElementsByName("lat")).Length ; Get elements named "lat"
             If (lat[A_index-1].Value = args[2])                        ; If some of them is equal args[2]
@@ -409,11 +419,46 @@ Browser(ByRef wb) {
           wb.Document.All.londeg.Value := args[7]
           wb.Document.All.lonmin.Value := args[8]
           wb.Document.All.londec.Value := args[9]
-        } ; <= Proxy
-        wb.Document.All.usercaptcha.Focus() ; Focus on captcha field
+        }
+      } Else If (wb.Document.getElementsByName("coordOneField").Length <> 0) { ; For one field version
+        If (debug = 1)
+          MsgBox, % "One field version"
+        wb.Document.All.coordOneField.Value := args[2] . args[3] . " " . args[4] . "." . args[5] . " " . args[6] . args[7] . " " . args[8] . "." . args[9]
+      } Else If (proxy = 1) {
+        ; Proxy
+        ; If there is no "onefield" and no "latdeg" input there is probably warning about reach max tries
+        ; then, we try reload page with proxy server!
+        ; <tr><th colspan="2">P&#345;íli? mnoho pokus&#367;</th></tr>
 
-    ;} Else ; <= cachename.value
-      ;  MsgBox 16, % textError, % textErrorGeocheck
+        Sleep, 1000
+
+        Gui, Show,, % "Checker - " . args[1] . " - PROXY" ; Change title
+        If (debug = 1)
+          wb.Navigate("https://geocaching.mikrom.cz/proxy/index.php?q=" . args[10] . "")        ; Navigate to webpage
+        Else
+        wb.Navigate("https://geocaching.mikrom.cz/proxy/index.php?q=" . args[10] . "&hl=1e7") ; Navigate to webpage
+        LoadWait(wb)                                                                            ; Wait for page load
+
+        ; Checking radiobuttons is little bit difficult
+        Loop, % (lat := wb.Document.getElementsByName("lat")).Length ; Get elements named "lat"
+          If (lat[A_index-1].Value = args[2])                        ; If some of them is equal args[2]
+            lat[A_index-1].Checked := True                           ; Check it
+
+        wb.Document.All.latdeg.Value := args[3]
+        wb.Document.All.latmin.Value := args[4]
+        wb.Document.All.latdec.Value := args[5]
+
+        ; Checking radiobuttons is little bit difficult
+        Loop, % (lon := wb.Document.getElementsByName("lon")).Length ; Get elements named "lon"
+          If (lon[A_index-1].Value = args[6])                        ; If some of them is equal args[6]
+            lon[A_index-1].Checked := True                           ; Check it
+
+        wb.Document.All.londeg.Value := args[7]
+        wb.Document.All.lonmin.Value := args[8]
+        wb.Document.All.londec.Value := args[9]
+      } ; <= Proxy
+      wb.Document.All.usercaptcha.Focus() ; Focus on captcha field
+
     } Catch e {
       MsgBox 16, % textError, % textErrorFill
       If (debug != 1)
@@ -466,8 +511,9 @@ Browser(ByRef wb) {
       (din losning er korrekt!!!)|
       (l.+sningen er korrekt!!!)|
       (din l.+sning .+r r.+tt!!!)|
-      (Tvé .+e.+ení je správné!!!)|
-      (Zadané sou.+adnice nejsou zcela p.+esné)"
+      (ení je správné!!!)|
+      (Zadané sou.+adnice nejsou zcela p.+esné)|
+      (riešenie je správne!!!)"
       )
       notokay :=
       (LTrim Join
@@ -485,7 +531,8 @@ Browser(ByRef wb) {
       (Beklager, det svar er forkert)|
       (Beklager, det svaret er feil)|
       (Tyv.+rr, svaret .+r fel)|
-      (Bohu.+el, zadaná odpov.+ není správná)"
+      (Bohu.+el, zadaná odpov.+ není správná)|
+      (¼utujeme, odpoveï nie je správna)"
       )
       CheckAnwser(wb, okay, notokay)
       ;CheckAnwser(wb, "Smi)správné", "Smi)správná")
@@ -500,8 +547,21 @@ Browser(ByRef wb) {
 
     ; Try to fill the webpage form
     Try {
-      wb.Document.All.LatString.Value := args[2] . " " . args[3] . "° " . args[4] . "." . args[5]
-      wb.Document.All.LonString.Value := args[6] . " " . args[7] . "° " . args[8] . "." . args[9]
+      ; Classic version with two fields
+      If (wb.Document.getElementsByName("LatLonString").Length = 0) {
+        If (debug = 1)
+          MsgBox, % "Old version"
+        wb.Document.All.LatString.Value := args[2] . " " . args[3] . "° " . args[4] . "." . args[5]
+        wb.Document.All.LonString.Value := args[6] . " " . args[7] . "° " . args[8] . "." . args[9]
+      }
+      
+      ; New version 2017 with one field "NDD MM.MMM EDDD MM.MMM"
+      If (wb.Document.getElementsByName("LatLonString").Length <> 0) {
+        If (debug=1)
+          MsgBox, % "New version"
+        wb.Document.All.LatLonString.Value := args[2] . args[3] . " " . args[4] . "." . args[5] . " " . args[6] . args[7] . " " . args[8] . "." . args[9]
+      }
+      
       Sleep, 2000
       wb.Document.All.button.Click()
     } Catch e {
@@ -823,7 +883,7 @@ Browser(ByRef wb) {
     Gui, Show,, % "Checker - " . args[1] ; Change title
 
     ;If (debug = 1)
-    ;  MsgBox 16, % "", % args[10] . "?profile_name=" . UriEncode(SubStr(args[1], 11)) . "&submit=Filter"
+    ;  MsgBox, % args[10] . "?profile_name=" . UriEncode(SubStr(args[1], 11)) . "&submit=Filter"
 
     wb.Navigate(args[10]) ; . "?profile_name=" . UriEncode(SubStr(args[1], 11)) . "&submit=Filter") ; Navigate to webpage
     LoadWait(wb)          ; Wait for page load

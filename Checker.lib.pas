@@ -4,7 +4,7 @@
   Www: http://geoget.ararat.cz/doku.php/user:skript:checker
   Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
   Author: mikrom, http://mikrom.cz
-  Version: 2.14.0
+  Version: 2.15.0
 
   ToDo:
   * This is maybe interesting: http://www.regular-expressions.info/duplicatelines.html
@@ -13,31 +13,32 @@
 }
 
 {Minimum GeoGet version}
-{$V 2.9.8}
+{$V 2.9.9}
 
 uses
   Checker;
 
 const
-  {Define search regex here, good test is here: https://regex101.com/ or http://regexr.com/}
-  geocheckRegex    = '(?i)https?:\/\/(www\.)?(geocheck\.org|geotjek\.dk)\/geo_inputchkcoord[^"''<\s]+';
-  geocheckerRegex  = '(?i)https?:\/\/(www\.)?geochecker\.com\/index\.php[^"''<\s]+';
-  evinceRegex      = '(?i)https?:\/\/(www\.)?evince\.locusprime\.net\/cgi-bin\/[^"''<\s]+';
-  hermanskyRegex   = '(?i)https?:\/\/(www\.)?(geo\.hermansky\.net|speedygt\.ic\.cz\/gps)\/index\.php\?co\=checker[^"''<\s]+';
-  komurkaRegex     = '(?i)https?:\/\/(www\.)?geo\.komurka\.cz\/check\.php[^"''<\s]+';
-  gccounterRegex   = '(?i)https?:\/\/(www\.)?gccounter\.(de|com)\/gcchecker\.php[^"''<\s]+';
-  gccounter2Regex  = '(?i)https?:\/\/(www\.)?gccounter\.(de|com)\/GCchecker\/Check[^"''<\s]+';
-  certitudesRegex  = '(?i)https?:\/\/(www\.)?certitudes\.org\/certitude(\.php)?\?wp\=[^"''<\s]+';
-  gpscacheRegex    = '(?i)https?:\/\/(www\.)?geochecker\.gps-cache\.de\/check\.aspx\?id\=[^"''<\s]+';
-  gccheckRegex     = '(?i)https?:\/\/(www\.)?gccheck\.com\/GC[^"''<\s]+';
-  challengeRegex   = '(?i)https?:\/\/(www\.)?project-gc\.com\/Challenges\/GC[A-Z0-9]+\/\d+[^"''<\s]+';
-  challenge2Regex  = '(?i)https?:\/\/(www\.)?project-gc\.com\/Challenges\/GC[A-Z0-9]+"';
-  gcappsGeoRegex   = '(?i)https?:\/\/(www\.)?gc-apps\.com\/geochecker\/show\/[^"''<\s]+';
-  gcappsMultiRegex = '(?i)https?:\/\/(www\.)?gc-apps\.com\/multichecker\/show\/[^"''<\s]+';
-  geocacheFiRegex  = '(?i)https?:\/\/(www\.)?geocache\.fi\/checker\/\?[^"''<\s]+';
-  geowiiRegex      = '(?i)https?:\/\/(www\.)?geowii\.miga\.lv\/wii\/[^"''<\s]+';
-  gcmRegex         = '(?i)https?:\/\/(www\.)?(gc\.gcm\.cz\/validator|validator\.gcm\.cz)\/[^"''<\s]+';
-  doxinaRegex      = '(?i)https?:\/\/(www\.)?doxina\.filipruzicka\.net\/cache\.php\?id=[^"''<\s]+';
+  {Define search regex here, good test is here: https://regex101.com/ or http://regexr.com/
+  (https?:)?\/\/(www\.)? should handle probably all possible combination of http://, https://, http://www, https://www, //www, //}
+  geocheckRegex    = '(?i)(https?:)?\/\/(www\.)?(geocheck\.org|geotjek\.dk)\/geo_inputchkcoord[^"''<\s]+';
+  geocheckerRegex  = '(?i)(https?:)?\/\/(www\.)?geochecker\.com\/index\.php[^"''<\s]+';
+  evinceRegex      = '(?i)(https?:)?\/\/(www\.)?evince\.locusprime\.net\/cgi-bin\/[^"''<\s]+';
+  hermanskyRegex   = '(?i)(https?:)?\/\/(www\.)?(geo\.hermansky\.net|speedygt\.ic\.cz\/gps)\/index\.php\?co\=checker[^"''<\s]+';
+  komurkaRegex     = '(?i)(https?:)?\/\/(www\.)?geo\.komurka\.cz\/check\.php[^"''<\s]+';
+  gccounterRegex   = '(?i)(https?:)?\/\/(www\.)?gccounter\.(de|com)\/gcchecker\.php[^"''<\s]+';
+  gccounter2Regex  = '(?i)(https?:)?\/\/(www\.)?gccounter\.(de|com)\/GCchecker\/Check[^"''<\s]+';
+  certitudesRegex  = '(?i)(https?:)?\/\/(www\.)?certitudes\.org\/certitude(\.php)?\?wp\=[^"''<\s]+';
+  gpscacheRegex    = '(?i)(https?:)?\/\/(www\.)?geochecker\.gps-cache\.de\/check\.aspx\?id\=[^"''<\s]+';
+  gccheckRegex     = '(?i)(https?:)?\/\/(www\.)?gccheck\.com\/GC[^"''<\s]+';
+  challengeRegex   = '(?i)(https?:)?\/\/(www\.)?project-gc\.com\/Challenges\/GC[A-Z0-9]+\/\d+[^"''<\s]+';
+  challenge2Regex  = '(?i)(https?:)?\/\/(www\.)?project-gc\.com\/Challenges\/GC[A-Z0-9]+"';
+  gcappsGeoRegex   = '(?i)(https?:)?\/\/(www\.)?gc-apps\.com\/geochecker\/show\/[^"''<\s]+';
+  gcappsMultiRegex = '(?i)(https?:)?\/\/(www\.)?gc-apps\.com\/multichecker\/show\/[^"''<\s]+';
+  geocacheFiRegex  = '(?i)(https?:)?\/\/(www\.)?geocache\.fi\/checker\/\?[^"''<\s]+';
+  geowiiRegex      = '(?i)(https?:)?\/\/(www\.)?geowii\.miga\.lv\/wii\/[^"''<\s]+';
+  gcmRegex         = '(?i)(https?:)?\/\/(www\.)?(gc\.gcm\.cz\/validator|validator\.gcm\.cz)\/[^"''<\s]+';
+  doxinaRegex      = '(?i)(https?:)?\/\/(www\.)?doxina\.filipruzicka\.net\/cache\.php\?id=[^"''<\s]+';
 
 var
   debug, answer: Boolean;
