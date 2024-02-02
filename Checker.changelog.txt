@@ -1,3 +1,6 @@
+=== 0.0.1.7 (2014/04/28) ===
+  * dodìlána podpora webu certitudes.org (bez pøihlášení)
+
 === 0.0.1.6 (2014/04/28) ===
   * další ošetøení parsování url
   * pøidána malinka prodleva mezi posílanými pøíkazy

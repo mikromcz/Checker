@@ -2,7 +2,7 @@
 ; Www: http://geoget.ararat.cz/doku.php/user:skript:checker
 ; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ; Author: mikrom, http://mikrom.cz
-; Version: 0.0.1.6
+; Version: 0.0.1.7
 ;
 ; parameters  service     ns          dx          mx          sx          ew          dy          my          sy          url
 ; eg.         checker     N           50          15          123         E           015         54          123         http://checker.org/check?=a56sjg4678gdg
@@ -73,7 +73,7 @@ Switch $CmdLine[1]
       Send(".")
       Send($CmdLine[9])
       Send("{TAB 2}")
-      Sleep(2000)
+      Sleep(1000)
       Send("{ENTER}")
     Else
       MsgBox(0, "Error", "Error: Timeout!")
@@ -124,7 +124,7 @@ Switch $CmdLine[1]
       Send($CmdLine[8])
       Send(".")
       Send($CmdLine[9])
-      Sleep(2000)
+      Sleep(1000)
       Send("{ENTER}")
     Else
       MsgBox(0, "Error", "Error: Timeout!")
@@ -176,7 +176,7 @@ Switch $CmdLine[1]
       Send("{TAB}")
       Send($CmdLine[9])
       Send("{TAB}")
-      Sleep(2000)
+      Sleep(1000)
       Send("{ENTER}")
     Else
       MsgBox(0, "Error", "Error: Timeout!")
@@ -185,6 +185,21 @@ Switch $CmdLine[1]
   Case "certitudes"
     ShellExecute($CmdLine[10])
     If WinWaitActive("Certitude:", "", 30) Then
+      Sleep(1000)
+      Send("{TAB 16}")
+      Send($CmdLine[2])
+      Send($CmdLine[3])
+      Send("{SPACE}")
+      Send($CmdLine[4])
+      Send(".")
+      Send($CmdLine[5])
+      Send("{SPACE}")
+      Send($CmdLine[6])
+      Send($CmdLine[7])
+      Send("{SPACE}")
+      Send($CmdLine[8])
+      Send(".")
+      Send($CmdLine[9])
       Sleep(1000)
       Send("{ENTER}")
     Else
