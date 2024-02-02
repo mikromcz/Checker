@@ -4,11 +4,12 @@
   Www: http://geoget.ararat.cz/doku.php/user:skript:checker
   Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
   Author: mikrom, http://mikrom.cz
-  Version: 2.13.0
+  Version: 2.14.0
 
   ToDo:
   * This is maybe interesting: http://www.regular-expressions.info/duplicatelines.html
   * pokud se najde více stejných ovìøení napø MoM: GC213AF, GC6DJTY
+  * na GC2R6R8, GC4W3B2 padá AHK
 }
 
 {Minimum GeoGet version}
@@ -35,7 +36,7 @@ const
   gcappsMultiRegex = '(?i)https?:\/\/(www\.)?gc-apps\.com\/multichecker\/show\/[^"''<\s]+';
   geocacheFiRegex  = '(?i)https?:\/\/(www\.)?geocache\.fi\/checker\/\?[^"''<\s]+';
   geowiiRegex      = '(?i)https?:\/\/(www\.)?geowii\.miga\.lv\/wii\/[^"''<\s]+';
-  gcmRegex         = '(?i)https?:\/\/(www\.)?gc\.gcm\.cz\/validator\/[^"''<\s]+';
+  gcmRegex         = '(?i)https?:\/\/(www\.)?(gc\.gcm\.cz\/validator|validator\.gcm\.cz)\/[^"''<\s]+';
   doxinaRegex      = '(?i)https?:\/\/(www\.)?doxina\.filipruzicka\.net\/cache\.php\?id=[^"''<\s]+';
 
 var
@@ -168,7 +169,7 @@ begin
       s := RegExSubstitute(hermanskyRegex, description, '$0#');
       if s <> '' then begin
         serviceName.Add('hermansky');
-    s := ReplaceString(s, 'speedygt.ic.cz/gps', 'geo.hermansky.net');
+        s := ReplaceString(s, 'speedygt.ic.cz/gps', 'geo.hermansky.net');
         serviceUrl.Add(s);
         Inc(serviceNum);
       end;
@@ -316,6 +317,7 @@ begin
       s := RegExSubstitute(gcmRegex, description, '$0#');
       if s <> '' then begin
         serviceName.Add('gcm');
+        s := ReplaceString(s, 'gc.gcm.cz/validator', 'validator.gcm.cz');
         serviceUrl.Add(s);
         Inc(serviceNum);
       end;

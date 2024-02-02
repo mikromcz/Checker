@@ -1,3 +1,12 @@
+** 2.14.0 (2017/06/01) **
+  * pøidána podpora validator.gcm.cz (na gc.gcm.cz/validator je pøesmìrování)
+  * nìkdy, asi pokud je keš na geocheck.org smazaná se sice objeví souøadnice, ale nelze je ovìøit - uživatel je na to upozornìn
+  * v INI pøibyla možnost beep=1, která aktivuje zvukovou odezvu ovìøení, aby se nemuselo koukat do rohu (mìl by být jiný zvuk pro správnì a špatnì)
+  * zároveò se výsledek ovìøení promítne i do titulku okna
+  * nová ikonka
+  * vylepšená detekce ovìøení u gpscache
+  * BETA: na webu geocheck.org, gccheck.com,  zkopírujeme vzkaz od ownera do schránky, obèas je tam nìco zajímavého, tak je na uživateli zda si to ruènì vloží nìkam do GeoGetu (v INI parametr copymsg)
+
 ** 2.13.0/1 (2017/04/26) **
   * Optimalizace parsování (o 50% ménì pomalých regexù)
   * Další volitelný parametr do INI. fixcert (pokud je nastaven na 1, tak se vypne kontrola odvolání certifikátu. nezbytné pro gccheck.com)

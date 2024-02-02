@@ -1,8 +1,9 @@
 ; Checker AHK
 ; Www: http://geoget.ararat.cz/doku.php/user:skript:checker
 ; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
-; Author: mikrom, http://mikrom.cz
-; Version: 2.13.1
+; Icon: https://icons8.com/icon/18401/Thumb-Up
+; Author: mikrom, https://www.mikrom.cz
+; Version: 2.14.0
 ;
 ; Documentation: http://ahkscript.org/docs/AutoHotkey.htm
 ; FAQ: http://www.autohotkey.com/docs/FAQ.htm
@@ -32,6 +33,8 @@ Global proxy := 0    ; INI: Use proxy if you are banned for many tries, change i
 Global answer := 0   ; INI: Check if verification was successful or not, change in the INI!
 Global iefix := 0    ; INI: Try to fix IE render engine to latest by changing registry, change in the INI!
 Global certfix := 0  ; INI: Disable some strict settings for some HTTPS websites, change in the INI!
+Global beep :=0      ; INI: Accoustic feedback for (in)correct verification
+Global copymsg := 0  ; INI: Copy owner's message to clipboard for possible next use
 Global cnt := 0      ; Only counter that we increment while we are waiting for verification page
 
 ; Read setting from INI ^
@@ -40,10 +43,13 @@ IniRead, proxy,   %A_ScriptDir%\Checker.ini, % "Checker", % "proxy"   ; If user 
 IniRead, iefix,   %A_ScriptDir%\Checker.ini, % "Checker", % "iefix"   ; Try to fix IE render engine to latest by changing registry
 IniRead, answer,  %A_ScriptDir%\Checker.ini, % "Checker", % "answer"  ; Define return check result
 IniRead, certfix, %A_ScriptDir%\Checker.ini, % "Checker", % "certfix" ; Disable some strict settings for SSL certificates
+IniRead, beep,    %A_ScriptDir%\Checker.ini, % "Checker", % "beep"    ; Accoustic feedback for (in)correct verification
+IniRead, copymsg, %A_ScriptDir%\Checker.ini, % "Checker", % "copymsg" ; Copy owner's message to clipboard for possible next use
 
 ; Change icon of GUI title, tray, ...
 ; Icon from: http://www.iconarchive.com/show/colorful-long-shadow-icons-by-graphicloads/Hand-thumbs-up-like-2-icon.html
-Menu, Tray, Icon, %A_ScriptDir%\Checker.ico,,1
+IfExist, %A_ScriptDir%\Checker.ico
+  Menu, Tray, Icon, %A_ScriptDir%\Checker.ico,,1
 
 ; Language switch
 ; https://autohotkey.com/docs/misc/Languages.htm
@@ -54,6 +60,7 @@ If (A_Language = "0405") { ; Czech
   Global textErrorParam      := "Chyba: Neplatný poèet parametrù!`n`nPovolené parametry jsou:`n[service] [N|S] [Dx] [Mx] [Sx] [E|W] [Dy] [My] [Sy] [URL]`n`nPoužity byly tyto:`n"
   Global textErrorService    := "Chyba: Použita nepodporovaná služba!`nPodporovány jsou: geocheck, geochecker, evince, hermansky, komurka, gccounter, gccounter2, certitudes, gpscache, gccheck, challenge!."
   Global textErrorTimeout    := "Chyba: Vypršel èasový limit naèítání stránky.`nZkuste F5 pro obnovení."
+  Global textErrorGeocheck   := "Chyba: Chybí název a/nebo kód keše.`nKeš je pravdìpodobnì smazána z geocheck.org.`nOvìøení asi neprojde, ale za pokus to stojí."
   Global textDonate          := "Zvažte podporu pluginu pøes <a href=""http://goo.gl/dCKefD"">PayPal</a>, nebo mi napište <a href=""mailto:mikrom@mikrom.cz"">email</a>"
   Global textHint            := "Pro ukonèení mùžete použít ESC a pro obnovení stránky F5"
   Global textLoading         := "Naèítám..."
@@ -69,6 +76,7 @@ If (A_Language = "0405") { ; Czech
   Global textErrorParam      := "Error: Invalid number of parameters!`n`nAllowed parameters are:`n[service] [N|S] [Dx] [Mx] [Sx] [E|W] [Dy] [My] [Sy] [URL]`n`nReceived parameters are:`n"
   Global textErrorService    := "Error: Invalid service selected!`nUse only: geocheck, geochecker, evince, hermansky, komurka, gccounter, gccounter2, certitudes, gpscache, gccheck, challenge!."
   Global textErrorTimeout    := "Error: Timeout while page load.`nTry press F5 for reload."
+  Global textErrorGeocheck   := "Error: Cache name and/or code missing.`nCache is probably deleted from geocheck.org.`nVerification probably fail, but worth for try."
   Global textDonate          := "You can donate plugin by <a href=""http://goo.gl/dCKefD"">PayPal</a>, or send me an <a href=""mailto:mikrom@mikrom.cz"">email</a>"
   Global textHint            := "You can use ESC for quit and F5 for page reload"
   Global textLoading         := "Loading..."
@@ -127,8 +135,7 @@ FixIE(Version=0, ExeName="") {
 } ; => FixIE()
 
 ; Fix IE settings for certificates (temporary change one setting in registry)
-; "Revocation Information For The Security Certificate For This Site Is Not Available"
-; "Nejsou k dispozici informace o odvolani certifikatu zabezpeceni tohoto serveru"
+; "Revocation Information For The Security Certificate For This Site Is Not Available" ("Nejsou k dispozici informace o odvolani certifikatu zabezpeceni tohoto serveru")
 ; Necessary for http://gccheck.com
 FixIEcert(Cert=0) {
   Static Key  := "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings"
@@ -254,6 +261,39 @@ CheckAnwser(ByRef wb, correct, incorrect) {
         Gui, Font, cGreen Bold                          ; Set color to GREEN
         GuiControl, Font, labelanswer                   ; Apply color to labelanswer
         GuiControl,, labelanswer, % textAnswerCorrect   ; Show the TEXT
+        Gui, Show,, % "Checker - " . args[1] . " - " . textAnswerCorrect
+        
+        ; Copy owner's message to the clipboard
+        If (copymsg = 1) {
+          ; NO: geochecker, evince, hermansky, komurka, gcm, doxina, gccounter2, gccounter
+          ; YES: geocheck, gccheck, geocachefi, gpscache, certitudes, gcappsgeo
+          ; CHECK: gcappsMultichecker, geowii
+          If (args[1] = "geocheck") {
+            ; <tr><td colspan="2">xxx</td></tr>
+            RegexMatch(wb.Document.body.innerHTML, "Smi)<tr><td colspan=.?2.?>(.*?)<\/td><\/tr>", ownersMessage) ; Find proper part of HTML
+            Clipboard := RegExReplace(ownersMessage, "<(""[^""]*""|'[^']*'|[^'"">])*>", "")                      ; Strip HTML tags and put in clipboard
+          }
+          If (args[1] = "gccheck") {
+            ; <div id="hint">Macht Kein T5 daraus.</div>
+            RegexMatch(wb.Document.body.innerHTML, "Smi)<div id=.?hint.?>(.*?)<\/div>", ownersMessage) ; Find proper part of HTML
+            Clipboard := RegExReplace(ownersMessage, "<(""[^""]*""|'[^']*'|[^'"">])*>", "")                      ; Strip HTML tags and put in clipboard
+          }
+          ;If (args[1] = "geocachefi") {
+          ;  <p><b>Cache owners greetings:</b><br>Sinä teit sen! Mene ja löydä kätkö!<br><br>You got it! Go and find the cache!<br><br></td></tr>
+          ;}
+          ;If (args[1] = "gpscache") {
+          ;  <b>Mitteilung vom Owner:</b><br><br>Formidable!<br>Bonne chance.<br><br>Der Siggi<br><br><br /><br /></td></tr>
+          ;}
+          ;If (args[1] = "certitudes") {
+          ;  <h3>Bonusov&aacute; informace: <font color="blue">xxxxxxxxxxx</font></h3>
+          ;}
+          ;If (args[1] = "gsappsgeo") {
+          ;  <div class="alert alert-success text-center">...</div><div><p>xxxxxxxxxxxx</p></div>
+          ;}
+        } ;=> copymsg
+
+        If (beep = 1)
+          SoundPlay, *-1 ;SoundBeep, 2000, 100
 
         errorLvl := 1                                   ; Change errorlevel for geoget script
       } Else If RegExMatch(wb.Document.body.innerHTML, incorrect) {
@@ -263,6 +303,9 @@ CheckAnwser(ByRef wb, correct, incorrect) {
         Gui, Font, cRed Bold                            ; Set color to RED
         GuiControl, Font, labelanswer                   ; Apply color to labelanswer
         GuiControl,, labelanswer, % textAnswerIncorrect ; Show the TEXT
+        Gui, Show,, % "Checker - " . args[1] . " - " . textAnswerIncorrect
+        If (beep = 1)
+          SoundPlay, *16 ;SoundBeep, 1000, 100
 
         errorLvl := 2                                   ; Change errorlevel for geoget script
       } ;Else {                                         ; I think we don't even need it
@@ -301,13 +344,54 @@ Browser(ByRef wb) {
 
     ; Try to fill the webpage form
     Try {
-      ; Page can be switched to two versions of form, standard or one field
-      If (wb.Document.getElementsByName("coordOneField").Length = 0) { ; For classic six field version
-        If (debug = 1)
-          MsgBox, % "Six field version"
+      ;If (wb.Document.All.cachename.Value <> "") { ; Sometimes fields can be filled, but cache name and code is missing
+    If (wb.Document.All.cachename.Value = "")
+      MsgBox 16, % textError, % textErrorGeocheck
 
-        ; Determine if page has fillable element - right page
-        If (wb.Document.getElementsByName("latdeg").Length <> 0) {
+        ; Page can be switched to two versions of form, standard or one field
+        If (wb.Document.getElementsByName("coordOneField").Length = 0) { ; For classic six field version
+          If (debug = 1)
+            MsgBox, % "Six field version"
+
+          ; Determine if page has fillable element - right page
+          If (wb.Document.getElementsByName("latdeg").Length <> 0) {
+            ; Checking radiobuttons is little bit difficult
+            Loop, % (lat := wb.Document.getElementsByName("lat")).Length ; Get elements named "lat"
+              If (lat[A_index-1].Value = args[2])                        ; If some of them is equal args[2]
+                lat[A_index-1].Checked := True                           ; Check it
+
+            wb.Document.All.latdeg.Value := args[3]
+            wb.Document.All.latmin.Value := args[4]
+            wb.Document.All.latdec.Value := args[5]
+
+            ; Checking radiobuttons is little bit difficult
+            Loop, % (lon := wb.Document.getElementsByName("lon")).Length ; Get elements named "lon"
+              If (lon[A_index-1].Value = args[6])                        ; If some of them is equal args[6]
+                lon[A_index-1].Checked := True                           ; Check it
+
+            wb.Document.All.londeg.Value := args[7]
+            wb.Document.All.lonmin.Value := args[8]
+            wb.Document.All.londec.Value := args[9]
+          }
+        } Else If (wb.Document.getElementsByName("coordOneField").Length <> 0) { ; For one field version
+          If (debug = 1)
+            MsgBox, % "One field version"
+          wb.Document.All.coordOneField.Value := args[2] . args[3] . " " . args[4] . "." . args[5] . " " . args[6] . args[7] . " " . args[8] . "." . args[9]
+        } Else If (proxy = 1) {
+          ; Proxy
+          ; If there is no "onefield" and no "latdeg" input there is probably warning about reach max tries
+          ; then, we try reload page with proxy server!
+          ; <tr><th colspan="2">P&#345;íli? mnoho pokus&#367;</th></tr>
+
+          Sleep, 1000
+
+          Gui, Show,, % "Checker - " . args[1] . " - PROXY" ; Change title
+          If (debug = 1)
+            wb.Navigate("https://geocaching.mikrom.cz/proxy/index.php?q=" . args[10] . "")        ; Navigate to webpage
+          Else
+          wb.Navigate("https://geocaching.mikrom.cz/proxy/index.php?q=" . args[10] . "&hl=1e7") ; Navigate to webpage
+          LoadWait(wb)                                                                            ; Wait for page load
+
           ; Checking radiobuttons is little bit difficult
           Loop, % (lat := wb.Document.getElementsByName("lat")).Length ; Get elements named "lat"
             If (lat[A_index-1].Value = args[2])                        ; If some of them is equal args[2]
@@ -325,45 +409,11 @@ Browser(ByRef wb) {
           wb.Document.All.londeg.Value := args[7]
           wb.Document.All.lonmin.Value := args[8]
           wb.Document.All.londec.Value := args[9]
-        }
-      } Else If (wb.Document.getElementsByName("coordOneField").Length <> 0) { ; For one field version
-        If (debug = 1)
-          MsgBox, % "One field version"
-        wb.Document.All.coordOneField.Value := args[2] . args[3] . " " . args[4] . "." . args[5] . " " . args[6] . args[7] . " " . args[8] . "." . args[9]
-      } Else If (proxy = 1) {
-        ; Proxy
-        ; If there is no "onefield" and no "latdeg" input there is probably warning about reach max tries
-        ; then, we try reload page with proxy server!
-        ; <tr><th colspan="2">P&#345;íli? mnoho pokus&#367;</th></tr>
+        } ; <= Proxy
+        wb.Document.All.usercaptcha.Focus() ; Focus on captcha field
 
-        Sleep, 1000
-
-        Gui, Show,, % "Checker - " . args[1] . " - PROXY" ; Change title
-        If (debug = 1)
-          wb.Navigate("https://geocaching.mikrom.cz/proxy/index.php?q=" . args[10] . "")        ; Navigate to webpage
-        Else
-          wb.Navigate("https://geocaching.mikrom.cz/proxy/index.php?q=" . args[10] . "&hl=1e7") ; Navigate to webpage
-        LoadWait(wb)                                                                            ; Wait for page load
-
-        ; Checking radiobuttons is little bit difficult
-        Loop, % (lat := wb.Document.getElementsByName("lat")).Length ; Get elements named "lat"
-          If (lat[A_index-1].Value = args[2])                        ; If some of them is equal args[2]
-            lat[A_index-1].Checked := True                           ; Check it
-
-        wb.Document.All.latdeg.Value := args[3]
-        wb.Document.All.latmin.Value := args[4]
-        wb.Document.All.latdec.Value := args[5]
-
-        ; Checking radiobuttons is little bit difficult
-        Loop, % (lon := wb.Document.getElementsByName("lon")).Length ; Get elements named "lon"
-          If (lon[A_index-1].Value = args[6])                        ; If some of them is equal args[6]
-            lon[A_index-1].Checked := True                           ; Check it
-
-        wb.Document.All.londeg.Value := args[7]
-        wb.Document.All.lonmin.Value := args[8]
-        wb.Document.All.londec.Value := args[9]
-      } ; <= Proxy
-      wb.Document.All.usercaptcha.Focus() ; Focus on captcha field
+    ;} Else ; <= cachename.value
+      ;  MsgBox 16, % textError, % textErrorGeocheck
     } Catch e {
       MsgBox 16, % textError, % textErrorFill
       If (debug != 1)
@@ -402,40 +452,40 @@ Browser(ByRef wb) {
     If (answer = 1) {
       okay :=
       (LTrim Join
-        "Smi)
-        (your solution is correct!!!)|
-        (Deine L.+sung ist korrekt!!!)|
-        (vous avez trouvé la solution!!!)|
-        (tu solución es correcta!!!)|
-        (La teva solució és correcta!!!)|
-        (la tua risposta e corretta!!!)|
-        (a a sua solu.+ao está correcta!!!)|
-        (A sua soluçao está correta!!!!!!)|
-        (Twoje rozwi.+zanie jest poprawne!!!)|
-        (Je oplossing is juist!!!)|
-        (din losning er korrekt!!!)|
-        (l.+sningen er korrekt!!!)|
-        (din l.+sning .+r r.+tt!!!)|
-        (Tvé .+e.+ení je správné!!!)|
-        (Zadané sou.+adnice nejsou zcela p.+esné)"
+      "Smi)
+      (your solution is correct!!!)|
+      (Deine L.+sung ist korrekt!!!)|
+      (vous avez trouvé la solution!!!)|
+      (tu solución es correcta!!!)|
+      (La teva solució és correcta!!!)|
+      (la tua risposta e corretta!!!)|
+      (a a sua solu.+ao está correcta!!!)|
+      (A sua soluçao está correta!!!!!!)|
+      (Twoje rozwi.+zanie jest poprawne!!!)|
+      (Je oplossing is juist!!!)|
+      (din losning er korrekt!!!)|
+      (l.+sningen er korrekt!!!)|
+      (din l.+sning .+r r.+tt!!!)|
+      (Tvé .+e.+ení je správné!!!)|
+      (Zadané sou.+adnice nejsou zcela p.+esné)"
       )
       notokay :=
       (LTrim Join
-        "Smi)
-        (Sorry, that answer is incorrect)|
-        (Schade, die L.+sung ist falsch)|
-        (Désolé, il ne s.+agit pas des bonnes coordonnées)|
-        (Lo sentimos, la respuesta no es correcta)|
-        (Ho sentim, la resposta és incorrecta)|
-        (Spiacente, questa risposta non e corretta)|
-        (Pe.+o desculpa, essa resposta é incorrecta)|
-        (Infelizmente a sua solu.+ao está incorreta)|
-        (Niestety Twoja odpowied.+ jest niepoprawna)|
-        (Sorry, dat antwoord is niet juist)|
-        (Beklager, det svar er forkert)|
-        (Beklager, det svaret er feil)|
-        (Tyv.+rr, svaret .+r fel)|
-        (Bohu.+el, zadaná odpov.+ není správná)"
+      "Smi)
+      (Sorry, that answer is incorrect)|
+      (Schade, die L.+sung ist falsch)|
+      (Désolé, il ne s.+agit pas des bonnes coordonnées)|
+      (Lo sentimos, la respuesta no es correcta)|
+      (Ho sentim, la resposta és incorrecta)|
+      (Spiacente, questa risposta non e corretta)|
+      (Pe.+o desculpa, essa resposta é incorrecta)|
+      (Infelizmente a sua solu.+ao está incorreta)|
+      (Niestety Twoja odpowied.+ jest niepoprawna)|
+      (Sorry, dat antwoord is niet juist)|
+      (Beklager, det svar er forkert)|
+      (Beklager, det svaret er feil)|
+      (Tyv.+rr, svaret .+r fel)|
+      (Bohu.+el, zadaná odpov.+ není správná)"
       )
       CheckAnwser(wb, okay, notokay)
       ;CheckAnwser(wb, "Smi)správné", "Smi)správná")
@@ -452,7 +502,7 @@ Browser(ByRef wb) {
     Try {
       wb.Document.All.LatString.Value := args[2] . " " . args[3] . "° " . args[4] . "." . args[5]
       wb.Document.All.LonString.Value := args[6] . " " . args[7] . "° " . args[8] . "." . args[9]
-      Sleep, 500
+      Sleep, 2000
       wb.Document.All.button.Click()
     } Catch e {
       If (debug != 1) {
@@ -733,9 +783,9 @@ Browser(ByRef wb) {
 
     ; Check result after page reload
     ; YES: <img alt=":)" src="/images/smiley-good-80.png">
-    ; NO:  <img alt=":)" src="http://cool-web.de/images/smiley-bad-80.png"> (or smiley-weird ???? )
+    ; NO:  <img alt=":)" src="http://cool-web.de/images/smiley-bad-80.png"> (or smiley-weird-80  )
     If (answer = 1)
-      CheckAnwser(wb, "Smi)images\/smiley-good-80\.png.?>", "Smi)images\/smiley-bad-80\.png.?>")
+      CheckAnwser(wb, "Smi)images\/smiley-good-80\.png.?>", "Smi)images\/smiley-(bad|weird)-80\.png.?>")
 
   } Else If (args[1] = "gccheck") { ; ============================================> GCCHECK (9)
     ; URL: http://gccheck.com/GC5EJH7

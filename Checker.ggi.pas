@@ -5,7 +5,7 @@
   Www: http://geoget.ararat.cz/doku.php/user:skript:checker
   Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
   Author: mikrom, http://mikrom.cz
-  Version: 0.2.8.0
+  Version: 0.2.14.0
 }
 
 {$include InstallTool.lib.pas}
@@ -38,6 +38,12 @@ begin
   
     {if there is no iefix better set it to true}
     if not ini.ValueExists('Checker', 'iefix') then ini.WriteBool('Checker', 'iefix', True);
+    
+    {add beep option}
+    if not ini.ValueExists('Checker', 'beep') then ini.WriteBool('Checker', 'beep', True);
+    
+    {add copy to clipboard option}
+    if not ini.ValueExists('Checker', 'copymsg') then ini.WriteBool('Checker', 'copymsg', True);
   finally
     ini.Free;
   end;
