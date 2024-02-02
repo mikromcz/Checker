@@ -1,3 +1,13 @@
+** 0.1.3.0 (2015/06/21) **
+  * aktualizace AutoIt na nejnovìjší verzi
+  * oprava vytuhávání u geocheck.org
+  * proèištìní a zjednodušení kódu
+  * oprava chyby pøi parsování nulových souøadnic
+  * NE oprava geochecker.com opìt klikáme na ovìøení (chaptcha se vzdala?)
+  * NE oprava vytuhávání  na geochecker.com
+  * oprava umístìní paypalu pøi zmìnì velikosti okna
+  * v otevrenem okne funguje F5
+
 ** 0.1.2.1 (2015/03/19) **
   * na geochecker.com pridali captchu, tak oprava overeni. nìkdy se napoprvé nenaète správnì obrázek, ale staèí si kliknout pro refresh obrázku
 
