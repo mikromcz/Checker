@@ -2,7 +2,7 @@
 ; Www: http://geoget.ararat.cz/doku.php/user:skript:checker
 ; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ; Author: mikrom, http://mikrom.cz
-; Version: 0.2.6.1
+; Version: 0.2.6.2
 ;
 ; Documentation: http://ahkscript.org/docs/AutoHotkey.htm
 ; FAQ: http://www.autohotkey.com/docs/FAQ.htm
@@ -46,6 +46,7 @@ Menu, Tray, Icon, %A_ScriptDir%\Checker.ico,,1
 ; Language switch
 If (A_Language = "0405") { ; Czech
   global textError           := "Chyba"
+  global textErrorFill       := "Chyba: Nelze vyplnit souøadnice!`n`nPravdìpodobnì se naèetla špatná stránka, napøíklad oznámení o pøekroèení limitu."
   global textErrorException  := "Ajaj, tohle se nemìlo stát.`n`nVýjimka: "
   global textErrorParam      := "Chyba: Neplatný poèet parametrù!`n`nPovolené parametry jsou:`n[service] [N|S] [Dx] [Mx] [Sx] [E|W] [Dy] [My] [Sy] [URL]`n`nPoužity byly tyto:`n"
   global textErrorService    := "Chyba: Použita nepodporovaná služba!`nPodporovány jsou: geocheck, geochecker, evince, hermansky, komurka, gccounter, gccounter2, certitudes, gpscache, gccheck, challenge!."
@@ -57,6 +58,7 @@ If (A_Language = "0405") { ; Czech
   global textAnswerIncorrect := "Špatnì!"
 } Else { ; Other = English
   global textError           := "Error"
+  global textErrorFill       := "Error: Can't fill coordinates!`n`nProbably wrong page loaded, like limit exceeded."
   global textErrorException  := "Oops, this should not happen.`n`nException: "
   global textErrorParam      := "Error: Invalid number of parameters!`n`nAllowed parameters are:`n[service] [N|S] [Dx] [Mx] [Sx] [E|W] [Dy] [My] [Sy] [URL]`n`nReceived parameters are:`n"
   global textErrorService    := "Error: Invalid service selected!`nUse only: geocheck, geochecker, evince, hermansky, komurka, gccounter, gccounter2, certitudes, gpscache, gccheck, challenge!."
@@ -248,8 +250,9 @@ Browser(ByRef wb) {
     ; URL: http://geocheck.org/geo_inputchkcoord.php?gid=61241961c72ab1d-b813-47da-bf03-07c67bb81ac9
     ; Captcha: YES
     Gui, Show,, % "Checker - " . args[1] ; Change title
-
+    
     wb.Navigate(args[10]) ; Navigate to webpage
+    ;wb.Navigate("http://proxy.mikrom.cz/browse.php?u=" . UriEncode(args[10]) . "&b=8&f=norefer") ;wb.Navigate(args[10]) ; Navigate to webpage    
     LoadWait(wb)          ; Wait for page load
 
     ; Try to fill the webpage form
@@ -292,11 +295,9 @@ Browser(ByRef wb) {
           MsgBox, % "Proxy"
 
         Sleep, 1000
-        If (debug = 1)
-          wb.Navigate("http://datp.de/proxy2/index.php?q=" . args[10] . "")        ; Navigate to webpage
-        Else
-          wb.Navigate("http://datp.de/proxy2/index.php?q=" . args[10] . "&hl=1e7") ; Navigate to webpage
-        LoadWait(wb)                                                               ; Wait for page load
+
+        wb.Navigate("http://proxy.mikrom.cz/browse.php?u=" . UriEncode(args[10]) . "&b=8&f=norefer") ; Navigate to webpage    
+        LoadWait(wb)                                                                      ; Wait for page load
 
         ; Checking radiobuttons is little bit difficult
         Loop, % (lat := wb.Document.getElementsByName("lat")).Length ; Get elements named "lat"
@@ -318,7 +319,7 @@ Browser(ByRef wb) {
       } ; <= Proxy
       wb.Document.All.usercaptcha.Focus() ; Focus on captcha field
     } Catch e {
-      MsgBox 16, % textError, % textErrorException . e.extra
+      MsgBox 16, % textError, % textErrorFill
       ExitApp, errorLvl
     }
 
@@ -405,7 +406,7 @@ Browser(ByRef wb) {
       Sleep, 500
       wb.Document.All.button.Click()
     } Catch e {
-      MsgBox 16, % textError, % textErrorException . e.extra
+      MsgBox 16, % textError, % textErrorFill
       ExitApp, errorLvl
     }
 
@@ -433,7 +434,7 @@ Browser(ByRef wb) {
       wb.Document.All.LonMin.Value := args[8] . "." . args[9]
       wb.Document.All.recaptcha_response_field.Focus()
     } Catch e {
-      MsgBox 16, % textError, % textErrorException . e.extra
+      MsgBox 16, % textError, % textErrorFill
       ExitApp, errorLvl
     }
 
@@ -463,7 +464,7 @@ Browser(ByRef wb) {
       Sleep, 500
       wb.Document.Forms[0].Submit()
     } Catch e {
-      MsgBox 16, % textError, % textErrorException . e.extra
+      MsgBox 16, % textError, % textErrorFill
       ExitApp, errorLvl
     }
 
@@ -502,7 +503,7 @@ Browser(ByRef wb) {
       wb.Document.All.delka3.Value := args[9]
       wb.Document.All.code.Focus()
     } Catch e {
-      MsgBox 16, % textError, % textErrorException . e.extra
+      MsgBox 16, % textError, % textErrorFill
       ExitApp, errorLvl
     }
 
@@ -539,7 +540,7 @@ Browser(ByRef wb) {
       Sleep, 500
       wb.Document.Forms[0].Submit()
     } Catch e {
-      MsgBox 16, % textError, % textErrorException . e.extra
+      MsgBox 16, % textError, % textErrorFill
       ExitApp, errorLvl
     }
 
@@ -578,7 +579,7 @@ Browser(ByRef wb) {
         If (inputs[A_index-1].Type = "submit")                             ; If some of them is type="submit"
           inputs[A_index-1].Click()                                        ; Click on it
     } Catch e {
-      MsgBox 16, % textError, % textErrorException . e.extra
+      MsgBox 16, % textError, % textErrorFill
       ExitApp, errorLvl
     }
 
@@ -606,7 +607,7 @@ Browser(ByRef wb) {
         If (inputs[A_index-1].Type = "submit")                             ; If some of them is type="submit"
           inputs[A_index-1].Click()                                        ; Click on it
     } Catch e {
-      MsgBox 16, % textError, % textErrorException . e.extra
+      MsgBox 16, % textError, % textErrorFill
       ExitApp, errorLvl
     }
 
@@ -630,7 +631,7 @@ Browser(ByRef wb) {
       wb.Document.All.ListView1_txtKoords_0.Value := args[2] . args[3] . " " . args[4] . "." . args[5] . " " . args[6] . args[7] . " " . args[8] . "." . args[9]
       wb.Document.All.ListView1_txtCaptchaCode_0.Focus()
     } Catch e {
-      MsgBox 16, % textError, % textErrorException . e.extra
+      MsgBox 16, % textError, % textErrorFill
       ExitApp, errorLvl
     }
 
@@ -657,7 +658,7 @@ Browser(ByRef wb) {
           inputs[A_index-1].Value := args[2] . args[3] . "° " . args[4] . "." . args[5] . " " . args[6] . args[7] . "° " . args[8] . "." . args[9]
       wb.Document.All.captcha.Focus()
     } Catch e {
-      MsgBox 16, % textError, % textErrorException . e.extra
+      MsgBox 16, % textError, % textErrorFill
       ExitApp, errorLvl
     }
 
@@ -693,7 +694,7 @@ Browser(ByRef wb) {
         If (inputs[A_index-1].ID = "runChecker")                            ; If some of them is type="submit"
           inputs[A_index-1].Click()                                         ; Click on it
     } Catch e {
-      MsgBox 16, % textError, % textErrorException . e.extra
+      MsgBox 16, % textError, % textErrorFill
       ExitApp, errorLvl
     }
 

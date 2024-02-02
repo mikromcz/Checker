@@ -1,7 +1,9 @@
-** 0.2.6.1 (2016/07/01) **
+** 0.2.6.2 (2016/12/28) **
   * optimalizace kódu
   * pøidána podpora ovìøení Challenge keší
   * pøidáno nastavení iefix v INI, pro vynucení použití nejnovìjšího vykreslovacího jádra (místo výchozího IE7)
+  * aktualizace AHK na nejnovìjší verzi 1.1.24.4
+  * nová chybová hláška pøi chybì vyplòování souøadnic
   
 ** 0.2.5.3 (2016/06/12) **
   * pøidáno ovìøení na gccheck.com
