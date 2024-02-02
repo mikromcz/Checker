@@ -1,3 +1,10 @@
+=== 0.1.0.1 (2014/05/01) ===
+  * pøidáno posunutí stránky s výsledkem pokud nebylo na první pohled vidìt úspìšné ovìøení
+  * oprava chyb z verze 0.1.0.0
+  * ESC zavøe okno
+  * oprava nefunkènosti kopírovat/vložit mimo browser (chyba AutoHotkey. poslední funkèní verze 3.3.8.1)
+  * prohlížeš spuštìn jako RunExecNoWait, takže neblokuje práci s GeoGetem
+
 === 0.1.0.0 (2014/05/01) ===
   * kompletnì pøepsáno, otevírá se ve vlastním prohlížeèi
   * oprava vkládání souøadnic na geo.komurka.cz. web neakceptuje minuty bez úvodní nuly pokud se jedná o jednociferné èíslo
@@ -9,7 +16,7 @@
 
 === 0.0.1.6 (2014/04/28) ===
   * další ošetøení parsování url
-  * pøidána malinka prodleva mezi posílanými pøíkazy
+  * pøidána malinká prodleva mezi posílanými pøíkazy
   * oprava geocheck.org
 
 === 0.0.1.5 (2013/11/28) ===
