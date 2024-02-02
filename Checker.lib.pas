@@ -4,7 +4,7 @@
   Www: http://geoget.ararat.cz/doku.php/user:skript:checker
   Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
   Author: mikrom, http://mikrom.cz
-  Version: 0.2.0.0
+  Version: 0.2.1.0
 
   tohle by mohlo bejt zajimavy: http://www.regular-expressions.info/duplicatelines.html
 }
@@ -30,7 +30,7 @@ end;
 {hlavni funkce. vpodstate jen propadavacka podle toho na co se narazi a nakonec se zavola autoit}
 procedure Checker(runFrom:String);
 var
-  coord,url,service:String;
+  coord,url,s,service:String;
   n:Integer;
 begin
   {zjistime zda bylo spusteno z GGP, nebo GGC skriptu}
@@ -129,8 +129,15 @@ begin
       GeoAbort;
     end;
 
-    if debug<>'0' then ShowMessage('"'+GEOGET_SCRIPTDIR+'\Checker\AutoHotkey.exe" "'+GEOGET_SCRIPTDIR+'\Checker\Checker.ahk" '+service+' '+CorrectCoords(coord)+' "'+TrimUrl(url)+'"');
-    RunExecNoWait('"'+GEOGET_SCRIPTDIR+'\Checker\AutoHotkey.exe" "'+GEOGET_SCRIPTDIR+'\Checker\Checker.ahk" '+service+' '+CorrectCoords(coord)+' "'+TrimUrl(url)+'"');
+    s:='"'+GEOGET_SCRIPTDIR+'\Checker\AutoHotkey.exe" "'+GEOGET_SCRIPTDIR+'\Checker\Checker.ahk" '+service+' '+CorrectCoords(coord)+' "'+TrimUrl(url)+'"'
+    if debug<>'0' then ShowMessage(s);
+    RunExecNoWait(s);
+    //if RunExec(s) = 1 then begin
+    //   ShowMessage('proslo overenim')
+    //end
+    //else begin
+    //  ShowMessage('neproslo overenim')
+    //end;
   end
   {wrong coordinates, maybe they are zero}
   else ShowMessage(_('Wrong coordinates. Maybe they are zero'));

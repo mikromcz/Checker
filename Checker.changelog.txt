@@ -1,3 +1,8 @@
+** 0.2.1.0 (2015/07/14) **
+  * znatelné zrychlení (vyøešeno èekání na naèítající stránku)
+  * kosmetické úpravy kódu
+  * pøíprava na možnou další funkcionalitu (skript vrací údaj o (ne)úspìšnosti ovìøení)
+
 ** 0.2.0.1 (2015/07/07) **
   * pøidána ikona
   * oprava jedné mezery navíc
