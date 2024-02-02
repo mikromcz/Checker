@@ -3,7 +3,7 @@
 ; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ; Icon: https://icons8.com/icon/18401/Thumb-Up
 ; Author: mikrom, https://www.mikrom.cz
-; Version: 2.17.0
+; Version: 2.18.0
 ;
 ; Documentation: http://ahkscript.org/docs/AutoHotkey.htm
 ; FAQ: http://www.autohotkey.com/docs/FAQ.htm
@@ -1113,6 +1113,42 @@ Browser(ByRef wb) {
     MsgBox, 48, % textError, % textDoxina
     ExitApp, exitCode
 
+  } Else If (args[1] = "geocacheplanner") { ; =============================================> GEOCACHEPLANNER (16)
+    ; URL: https://geocache-planer.de/CAL/checker.php?CALID=GJHTSLO&KEY=0JZRSAG
+    ; Captcha: NO
+    Gui, Show,, % "Checker - " . args[1] ; Change title
+
+    wb.Navigate(args[10]) ; Navigate to webpage
+    LoadWait(wb)          ; Wait for page load
+
+    ; Try to fill the webpage form
+    Try {
+      If (wb.Document.getElementsByName("wert").Length = 0) {
+        wb.Document.All.NORD1.Value := args[3]
+        wb.Document.All.NORD2.Value := args[4]
+        wb.Document.All.NORD3.Value := args[5]
+        
+        wb.Document.All.OST1.Value := args[7]
+        wb.Document.All.OST2.Value := args[8]
+        wb.Document.All.OST3.Value := args[9]
+        
+        wb.Document.Forms[0].Submit()
+      }
+
+    } Catch e {
+      If (debug != 1) {
+        MsgBox 16, % textError, % textErrorFill
+        ExitApp, exitCode
+      } Else
+        MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
+    }
+
+    ; Check result after page reload
+    ; YES: <h3 class="success">Výbornì!</h3>
+    ; NO:  <h3 class="fail">Bohužel :(</h3>
+    If (answer = 1)
+      CheckAnwser(wb, "Smi)form-login {background-color: #E3F6CE;}", "Smi)form-login {background-color: #F6CECE;}")
+    
   } Else { ; =====================================================================> SERVICE ERROR
     MsgBox 16, % textError, % textErrorService
     If (debug != 1)
