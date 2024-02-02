@@ -4,7 +4,7 @@
     Www: https://www.geoget.cz/doku.php/user:skript:checker
     Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
     Author: mikrom, http://mikrom.cz
-    Version: 2.22.0
+    Version: 2.23.0
 
     ToDo:
     * This is maybe interesting: http://www.regular-expressions.info/duplicatelines.html
@@ -13,19 +13,28 @@
     * Arne1: mám takový nápad - zatím jsem nebádal zda to bude realizovatelné.
              Když je ovìøovaèem Certitude, tak by se mohl kouknout do poznámky u keše, zda tam není øádek uvozený "certitude:" (napøíklad)
              a ten text za tím pak použil pro ovìøení.
+             
+    * geoblackbirds.cz: Chtìl bych se ale zeptat, zda by nešlo automaticky po pøíkazu copymsg vložit text ze schránky do poznámky u final pointu.
+                        Jako volitelnou možnost v ini souboru.
 
 }
 
 {Minimum GeoGet version}
 {$V 2.9.15}
 
+{I think I should write here what and why is it here :)}
 uses
     Checker;
+
+{ $define DEBUG_HELPER}
+{$ifdef DEBUG_HELPER}
+    {$include DebugHelper.lib.pas}
+{$endif}
 
 const
     {Define search regex here, good test is here: https://regex101.com/ or http://regexr.com/
     (https?:)?\/\/(www\.)? should handle probably all possible combination of http://, https://, http://www, https://www, //www, //}
-    geocheckRegex        = '(?i)(https?:)?\/\/(www\.)?(geocheck\.org|geotjek\.(dk|eu))\/geo_inputchkcoord[^"''<\s]+';
+    geocheckRegex        = '(?i)(https?:)?\/\/(www\.)?(geocheck\.org|geotjek\.(dk|eu|org))\/geo_inputchkcoord[^"''<\s]+';
     geocheckerRegex      = '(?i)(https?:)?\/\/(www\.)?geochecker\.com\/index\.php[^"''<\s]+';
     evinceRegex          = '(?i)(https?:)?\/\/(www\.)?evince\.locusprime\.net\/cgi-bin\/[^"''<\s]+';
     hermanskyRegex       = '(?i)(https?:)?\/\/(www\.)?(geo\.hermansky\.net|speedygt\.ic\.cz\/gps)\/index\.php\?co\=checker[^"''<\s]+';
@@ -46,9 +55,11 @@ const
     geocachePlannerRegex = '(?i)(https?:)?\/\/(www\.)?geocache-planer\.de\/CAL\/checker\.php[^"''<\s]+';
     gctoolboxRegex       = '(?i)(https?:)?\/\/(www\.)?gctoolbox\.de\/index\.php\?goto=tools&showtool=coordinatechecker[^"''<\s]+';
     nanocheckerRegex     = '(?i)(https?:)?\/\/(www\.)?nanochecker\.sternli\.ch\/\?g=[^"''<\s]+';
+    gzcheckerRegex       = '(?i)(https?:)?\/\/infin\.ity\.me\.uk\/GZ\.php\?MC=[^"''<\s]+';
+    puzzleCheckerRegex   = '(?i)(https?:)?\/\/(www\.)?puzzle-checker\.com\/?\?wp=[^"''<\s]+';
 
 var
-    debug, answer, history: Boolean;
+    answer, history: Boolean;
     coords: String;
 
 {Update waypoint comment. Add custom string (correct|incorrect from ini) at the begining of the waypoint comment. String will be in curly brackets!}
@@ -56,12 +67,13 @@ procedure UpdateWaypointComment(ans: String);
 var
     n: Integer;
 begin
+    {$ifdef DEBUG_HELPER} LDHp('UpdateWaypointComment'); {$endif}
+    
     for n := 0 to GC.Waypoints.Count - 1 do begin
         if ((GC.IsSelected and (GC.CorrectedLat = GC.Waypoints[n].Lat) and (GC.CorrectedLon = GC.Waypoints[n].Lon))
         or (GC.Waypoints[n].IsSelected and (GC.Waypoints[n].GetCoord = coords))) then begin // Which has same coordinates
 
-            if debug then
-                ShowMessage(GC.Waypoints[n].GetCoord + ' <- GC.Waypoints[n].GetCoord' + CRLF + coords + ' <- coords');
+            {$ifdef DEBUG_HELPER} LDH(GC.Waypoints[n].GetCoord + ' <- GC.Waypoints[n].GetCoord' + CRLF + '                    ' + coords + ' <- coords'); {$endif}
 
             if GC.Waypoints[n].Comment <> '' then begin                  // If there is already some comment
                 if RegexFind('^\{[^}]+\}', GC.Waypoints[n].Comment) then // And HAVE our tag at the begining
@@ -82,57 +94,77 @@ procedure LogHistory(checkedCoords, checkerResult: String);
 var
     logFile, s: String;
 begin
+    {$ifdef DEBUG_HELPER} LDHp('LogHistory'); {$endif}
+    
     s := ReplaceString(GEOGET_SCRIPTFULLNAME, GEOGET_SCRIPTNAME, '') + 'Checker.csv';
+    {$ifdef DEBUG_HELPER} LDH('file: ' + s); {$endif}
     
     if FileExists(s) then begin
-        if GetFileSize(s) > 100000 then
-            DeleteFile(s)
-        else
+        if GetFileSize(s) > 100000 then begin
+            {$ifdef DEBUG_HELPER} LDH('Delete file'); {$endif}
+            DeleteFile(s);
+        end
+        else begin
             logFile := FileToString(s);
+        end;
     end;
     
     logFile := logFile + CRLF + FormatDateTime('yyyy"."mm"."dd" "hh:nn:ss', Now()) + ';' + GC.ID + ';' + checkedCoords + ';' + checkerResult;
+    {$ifdef DEBUG_HELPER} LDH('row:  ' + FormatDateTime('yyyy"."mm"."dd" "hh:nn:ss', Now()) + ';' + GC.ID + ';' + checkedCoords + ';' + checkerResult + ' -> ' + s); {$endif}
     StringToFile(logFile, s);
 end;
 
 {Cleaning URLs, sometime its parsed wrong, with this it looks working great}
 function TrimUrl(url: String): String;
 begin
-    //if debug then ShowMessage(url);
+    {$ifdef DEBUG_HELPER} LDHp('TrimUrl'); {$endif}
+    
+    {$ifdef DEBUG_HELPER} LDH('in:  ' + url); {$endif}
     url := RegexReplace('\n.*', url, '', False); // Sometimes it is on two rows
-    //if debug then ShowMessage(url);
+    //{$ifdef DEBUG_HELPER} LDH('url: ' + url); {$endif}
     url := RegexReplace('#.*', url, '', False); // Preventing doubled urls (www.neco.cz/odkazwww.neco.cz/odkaz)
+    {$ifdef DEBUG_HELPER} LDH('out: ' + url); {$endif}
     result := url;
 end;
 
 {Add zeroes to one digit minutes in coordinates, some services need it 2.123 => 02.123}
 function CorrectCoords(c: String): String;
 begin
+    {$ifdef DEBUG_HELPER} LDHp('CorrectCoords'); {$endif}
+    {$ifdef DEBUG_HELPER} LDH('in:  ' + c); {$endif}
+    
     {                        N            50         30        123        E            015        29        456                 N    50 30 123 E 015 29 456}
     c      := RegexReplace('(N|S)\s(\d+)\s(\d+)\s(\d+)\s(E|W)\s(\d+)\s(\d)\s(\d+)', c, '$1 $2 $3 $4 $5 $6 0$7 $8', True); // For lat
     result := RegexReplace('(N|S)\s(\d+)\s(\d)\s(\d+)\s(E|W)\s(\d+)\s(\d+)\s(\d+)', c, '$1 $2 0$3 $4 $5 $6 $7 $8', True); // For lon
+    
+    {$ifdef DEBUG_HELPER} LDH('out: ' + result); {$endif}
 end;
 
 {Main function. Mainly just sifting by service and call AHK at the end}
 procedure Checker(runFrom: String);
 var
-    url, s, t, coordinates, service, description, correct, incorrect, notfound: String;
+    url, s, t, coordinates, service, description, correct, incorrect, notfound, callggp, callgge, ggeoutput: String;
     writenotfound: Boolean;
     i, n: Integer;
     ini: TIniFile;
     serviceName, serviceUrl: TStringList;
     serviceNum: Integer;
 begin
+    {$ifdef DEBUG_HELPER} LDHInit(true); {$endif}
+    {$ifdef DEBUG_HELPER} LDHp('Checker'); {$endif}
+    
     {Read configuration from INI}
     ini := TIniFile.Create(GEOGET_SCRIPTDIR+'\Checker\Checker.ini');
     try
-        debug         := ini.ReadBool('Checker', 'debug', False);
         answer        := ini.ReadBool('Checker', 'answer', False);
         correct       := ini.ReadString('Checker', 'correct', 'CORRECT');
         incorrect     := ini.ReadString('Checker', 'incorrect', 'INCORRECT');
         history       := ini.ReadBool('Checker', 'history', False);
         writenotfound := ini.ReadBool('Checker', 'writenotfound', False);
         notfound      := ini.ReadString('Checker', 'notfound', ' NOTFOUND');
+        callggp       := ini.ReadString('Checker', 'callggp', '');
+        callgge       := ini.ReadString('Checker', 'callgge', '');
+        ggeoutput       := ini.ReadString('Checker', 'ggeoutput', '');
     finally
         ini.Free;
     end;
@@ -173,6 +205,7 @@ begin
                 serviceName.Add('geocheck');
                 serviceUrl.Add(s);
                 Inc(serviceNum);
+                {$ifdef DEBUG_HELPER} LDH('Service: geocheck'); {$endif}
             end;
             {
             GEOCHECKER
@@ -184,6 +217,7 @@ begin
                 serviceName.Add('geochecker');
                 serviceUrl.Add(s);
                 Inc(serviceNum);
+                {$ifdef DEBUG_HELPER} LDH('Service: geochecker'); {$endif}
             end;
             {
             EVINCE - DEAD
@@ -195,6 +229,7 @@ begin
                 serviceName.Add('evince');
                 serviceUrl.Add(s);
                 Inc(serviceNum);
+                {$ifdef DEBUG_HELPER} LDH('Service: evince'); {$endif}
             end;
             {
             HERMANSKY
@@ -207,6 +242,7 @@ begin
                 s := ReplaceString(s, 'speedygt.ic.cz/gps', 'geo.hermansky.net');
                 serviceUrl.Add(s);
                 Inc(serviceNum);
+                {$ifdef DEBUG_HELPER} LDH('Service: hermansky'); {$endif}
             end;
             {
             KOMURKA - DEAD
@@ -218,9 +254,10 @@ begin
                 serviceName.Add('komurka');
                 serviceUrl.Add(s);
                 Inc(serviceNum);
+                {$ifdef DEBUG_HELPER} LDH('Service: komurka'); {$endif}
             end;
             {
-            GCCOUNTER
+            GCCOUNTER - DEAD
             url: http://gccounter.com/gcchecker.php?site=gcchecker_check&id=2076
             captcha: no
             }
@@ -229,6 +266,7 @@ begin
                 serviceName.Add('gccounter');
                 serviceUrl.Add(s);
                 Inc(serviceNum);
+                {$ifdef DEBUG_HELPER} LDH('Service: gccounter'); {$endif}
             end;
             {
             GCCOUNTER2 - DEAD
@@ -240,6 +278,7 @@ begin
                 serviceName.Add('gccounter2');
                 serviceUrl.Add(s);
                 Inc(serviceNum);
+                {$ifdef DEBUG_HELPER} LDH('Service: gccounter2'); {$endif}
             end;
             {
             CERTITUDES
@@ -258,6 +297,7 @@ begin
                 
                 serviceUrl.Add(s);
                 Inc(serviceNum);
+                {$ifdef DEBUG_HELPER} LDH('Service: certitudes'); {$endif}
             end;
             {
             GPS-CACHE
@@ -269,6 +309,7 @@ begin
                 serviceName.Add('gpscache');
                 serviceUrl.Add(s);
                 Inc(serviceNum);
+                {$ifdef DEBUG_HELPER} LDH('Service: gpscache'); {$endif}
             end;
             {
             GCCHECK
@@ -280,6 +321,7 @@ begin
                 serviceName.Add('gccheck');
                 serviceUrl.Add(s);
                 Inc(serviceNum);
+                {$ifdef DEBUG_HELPER} LDH('Service: gccheck'); {$endif}
             end;
             {
             CHALLENGE
@@ -292,6 +334,7 @@ begin
                 serviceName.Add('"challenge|' + GEOGET_OWNER +'"'); //EncodeUrlElement(GEOGET_OWNER);
                 serviceUrl.Add(s);
                 Inc(serviceNum);
+                {$ifdef DEBUG_HELPER} LDH('Service: challenge'); {$endif}
             end;
             {
             CHALLENGE2
@@ -305,6 +348,7 @@ begin
                 s := SeparateLeft(s, '"'); // Regex returns URL ending with "
                 serviceUrl.Add(s);
                 Inc(serviceNum);
+                {$ifdef DEBUG_HELPER} LDH('Service: challenge2'); {$endif}
             end;
             {
             GC-APPS GEOCHECKER
@@ -317,6 +361,7 @@ begin
                 serviceName.Add('gcappsGeochecker');
                 serviceUrl.Add(s);
                 Inc(serviceNum);
+                {$ifdef DEBUG_HELPER} LDH('Service: gcappsGeochecker'); {$endif}
             end;
             {
             GC-APPS MULTICHECKER
@@ -328,6 +373,7 @@ begin
                 serviceName.Add('gcappsMultichecker');
                 serviceUrl.Add(s);
                 Inc(serviceNum);
+                {$ifdef DEBUG_HELPER} LDH('Service: gcappsMultichecker'); {$endif}
             end;
             {
             GEOCACHE.FI
@@ -339,6 +385,7 @@ begin
                 serviceName.Add('geocachefi');
                 serviceUrl.Add(s);
                 Inc(serviceNum);
+                {$ifdef DEBUG_HELPER} LDH('Service: geocachefi'); {$endif}
             end;
             {
             GEOWII.MIGA.LV
@@ -350,6 +397,7 @@ begin
                 serviceName.Add('geowii');
                 serviceUrl.Add(s);
                 Inc(serviceNum);
+                {$ifdef DEBUG_HELPER} LDH('Service: geowii'); {$endif}
             end;
             {
             GC.GCM.CZ
@@ -362,6 +410,7 @@ begin
                 s := ReplaceString(s, 'gc.gcm.cz/validator', 'validator.gcm.cz');
                 serviceUrl.Add(s);
                 Inc(serviceNum);
+                {$ifdef DEBUG_HELPER} LDH('Service: gcm'); {$endif}
             end;
             {
             DOXINA - DEAD
@@ -373,6 +422,7 @@ begin
                 serviceName.Add('doxina');
                 serviceUrl.Add(s);
                 Inc(serviceNum);
+                {$ifdef DEBUG_HELPER} LDH('Service: doxina'); {$endif}
             end;
             {
             GEOCACHE-PLANNER
@@ -384,6 +434,7 @@ begin
                 serviceName.Add('geocacheplanner');
                 serviceUrl.Add(s);
                 Inc(serviceNum);
+                {$ifdef DEBUG_HELPER} LDH('Service: geocacheplanner'); {$endif}
             end;
             {
             GCTOOLBOX
@@ -396,6 +447,7 @@ begin
                 s := ReplaceString(s, 'lang=ger', 'lang=eng'); // Force ENGLISH
                 serviceUrl.Add(s);
                 Inc(serviceNum);
+                {$ifdef DEBUG_HELPER} LDH('Service: gctoolbox'); {$endif}
             end;
             {
             NANOCHECKER
@@ -414,14 +466,43 @@ begin
 
                 serviceUrl.Add(s);
                 Inc(serviceNum);
+                {$ifdef DEBUG_HELPER} LDH('Service: nanochecker'); {$endif}
             end;
+            {
+            GZ CHECKER
+            url: http://infin.ity.me.uk/GZ.php?MC=RR074
+            captcha: NO
+            }
+            s := RegExSubstitute(gzcheckerRegex, description, '$0#');
+            if s <> '' then begin
+                serviceName.Add('gzchecker');
+                serviceUrl.Add(s);
+                Inc(serviceNum);
+                {$ifdef DEBUG_HELPER} LDH('Service: gzchecker'); {$endif}
+            end;
+            {
+            PUZZLE CHECKER
+            url: https://puzzle-checker.com/?wp=GC80HFF
+            captcha: YES
+            }
+            s := RegExSubstitute(puzzleCheckerRegex, description, '$0#');
+            if s <> '' then begin
+                serviceName.Add('puzzlechecker');
+                serviceUrl.Add(s);
+                Inc(serviceNum);
+                {$ifdef DEBUG_HELPER} LDH('Service: puzzlechecker'); {$endif}
+            end;
+            
             {Nothing found}
             if serviceNum = 0 then begin
                 ShowMessage(_('Error: No coordinate checker URL found!'));
+                {$ifdef DEBUG_HELPER} LDHe('Error: No coordinate checker URL found!'); {$endif}
                 if writenotfound then
                     UpdateWaypointComment(notfound);
-                if debug then
-                    StringToFile(description, GEOGET_SCRIPTDIR + '\Checker\description.html');
+                    if callggp <> '' then
+                        GeoCallGGP(GEOGET_SCRIPTDIR + callggp);
+                    if callgge <> '' then
+                        GeoExport(GEOGET_SCRIPTDIR + callgge, ggeoutput);
                 GeoAbort;
             end;
 
@@ -443,12 +524,14 @@ begin
                             if CheckerForm_ListBox.Selected[i] then begin
                                 service := CheckerForm_ListBox.Items[CheckerForm_ListBox.ItemIndex]; // Just get selected item
                                 url := TrimUrl(serviceUrl[i]);                                                                              // Get same row from stringlist with URLs
-                                if debug then
-                                    ShowMessage(CheckerForm_ListBox.Items[CheckerForm_ListBox.ItemIndex] + CRLF + serviceUrl[i]); // Show name of selected item
+                                
+                                {$ifdef DEBUG_HELPER} LDH(CheckerForm_ListBox.Items[CheckerForm_ListBox.ItemIndex] + CRLF + serviceUrl[i]); {$endif} // Show name of selected item
                             end;
                         end;
                     end
                     else begin
+                        {$ifdef DEBUG_HELPER} LDHe('Error: You didn''t select anything!'); {$endif}
+                        
                         ShowMessage(_('Error: You didn''t select anything!'));
                         GeoAbort;
                     end;
@@ -460,39 +543,60 @@ begin
                 url := TrimUrl(serviceUrl[0]);
             end;
 
+            {$ifdef DEBUG_HELPER} LDHp('Checker'); {$endif}
+            
             {Make command for running AHK}
             s := '"' + GEOGET_DATADIR + '\tools\AutoHotkey.exe" "' + GEOGET_SCRIPTDIR + '\Checker\Checker.ahk" ' + service + ' ' + coordinates + ' "' + url + '"';
-            if debug then
-                ShowMessage(s);
+            {$ifdef DEBUG_HELPER} LDH('Command: ' + s); {$endif}
 
             {If we can get result of the check}
             if answer then begin
                 case RunExec(s) of
-                    0:
-                        if debug then ShowMessage(_('OK, neither correct or incorrect')); // AHK script run without error, but not found if result was correct or not
-                    1:
-                        begin                                                             // If it WAS correct add special comment to the Final waypoint
-                            if debug then
-                                ShowMessage(_('Correct solution! :)'));
-                            if correct <> '' then
+                    0:  begin
+                        // AHK script ran without error, but not found if result was correct or not
+                        
+                         {$ifdef DEBUG_HELPER} LDH('OK, neither correct or incorrect'); {$endif}
+                         if callggp <> '' then
+                            GeoCallGGP(GEOGET_SCRIPTDIR + callggp);
+                         if callgge <> '' then
+                            GeoExport(GEOGET_SCRIPTDIR + callgge, ggeoutput);
+                        end;
+                    1:  begin
+                        // If it WAS correct add special comment to the Final waypoint
+                        
+                            {$ifdef DEBUG_HELPER} LDH('Correct solution! :)'); {$endif}
+                            
+                            if correct <> '' then begin
                                 UpdateWaypointComment(correct);
+                                if callggp <> '' then
+                                    GeoCallGGP(GEOGET_SCRIPTDIR + callggp);
+                                if callgge <> '' then
+                                    GeoExport(GEOGET_SCRIPTDIR + callgge, ggeoutput);
+                            end;
                             if history then
                                 LogHistory(coordinates, 'Correct');
                         end;
-                    2:
-                        begin                                                             // If it WAS NOT correct add special comment to the Final waypoint
-                            if debug then 
-                                ShowMessage(_('Incorrect solution! :('));
-                            if incorrect <> '' then
+                    2:  begin
+                        // If it WAS NOT correct add special comment to the Final waypoint
+                                                                                     
+                            {$ifdef DEBUG_HELPER} LDH('Incorrect solution! :('); {$endif}
+                            
+                            if incorrect <> '' then begin
                                 UpdateWaypointComment(incorrect);
+                                if callggp <> '' then
+                                    GeoCallGGP(GEOGET_SCRIPTDIR + callggp);
+                                if callgge <> '' then
+                                    GeoExport(GEOGET_SCRIPTDIR + callgge, ggeoutput);
+                            end;
                             if history then
                                 LogHistory(coordinates, 'Incorrect');
                         end;
                     3: 
-                        if debug then 
-                            ShowMessage(_('Error'));
-                        else
+                        begin
+                            {$ifdef DEBUG_HELPER} LDHe('Error: This should not happen!' + CRLF + 'No or wrong exit code from Checker.ahk'); {$endif}
+                            
                             ShowMessage(_('Error: This should not happen!' + CRLF + 'No or wrong exit code from Checker.ahk'));
+                        end;
                 end;
             end
             else
@@ -504,6 +608,9 @@ begin
         end;
     end
     {Wrong coordinates, maybe they are zero}
-    else
+    else begin
+        {$ifdef DEBUG_HELPER} LDHe('Wrong coordinates. Maybe they are zero'); {$endif}
+
         ShowMessage(_('Wrong coordinates. Maybe they are zero'));
+    end;
 end;

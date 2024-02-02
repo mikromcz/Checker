@@ -1,3 +1,12 @@
+** 2.23.0 (2020/09/xx) **
+  * pøidána podpora LittleDebugHelper (http://ggplg.valicek.name/plugin/DebugHelper)
+  * pøidána podpora GZ Checker (https://infin.ity.me.uk/GZInput.php)
+  * aktualizace AutoHotkey na 1.1.33.02
+  * pøidána možnost zavolat ggp/gge po ovìøení
+  * pøidána podpora geotjek.org
+  * pøidána podpora puzzle-checker.com (GC80HFF, GC8X0WQ, ...) se vším všudy (ovìøení správnosti, zkopírování poznámky)
+  * gccounter.de i gccounter.com jsou definitivnì po smrti
+
 ** 2.22.0 (2019/06/05) **
   * u keše GC823B0 je odkaz na checker v hintu, takže nyní budeme prohledávat i hint
   * kosmetické úpravy v kódu

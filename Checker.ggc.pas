@@ -6,10 +6,10 @@
     Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
     Icon: https://icons8.com/icon/18401/Thumb-Up
     Author: mikrom, https://www.mikrom.cz
-    Version: 2.22.0
+    Version: 2.23.0
 }
 
-{$INCLUDE Checker.lib.pas}
+{$include Checker.lib.pas}
 
 {Name of plugin}
 function PluginCaption: String;
@@ -33,5 +33,6 @@ end;
 {Enter plugin code here}
 procedure PluginWork;
 begin
+    //{$ifdef DEBUG_HELPER} LDHInit(true); {$endif}
     Checker('ggc');
 end;

@@ -3,7 +3,7 @@
 ; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ; Icon: https://icons8.com/icon/18401/Thumb-Up
 ; Author: mikrom, https://www.mikrom.cz
-; Version: 2.22.0
+; Version: 2.23.0
 ;
 ; Documentation: http://ahkscript.org/docs/AutoHotkey.htm
 ; FAQ: http://www.autohotkey.com/docs/FAQ.htm
@@ -360,8 +360,9 @@ CheckAnwser(ByRef wb, correct, incorrect)
                     If (args[1] = "geocheck")
                     {
                         ; <tr><td colspan="2">xxx</td></tr>
-                        RegexMatch(wb.Document.body.innerHTML, "Smi)<tr><td colspan=.?2.?>(.*?)<\/td><\/tr>", ownersMessage) ; Find proper part of HTML
+                        RegexMatch(wb.Document.body.innerHTML, "Smi)<tr><td colspan=.?2.?>(.+?)<\/td><\/tr>", ownersMessage) ; Find proper part of HTML
                         ownersMessage := RegExReplace(ownersMessage, "(?=<!--)([\s\S]*?)-->|<[^>]*>|&nbsp;|\n", "")          ; Strip HTML tags and put in clipboard
+                        ownersMessage := RegExReplace(ownersMessage, "\s+", " ")                                             ; Replace multiple spaces with only one
 
                         If (ownersMessage != "")                                    ; If not empty
                         {
@@ -372,8 +373,9 @@ CheckAnwser(ByRef wb, correct, incorrect)
                     If (args[1] = "gccheck")
                     {
                         ; <div id="hint">Macht Kein T5 daraus.</div>
-                        RegexMatch(wb.Document.body.innerHTML, "Smi)<div id=.?hint.?>(.*?)<\/div>", ownersMessage)  ; Find proper part of HTML
+                        RegexMatch(wb.Document.body.innerHTML, "Smi)<div id=.?hint.?>(.+?)<\/div>", ownersMessage)  ; Find proper part of HTML
                         ownersMessage := RegExReplace(ownersMessage, "(?=<!--)([\s\S]*?)-->|<[^>]*>|&nbsp;|\n", "") ; Strip HTML tags and put in clipboard
+                        ownersMessage := RegExReplace(ownersMessage, "\s+", " ")                                    ; Replace multiple spaces with only one
 
                         If (ownersMessage != "")                                    ; If not empty
                         {
@@ -381,6 +383,24 @@ CheckAnwser(ByRef wb, correct, incorrect)
                         }
                     }
 
+                    If (args[1] = "puzzlechecker")
+                    {
+                        ; <div class="tipblock" style="width:640px">
+                        ;   <h3>Cache: TMK 1807 - Figures<BR>
+                        ;   GC kód: <a href="http://coord.info/GC80HFF" target="_blank">GC80HFF</a><BR>
+                        ;   Souøadnice: N62&deg; 32.396 E17&deg; 27.523<BR>		Informace: Bonuskod: 4306</h3><BR>
+                        ;   <input type="button" onClick="location.href='/?wp=GC80HFF'" value="Zpìt">
+                        ; </div>
+                        RegexMatch(wb.Document.body.innerHTML, "Smi)<div class=.?tipblock.? [^>]+>(.+?)<\/div>", ownersMessage) ; Find proper part of HTML
+                        ownersMessage := RegExReplace(ownersMessage, "(?=<!--)([\s\S]*?)-->|<[^>]*>|&nbsp;|\n", "")             ; Strip HTML tags and put in clipboard
+                        ownersMessage := RegExReplace(ownersMessage, "\s+", " ")                                                ; Replace multiple spaces with only one
+
+                        If (ownersMessage != "")                                    ; If not empty
+                        {
+                            Clipboard := ownersMessage
+                        }
+                    }
+                    
                     ;If (args[1] = "geocachefi")
                     ;{
                     ;    <p><b>Cache owners greetings:</b><br>Sinä teit sen! Mene ja löydä kätkö!<br><br>You got it! Go and find the cache!<br><br></td></tr>
@@ -397,10 +417,12 @@ CheckAnwser(ByRef wb, correct, incorrect)
                     ;{
                     ;    <div class="alert alert-success text-center">...</div><div><p>xxxxxxxxxxxx</p></div>
                     ;}
+                    
                     If ((debug != 1) and (ownersMessage != ""))
                     {
                         MsgBox, % Clipboard
                     }
+                    
                 } ;=> copymsg
 
                 If (beep = 1)
@@ -966,51 +988,51 @@ Browser(ByRef wb)
         ; URL: http://gccounter.com/gcchecker.php?site=gcchecker_check&id=2076
         ; Captcha: NO
 
-        Gui, Show,, % "Checker - " . args[1] ; Change title
+        ;Gui, Show,, % "Checker - " . args[1] ; Change title
         
-        wb.Navigate(args[10]) ; Navigate to webpage
-        LoadWait(wb)          ; Wait for page load
+        ;wb.Navigate(args[10]) ; Navigate to webpage
+        ;LoadWait(wb)          ; Wait for page load
         
         ; Try to fill the webpage form
-        Try
-        {
-            If (args[2] = "N")
-                wb.Document.All.Lat_R.SelectedIndex := 0
-            If (args[2] = "S")
-                wb.Document.All.Lat_R.SelectedIndex := 1
-            wb.Document.All.Lat_G.Value := args[3]
-            wb.Document.All.Lat_M.Value := args[4]
-            wb.Document.All.Lat_MM.Value := args[5]
-            If (args[6] = "E")
-                wb.Document.All.Lon_R.SelectedIndex := 0
-            If (args[6] = "W")
-                wb.Document.All.Lon_R.SelectedIndex := 1
-            wb.Document.All.Lon_G.Value := args[7]
-            wb.Document.All.Lon_M.Value := args[8]
-            wb.Document.All.Lon_MM.Value := args[9]
-            Sleep, 500
-            wb.Document.Forms[0].Submit()
-        }
-        Catch e
-        {
-            If (debug != 1)
-            {
-                MsgBox 16, % textError, % textErrorFill, 5
-                ExitApp, exitCode
-            }
-            Else
-                MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
-        }
+        ;Try
+        ;{
+        ;    If (args[2] = "N")
+        ;        wb.Document.All.Lat_R.SelectedIndex := 0
+        ;    If (args[2] = "S")
+        ;        wb.Document.All.Lat_R.SelectedIndex := 1
+        ;    wb.Document.All.Lat_G.Value := args[3]
+        ;    wb.Document.All.Lat_M.Value := args[4]
+        ;    wb.Document.All.Lat_MM.Value := args[5]
+        ;    If (args[6] = "E")
+        ;        wb.Document.All.Lon_R.SelectedIndex := 0
+        ;    If (args[6] = "W")
+        ;        wb.Document.All.Lon_R.SelectedIndex := 1
+        ;    wb.Document.All.Lon_G.Value := args[7]
+        ;    wb.Document.All.Lon_M.Value := args[8]
+        ;    wb.Document.All.Lon_MM.Value := args[9]
+        ;    Sleep, 500
+        ;    wb.Document.Forms[0].Submit()
+        ;}
+        ;Catch e
+        ;{
+        ;    If (debug != 1)
+        ;    {
+        ;        MsgBox 16, % textError, % textErrorFill, 5
+        ;        ExitApp, exitCode
+        ;    }
+        ;    Else
+        ;        MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
+        ;}
         
         ; Check result after page reload
         ; YES: <h2 align="center" style="color:green">Herzlichen Glückwunsch!</h2>
         ; NO:  <h2 align="center" style="color:red">Schade!</h2> # <H2 style="COLOR: red" align=center>Schade!</H2>
-        If (answer = 1)
-            CheckAnwser(wb, "Smi)>Herzlichen Glückwunsch!<", "Smi)>Schade!<")
+        ;If (answer = 1)
+        ;    CheckAnwser(wb, "Smi)>Herzlichen Glückwunsch!<", "Smi)>Schade!<")
 
-        ; Since 10/2018 website is dead
-        ;MsgBox, 48, % textError, % textDeadGccounter
-        ;ExitApp, exitCode
+        ; Since 09/2020 website is dead
+        MsgBox, 48, % textError, % textDeadGccounter
+        ExitApp, exitCode
 
     }
     Else If (args[1] = "gccounter2") ; =========================================> GCCOUNTER2 (6)
@@ -1677,6 +1699,137 @@ Browser(ByRef wb)
         ;{
         ;    CheckAnwser(wb, "Smi)<span id=.?congrats.?>", "Smi)<span id=.?nope.?>")
         ;}
+
+    }
+    Else If (args[1] = "gzchecker") ; ============================================> NANOCHECKER (18)
+    {
+        ; URL: http://infin.ity.me.uk/GZ.php?MC=RR074
+        ; Captcha: YES
+
+        Gui, Show,, % "Checker - " . args[1]                                        ; Change title
+
+        wb.Navigate(args[10])                                                       ; Navigate to webpage
+        LoadWait(wb)                                                                ; Wait for page load
+
+        ; Try to fill the webpage form
+        Try
+        {
+            If (args[2] = "N")
+            {
+                wb.Document.All.Lat.SelectedIndex := 0
+            }
+            
+            If (args[2] = "S")
+            {
+                wb.Document.All.Lat.SelectedIndex := 1
+            }
+            
+            wb.Document.All.LatD.Value := args[3]
+            wb.Document.All.LatM.Value := args[4]
+            wb.Document.All.LatMD.Value := args[5]
+            
+            If (args[6] = "E")
+            {
+                wb.Document.All.Long.SelectedIndex := 0
+            }
+            
+            If (args[6] = "W")
+            {
+                wb.Document.All.Long.SelectedIndex := 1
+            }
+            
+            wb.Document.All.LongD.Value := args[7]
+            wb.Document.All.LongM.Value := args[8]
+            wb.Document.All.LongMD.Value := args[9]
+            
+            ; Focus Solution Comment field
+            wb.Document.All.SolComm.Focus()
+
+        }
+        Catch e
+        {
+            If (debug != 1)
+            {
+                MsgBox 16, % textError, % textErrorFill, 5
+                ExitApp, exitCode
+            }
+            Else
+            {
+                MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
+            }
+        }
+        
+        ; Check result after page reload
+        ; YES: <p>Your solution of <b><font color=green>N 51&deg; 44.395'     E 000&deg; 43.983'</font></b> is CORRECT <font color=green>mikrom</font>.</p>
+        ; NO:  <div id=Failed name=Failed>&nbsp;</div> // ???
+        If (answer = 1)
+        {
+            CheckAnwser(wb, "Smi)</b> is CORRECT <font", "Smi)<span id=.?nope.?>")
+        }
+
+    }
+    Else If (args[1] = "puzzlechecker") ; ============================================> PUZZLECHECKER (19)
+    {
+        ; URL: https://puzzle-checker.com/?wp=GC80HFF
+        ; Captcha: YES
+
+        Gui, Show,, % "Checker - " . args[1]                                        ; Change title
+
+        wb.Navigate(args[10] . "&lang=cs")                                          ; Navigate to webpage
+        LoadWait(wb)                                                                ; Wait for page load
+        
+        wb.Document.ParentWindow.ScrollTo(0,200)                                   ; Scroll down because page has a huge picture in header
+
+        ; Try to fill the webpage form
+        Try
+        {
+            ; Checking radiobuttons is little bit difficult
+            Loop, % (lat := wb.Document.getElementsByName("latdir")).Length    ; Get elements named "lat"
+            {
+                If (lat[A_index-1].Value = args[2])                             ; If some of them is equal args[2]
+                {
+                    lat[A_index-1].Checked := True                              ; Check it
+                }
+            }
+
+            wb.Document.All.lat1.Value := args[3]
+            wb.Document.All.lat2.Value := args[4]
+            wb.Document.All.lat3.Value := args[5]
+            
+            ; Checking radiobuttons is little bit difficult
+            Loop, % (lat := wb.Document.getElementsByName("longdir")).Length   ; Get elements named "lat"
+            {
+                If (lat[A_index-1].Value = args[6])                             ; If some of them is equal args[2]
+                {
+                    lat[A_index-1].Checked := True                              ; Check it
+                }
+            }
+
+            wb.Document.All.long1.Value := args[7]
+            wb.Document.All.long2.Value := args[8]
+            wb.Document.All.long3.Value := args[9]
+
+        }
+        Catch e
+        {
+            If (debug != 1)
+            {
+                MsgBox 16, % textError, % textErrorFill, 5
+                ExitApp, exitCode
+            }
+            Else
+            {
+                MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
+            }
+        }
+        
+        ; Check result after page reload
+        ; YES: <p align="center" class="greenb">Gratulujeme! Vaše øešení je správnì!</p> + <div class="tipblock" style="width:640px"><h3>Cache: TMK 1807 - Figures<BR>GC kód: <a href="http://coord.info/GC80HFF" target="_blank">GC80HFF</a><BR>Souøadnice: N62&deg; 32.396 E17&deg; 27.523<BR>		Informace: Bonuskod: 4306</h3><BR> ... </div>
+        ; NO:  <p align="center" class="redb">Vaše odpovìï není správnì!</p>
+        If (answer = 1)
+        {
+            CheckAnwser(wb, "Smi)class=.?greenb.?", "Smi)class=.?redb.?")
+        }
 
     }
     Else ; =====================================================================> SERVICE ERROR
