@@ -4,7 +4,7 @@
   Www: http://geoget.ararat.cz/doku.php/user:skript:checker
   Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
   Author: mikrom, http://mikrom.cz
-  Version: 0.2.2.1
+  Version: 0.2.3.0
 
   tohle by mohlo bejt zajimavy: http://www.regular-expressions.info/duplicatelines.html
 }
@@ -44,7 +44,7 @@ end;
 {hlavni funkce. vpodstate jen propadavacka podle toho na co se narazi a nakonec se zavola autoit}
 procedure Checker(runFrom:String);
 var
-  coord, url, s, service:String;
+  coord, url, s, service, description:String;
   n:Integer;
   ini:TIniFile;
 begin
@@ -53,6 +53,9 @@ begin
   debug := ini.ReadBool('Checker', 'debug', False);
   finar := ini.ReadBool('Checker', 'debug', False);
   ini.Free;
+
+  {v GC3PVWQ je odkaz na ovìøení v ShortDescription}
+  description := GC.ShortDescription + GC.LongDescription;
 
   {zjistime zda bylo spusteno z GGP, nebo GGC skriptu}
   case runFrom of
@@ -77,8 +80,8 @@ begin
     url: geocheck.org/geo_inputchkcoord.php?gid=61241961c72ab1d-b813-47da-bf03-07c67bb81ac9
     captcha: yes
     }
-    if RegexFind(geocheckRegex, GC.LongDescription) then begin
-      url := RegExSubstitute(geocheckRegex, GC.LongDescription, '$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
+    if RegexFind(geocheckRegex, description) then begin
+      url := RegExSubstitute(geocheckRegex, description, '$0#'); // parsnout url z listingu, description (konci '#')
       service := 'geocheck';
     end
     {
@@ -86,8 +89,8 @@ begin
     url: http://www.geochecker.com/index.php?code=e380cf72d82fa02a81bf71505e8c535c&action=check&wp=4743324457584d&name=536b6c656e696b202d20477265656e20486f757365
     captcha: no
     }
-    else if RegexFind(geocheckerRegex, GC.LongDescription) then begin
-      url := RegExSubstitute(geocheckerRegex, GC.LongDescription, '$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
+    else if RegexFind(geocheckerRegex, description) then begin
+      url := RegExSubstitute(geocheckerRegex, description, '$0#'); // parsnout url z listingu, description (konci '#')
       service := 'geochecker';
     end
     {
@@ -95,8 +98,8 @@ begin
     url: http://evince.locusprime.net/cgi-bin/index.cgi?q=d0ZNzQeHKReGKzr
     captcha: yes
     }
-    else if RegexFind(evinceRegex, GC.LongDescription) then begin
-      url := RegExSubstitute(evinceRegex, GC.LongDescription, '$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
+    else if RegexFind(evinceRegex, description) then begin
+      url := RegExSubstitute(evinceRegex, description, '$0#'); // parsnout url z listingu, description (konci '#')
       service := 'evince';
     end
     {
@@ -104,8 +107,8 @@ begin
     url: http://geo.hermansky.net/index.php?co=checker&code=2542e4245f80d4f7783e41ed7503fba6b3c8cc3188ff05
     captcha: no
     }
-    else if RegexFind(hermanskyRegex, GC.LongDescription) then begin
-      url := RegExSubstitute(hermanskyRegex, GC.LongDescription, '$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
+    else if RegexFind(hermanskyRegex, description) then begin
+      url := RegExSubstitute(hermanskyRegex, description, '$0#'); // parsnout url z listingu, description (konci '#')
       service := 'hermansky';
     end
     {
@@ -113,8 +116,8 @@ begin
     url: http://geo.komurka.cz/check.php?cache=GC2JCEQ
     captcha: yes
     }
-    else if RegexFind(komurkaRegex, GC.LongDescription) then begin
-      url := RegExSubstitute(komurkaRegex, GC.LongDescription, '$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
+    else if RegexFind(komurkaRegex, description) then begin
+      url := RegExSubstitute(komurkaRegex, description, '$0#'); // parsnout url z listingu, description (konci '#')
       service := 'komurka';
     end
     {
@@ -122,8 +125,8 @@ begin
     url: http://gccounter.com/gcchecker.php?site=gcchecker_check&id=2076
     captcha: no
     }
-    else if RegexFind(gccounterRegex, GC.LongDescription) then begin
-      url := RegExSubstitute(gccounterRegex, GC.LongDescription, '$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
+    else if RegexFind(gccounterRegex, description) then begin
+      url := RegExSubstitute(gccounterRegex, description, '$0#'); // parsnout url z listingu, description (konci '#')
       service := 'gccounter';
     end
     {
@@ -131,8 +134,8 @@ begin
     url: http://www.certitudes.org/certitude?wp=GC2QFYT
     captcha: no
     }
-    else if RegexFind(certitudesRegex, GC.LongDescription) then begin
-      url := RegExSubstitute(certitudesRegex, GC.LongDescription, '$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
+    else if RegexFind(certitudesRegex, description) then begin
+      url := RegExSubstitute(certitudesRegex, description, '$0#'); // parsnout url z listingu, description (konci '#')
       service := 'certitudes';
     end
     {
@@ -140,8 +143,8 @@ begin
     url: http://geochecker.gps-cache.de/check.aspx?id=7c52d196-b9d2-4b23-ad99-5d6e1bece187
     captcha: yes
     }
-    else if RegexFind(gpscacheRegex, GC.LongDescription) then begin
-      url := RegExSubstitute(gpscacheRegex, GC.LongDescription, '$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
+    else if RegexFind(gpscacheRegex, description) then begin
+      url := RegExSubstitute(gpscacheRegex, description, '$0#'); // parsnout url z listingu, description (konci '#')
       service := 'gpscache';
     end
     {

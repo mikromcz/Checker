@@ -125,6 +125,15 @@ LoadWait(ByRef wb) {
   Sleep, 500 ; Just for sure :)
 } ; => LoadWait()
 
+; Function check if element even exist before fill/select/check it
+;IfExists(ByRef wb, ele, value) {
+  ;if (typeof myfile !== 'undefined'
+  ;  && myfile.getElementsByTagName
+  ;  && myfile.getElementsByTagName("client").length) {}
+;  If(wb.Document.all.ele !== 'undefined' && wb.Document.All.ele.Length)
+;    wb.Document.getElementsByName(ele).Value := value
+;}
+
 ; Main function. Switch, based by first parameter "service"
 ; http://www.autohotkey.com/board/topic/47052-basic-webpage-controls-with-javascript-com-tutorial/
 ; http://www.autohotkey.com/board/topic/64563-basic-ahk-l-com-tutorial-for-webpages/

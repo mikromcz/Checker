@@ -1,11 +1,11 @@
-** 0.2.2.1 (2015/09/??) **
+** 0.2.3.0 (2016/02/23) **
   * ošetøena chyba na geocheck.org
-  * po pøekroèení 10 pokusù bìhem 10 minut, se použije proxyserver a ovìøování funguje dál!
   * aktualizace AutoHotkey na nejnovìjší verzi
   * použití knihovny InstallTool
   * úprava parsování odkazù na ovìøovací služby
   * pøidána podpora geochecker.gps-cache.de
-  * pøi parsování odkazù z listingu se nebere ohled na velikost písmen
+  * pøi parsování odkazù z listingu se nebere ohled na velikost písmen (u keše GC6BEEF je url velkými písmeny)
+  * odkaz na ovìøení se hledá v celém listingu (u keše GC3PVWQ je odkaz v ShortDescription)
 
 ** 0.2.1.0 (2015/07/14) **
   * znatelné zrychlení (vyøešeno èekání na naèítající stránku)
