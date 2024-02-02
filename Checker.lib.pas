@@ -4,7 +4,7 @@
   Www: http://geoget.ararat.cz/doku.php/user:skript:checker
   Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
   Author: mikrom, http://mikrom.cz
-  Version: 0.2.3.0
+  Version: 0.2.4.0
 
   tohle by mohlo bejt zajimavy: http://www.regular-expressions.info/duplicatelines.html
 }
@@ -19,6 +19,7 @@ const
   gccounterRegex  = '(?i)https?:\/\/(www\.)?gccounter\.(de|com)\/gcchecker\.php([^"''<\s]+)';
   certitudesRegex = '(?i)https?:\/\/(www\.)?certitudes\.org\/certitude\?wp\=([^"''<\s]+)';
   gpscacheRegex   = '(?i)https?:\/\/geochecker\.gps-cache\.de\/check\.aspx\?id\=([^"''<\s]+)';
+  gccheckRegex    = '(?i)https?:\/\/gccheck\.com\/(GC[^"''<\s]+)';
 
 var
   debug, finar:Boolean;
@@ -146,6 +147,15 @@ begin
     else if RegexFind(gpscacheRegex, description) then begin
       url := RegExSubstitute(gpscacheRegex, description, '$0#'); // parsnout url z listingu, description (konci '#')
       service := 'gpscache';
+    end
+    {
+    GCCHECK
+    url: http://gccheck.com/GC5EJH7
+    captcha: yes
+    }
+    else if RegexFind(gccheckRegex, description) then begin
+      url := RegExSubstitute(gccheckRegex, description, '$0#'); // parsnout url z listingu, description (konci '#')
+      service := 'gccheck';
     end
     {
     FINAR - secret behavior

@@ -2,7 +2,7 @@
 ; Www: http://geoget.ararat.cz/doku.php/user:skript:checker
 ; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ; Author: mikrom, http://mikrom.cz
-; Version: 0.2.2.1
+; Version: 0.2.4.0
 ;
 ; Documentation: http://ahkscript.org/docs/AutoHotkey.htm
 ; FAQ: http://www.autohotkey.com/docs/FAQ.htm
@@ -206,7 +206,6 @@ Browser(ByRef wb) {
     ; NO:  <td colspan="2" class="alert">Bohužel, zadaná odpov&#283;&#271; není správná. Zkuste to prosím znovu:</td>
     If (returnResult = 1) {
       LoadWait(wb) ; Wait for page load
-      MsgBox, % "jedem - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
       If RegExMatch(wb.Document.body.innerHTML, "m)Výborn&#283; - Tvé &#345;ešení je správné!!!") {
         If (debug = 1)
           MsgBox, % "correct :)"
@@ -268,7 +267,6 @@ Browser(ByRef wb) {
     ; NO:  <span style="font-size: large; font-weight: bold; color: rgb(206, 0, 0);">Sorry!</span>
     If (returnResult = 1) {
       LoadWait(wb) ; Wait for page load
-      MsgBox, % "jedem - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
       If RegExMatch(wb.Document.body.innerHTML, "m)Congratulations!") {
         If (debug = 1)
           MsgBox, % "correct :)"
@@ -344,7 +342,6 @@ Browser(ByRef wb) {
     ; NO:  <img src="images/smile_red.jpg">
     If (returnResult = 1) {
       LoadWait(wb) ; Wait for page load
-      msgbox, % "jedem - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
       If RegExMatch(wb.Document.body.innerHTML, "m)images/smile_green\.jpg") {
         If (debug = 1)
           MsgBox, % "correct :)"
@@ -408,7 +405,7 @@ Browser(ByRef wb) {
     wb.Document.All.coordinates.Value := args[2] . " " . args[3] . " " . args[4] . "." . args[5] . " " . args[6] . " " . args[7] . " " . args[8] . "." . args[9]
     Sleep, 500
 
-    ; This form is difficult submit, so we must do it by this unclean way
+    ; This form is difficult to submit, so we must do it by this unclean way
     Loop, % (inputs := wb.Document.getElementsByTagName("input")).Length ; For all tags <input>
       if (inputs[A_index-1].Type = "submit") ; If some of them is type="submit"
         inputs[A_index-1].Click() ; Click on it
@@ -447,22 +444,55 @@ Browser(ByRef wb) {
     ; Check result after page reload
     ; YES: <img src="/images/woohoo.jpg">
     ; NO:  <table><td><img alt=":)" src="http://cool-web.de/images/smiley-weird-80.png"></td><td style="font-weight:bold;color:grey;font-size:17pt;padding-left:20px;width:500px;">Sie haben eine besondere Koordinate eingegeben, zu der der Owner eine Nachricht hinterlegt hat!<br><br></td></tr></table><b>Die Mitteilung des Owners lautet:</b><br><br>Gratuliere,  du hast die Header Koordinaten richtig eingegeben! Hier findest du jedoch leider nichts!<br><br><br /><br /></td></tr>
-    ;If (returnResult = 1) {
-    ;  LoadWait(wb) ; Wait for page load
-    ;  If (debug = 2)
-    ;    MsgBox, % wb.Document.body.innerHTML
-    ;  If RegExMatch(wb.Document.body.innerHTML, "m)/images/woohoo\.jpg") {
-    ;    If (debug = 1)
-    ;      MsgBox, % "correct :)"
-    ;    errorLvl := 1
-    ;  }
-    ;  If RegExMatch(wb.Document.body.innerHTML, "m)/images/doh\.jpg") {
-    ;    If (debug = 1)
-    ;      MsgBox, % "incorrect :("
-    ;    errorLvl := 2
-    ;  }
-    ;}
-  } Else If (args[1] = "finar") { ; ===============================================> FINAR (7)
+    If (returnResult = 1) {
+      LoadWait(wb) ; Wait for page load
+      If (debug = 2)
+        MsgBox, % wb.Document.body.innerHTML
+      If RegExMatch(wb.Document.body.innerHTML, "m)/images/woohoo\.jpg") {
+        If (debug = 1)
+          MsgBox, % "correct :)"
+        errorLvl := 1
+      }
+      If RegExMatch(wb.Document.body.innerHTML, "m)/images/doh\.jpg") {
+        If (debug = 1)
+          MsgBox, % "incorrect :("
+        errorLvl := 2
+      }
+    }
+  } Else If (args[1] = "gccheck") { ; ==========================================> GCCHECK (8)
+    ; URL: http://gccheck.com/GC5EJH7
+    ; Captcha: YES
+    Gui, Show,, % "Checker - " . args[1] ; Change title
+
+    wb.Navigate(args[10]) ; Navigate to webpage
+    LoadWait(wb) ; Wait for page load
+
+    ; This form is strange, nice way below not working, so we must do it by this unclean way
+    ;wb.Document.All.realcoords.Value := args[2] . args[3] . "° " . args[4] . "." . args[5] . " " . args[6] . args[7] . "° " . args[8] . "." . args[9]
+    Loop, % (inputs := wb.Document.getElementsByTagName("input")).Length ; For all tags <input>
+      if (inputs[A_index-1].Name = "realcoords") ; If some of them is type="submit"
+        inputs[A_index-1].Value := args[2] . args[3] . "° " . args[4] . "." . args[5] . " " . args[6] . args[7] . "° " . args[8] . "." . args[9]
+
+    wb.Document.All.captcha.Focus()
+    Sleep, 500
+
+    ; Check result after page reload
+    ; YES:
+    ; NO: <span id="nope">Nee, das war nix! Nochmal probieren!</span>
+    If (returnResult = 1) {
+      LoadWait(wb) ; Wait for page load
+      If RegExMatch(wb.Document.body.innerHTML, "xxx") {
+        If (debug = 1)
+          MsgBox, % "correct :)"
+        errorLvl := 1
+      }
+      If RegExMatch(wb.Document.body.innerHTML, "Nee, das war nix! Nochmal probieren!") {
+        If (debug = 1)
+          MsgBox, % "incorrect :("
+        errorLvl := 2
+      }
+    }
+  } Else If (args[1] = "finar") { ; ===============================================> FINAR (9)
     ; URL: http://gc.elanot.cz/index.php/data-final.html
     ; Captcha: NO
     Gui, Show,, % "Checker - " . args[1] ; Change title

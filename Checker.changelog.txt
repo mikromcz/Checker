@@ -1,3 +1,6 @@
+** 0.2.4.0 (2016/04/12) **
+  * pøidáno ovìøení na gccheck.com
+
 ** 0.2.3.0 (2016/02/23) **
   * ošetøena chyba na geocheck.org
   * aktualizace AutoHotkey na nejnovìjší verzi
