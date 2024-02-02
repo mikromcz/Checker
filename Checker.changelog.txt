@@ -1,5 +1,4 @@
-** 0.1.1.1 (2014/10/07) **
-  * Pøidána podpora webu finar.cz (je to sice databáze finálek, ale umí fungovat i jako ovìøení - zkontroluje Vaše finální souøadnice proti databázi, a pokud odpovídají nìjaké keši, ukáže se název té keše)
+** 0.1.1.2 (2014/10/07) **
   * Oprava chyby s doplòováním nuly k souøadnicím u jednoho webu
   * Pøidána lokalizace do èeštiny
 

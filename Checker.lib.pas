@@ -4,7 +4,7 @@
   Www: http://geoget.ararat.cz/doku.php/user:skript:checker
   Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
   Author: mikrom, http://mikrom.cz
-  Version: 0.1.0.3
+  Version: 0.1.1.2
 
   tohle by mohlo bejt zajimavy: http://www.regular-expressions.info/duplicatelines.html
 }
@@ -107,7 +107,8 @@ begin
       captcha: ne
       }
     end
-    else begin
+    else if FileExists(GEOGET_SCRIPTDIR+'\Checker\finar.txt') then begin
+      {secret behavior}
       if MessBox(_('No coordinate checker site found, try look at finar.cz?' + CRLF + 'If this final location is in their database, it will show cache name.'), _('Nothing found'), 1) = 1 then begin
         url := 'http://gc.elanot.cz/index.php/data-final.html';
         service := 'finar';
@@ -118,10 +119,11 @@ begin
       end
       else
         GeoAbort;
-    //end
-    //else begin
-      //ShowMessage('error: ani geocheck.org, ani geochecker.com, ani evince, ani hermansky!');
-      //GeoAbort;
+    end
+    else begin
+      {standard behavior}
+      ShowMessage('error: ani geocheck.org, ani geochecker.com, ani evince, ani hermansky!');
+      GeoAbort;
     end;
 
     //ShowMessage(GEOGET_SCRIPTDIR + '\checker\checker.exe ' + service + ' ' + ns + ' ' + dx + ' ' + mx + ' ' + sx + ' ' + ew + ' ' + dy + ' ' + my + ' ' + sy + ' ' + url);
