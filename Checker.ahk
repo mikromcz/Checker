@@ -2,7 +2,7 @@
 ; Www: http://geoget.ararat.cz/doku.php/user:skript:checker
 ; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ; Author: mikrom, http://mikrom.cz
-; Version: 0.2.5.3
+; Version: 0.2.6.1
 ;
 ; Documentation: http://ahkscript.org/docs/AutoHotkey.htm
 ; FAQ: http://www.autohotkey.com/docs/FAQ.htm
@@ -14,6 +14,7 @@
 ; @phaleth, èech, https://kiwiirc.com/client/irc.freenode.net/#ahk
 ; https://autohotkey.com/board/topic/64563-basic-ahk-v11-com-tutorial-for-webpages/
 ; https://msdn.microsoft.com/en-us/library/aa752084%28v=vs.85%29.aspx
+; wb.Navigate("http://detectmybrowser.com/")
 
 ; Special commands
 #Warn                        ; Enable warnings to assist with detecting common errors.
@@ -26,14 +27,16 @@ SetWorkingDir, %A_ScriptDir% ; Ensures a consistent starting directory.
 ; Global variables
 global args := []    ; Commandline parameters array
 global errorLvl := 0 ; For sure set default error level, (0 - without error (default), 1 - success, 2 - wrong)
-global debug := 0    ; Debugging mode, change it in the INI!
-global proxy := 1    ; Use proxy if you are banned for many tries, change in the INI!
-global answer := 0   ; Check if verification was successful or not, change in the INI!
+global debug := 0    ; INI: Debugging mode, change it in the INI!
+global proxy := 0    ; INI: Use proxy if you are banned for many tries, change in the INI!
+global answer := 0   ; INI: Check if verification was successful or not, change in the INI!
+global iefix :=0     ; INI: Try to fix IE render engine to latest by changing registry, change in the INI!
 global cnt := 0      ; Only counter that we increment while we are waiting for verification page
 
 ; Read setting from INI ^
 IniRead, debug, %A_ScriptDir%\Checker.ini, % "Checker", % "debug"   ; For enabling debug mode, show some infos, ListVars, ..
 IniRead, proxy, %A_ScriptDir%\Checker.ini, % "Checker", % "proxy"   ; If user is banned for many tries in short time, we try load page with proxyserver
+IniRead, iefix, %A_ScriptDir%\Checker.ini, % "Checker", % "iefix"   ; Try to fix IE render engine to latest by changing registry
 IniRead, answer, %A_ScriptDir%\Checker.ini, % "Checker", % "answer" ; Define return check result
 
 ; Change icon of GUI title, tray, ...
@@ -43,9 +46,9 @@ Menu, Tray, Icon, %A_ScriptDir%\Checker.ico,,1
 ; Language switch
 If (A_Language = "0405") { ; Czech
   global textError           := "Chyba"
-  global textErrorException  := "Ajaj, tohle se nemìlo stát.`n`nVýjimka:`n"
+  global textErrorException  := "Ajaj, tohle se nemìlo stát.`n`nVýjimka: "
   global textErrorParam      := "Chyba: Neplatný poèet parametrù!`n`nPovolené parametry jsou:`n[service] [N|S] [Dx] [Mx] [Sx] [E|W] [Dy] [My] [Sy] [URL]`n`nPoužity byly tyto:`n"
-  global textErrorService    := "Chyba: Použita nepodporovaná služba!`nPodporovány jsou: geocheck, geochecker, evince, hermansky, komurka, gccounter, certitudes! (možná i finar)."
+  global textErrorService    := "Chyba: Použita nepodporovaná služba!`nPodporovány jsou: geocheck, geochecker, evince, hermansky, komurka, gccounter, gccounter2, certitudes, gpscache, gccheck, challenge!."
   global textErrorTimeout    := "Chyba: Vypršel èasový limit naèítání stránky.`nZkuste F5 pro obnovení."
   global textDonate          := "Zvažte podporu pluginu pøes <a href=""http://goo.gl/dCKefD"">PayPal</a>, nebo mi napište <a href=""mailto:mikrom@mikrom.cz"">email</a>"
   global textHint            := "Pro ukonèení mùžete použít ESC a pro obnovení stránky F5"
@@ -54,9 +57,9 @@ If (A_Language = "0405") { ; Czech
   global textAnswerIncorrect := "Špatnì!"
 } Else { ; Other = English
   global textError           := "Error"
-  global textErrorException  := "Oops, this should not happen.`n`nException:`n"
+  global textErrorException  := "Oops, this should not happen.`n`nException: "
   global textErrorParam      := "Error: Invalid number of parameters!`n`nAllowed parameters are:`n[service] [N|S] [Dx] [Mx] [Sx] [E|W] [Dy] [My] [Sy] [URL]`n`nReceived parameters are:`n"
-  global textErrorService    := "Error: Invalid service selected!`nUse only: geocheck, geochecker, evince, hermansky, komurka, gccounter, certitudes! (maybe finar)."
+  global textErrorService    := "Error: Invalid service selected!`nUse only: geocheck, geochecker, evince, hermansky, komurka, gccounter, gccounter2, certitudes, gpscache, gccheck, challenge!."
   global textErrorTimeout    := "Error: Timeout while page load.`nTry press F5 for reload."
   global textDonate          := "You can donate plugin by <a href=""http://goo.gl/dCKefD"">PayPal</a>, or send me an <a href=""mailto:mikrom@mikrom.cz"">email</a>"
   global textHint            := "You can use ESC for quit and F5 for page reload"
@@ -80,13 +83,55 @@ If (args.MaxIndex() != 10) {
   ExitApp, errorLvl
 }
 
+; Apply registry hack for latest rendering engine
+If iefix
+  Prev := FixIE()
+
 ; Create GUI
 ; http://www.autohotkey.com/docs/commands/Gui.htm
 Gui, +Resize +OwnDialogs +MinSize640x480                           ; Allow change GUI size, MsgBoxes is owned by main window, Set minimal window size
 Gui, Add, ActiveX, x0 y0 w1000 h580 vWB, Shell.Explorer            ; The final parameter is the name of the ActiveX component.
 Gui, Add, Link, x5 y+0 vHint, % textHint . ". " . textDonate . "." ; Hint and donate text at the bottom
 Gui, Add, Text, x940 w60 vLabelAnswer, % " "                       ; Label for showing verification status Success|Error
+;ComObjConnect(WB, WB_events)
 Gui, Show, Center w1000 h600, % "Checker"                          ; Show the main window (with title Checker)
+
+; Force embedded IE (shell.explorer) to use the latest installed render engine (and not default IE7)
+; https://autohotkey.com/board/topic/93660-embedded-ie-shellexplorer-render-issues-fix-force-it-to-use-a-newer-render-engine/
+; based on: https://weblog.west-wind.com/posts/2011/May/21/Web-Browser-Control-Specifying-the-IE-Version
+; Or maybe somehow add this tag in HTML: <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+FixIE(Version=0, ExeName="") {
+	static Key := "Software\Microsoft\Internet Explorer\MAIN\FeatureControl\FEATURE_BROWSER_EMULATION"
+	, Versions := {7:7000, 8:8888, 9:9999, 10:10001, 11:11001}
+
+	if Versions.HasKey(Version)
+		Version := Versions[Version]
+
+	if !ExeName
+	{
+		if A_IsCompiled
+			ExeName := A_ScriptName
+		else
+			SplitPath, A_AhkPath, ExeName
+	}
+
+	RegRead, PreviousValue, HKCU, %Key%, %ExeName%
+	if (Version = "")
+		RegDelete, HKCU, %Key%, %ExeName%
+	else
+		RegWrite, REG_DWORD, HKCU, %Key%, %ExeName%, %Version%
+	return PreviousValue
+}
+
+; Encode special characters to URI (for ex. "space" is %20)
+; https://autohotkey.com/board/topic/75390-ahk-l-unicode-uri-encode-url-encode-function/
+UriEncode(Uri) {
+    oSC := ComObjCreate("ScriptControl")
+    oSC.Language := "JScript"
+    Script := "var Encoded = encodeURIComponent(""" . Uri . """)"
+    oSC.ExecuteStatement(Script)
+    Return, oSC.Eval("Encoded")
+}
 
 ; Implement Tabstop for ActiveX > Shell.Explorer
 ; Because without this TAB, ESC, maybe Ctrl+C, Ctrl+V not work in Shell.Explorer
@@ -146,49 +191,49 @@ LoadWait(ByRef wb) {
 CheckAnwser(ByRef wb, correct, incorrect) {
   If (debug = 1)
     MsgBox, % "Correct: " . correct . "`nIncorrect: " . incorrect . "`n`n" . wb.Document.body.innerHTML
-  
+
   Try {
     Loop {
       Sleep, 200
 
-      cnt++                                               ; Incremet counter in statusbar
-      If (mod(cnt, 2) = 0)                                ; Modulo divide to determine if cnt is Even or Odd
+      cnt++                                               ; Incremet counter
+      If (mod(cnt, 2) = 0)                                ; Modulo divide to determine if counter is Even or Odd
         GuiControl,, labelanswer, % textAnswerChecking    ; Flashing sign "Checking..."
       Else
         GuiControl,, labelanswer, % " "
 
-        ; https://autohotkey.com/docs/commands/RegExMatch.htm
-        If RegExMatch(wb.Document.body.innerHTML, correct) {
-          If (debug = 1)
-            MsgBox, % "Correct :)"
+      ; https://autohotkey.com/docs/commands/RegExMatch.htm
+      If RegExMatch(wb.Document.body.innerHTML, correct) {
+        If (debug = 1)
+          MsgBox, % "Correct :)"
 
-          Gui, Font, cGreen Bold                          ; Set color to GREEN
-          GuiControl, Font, labelanswer                   ; Apply color to labelanswer
-          GuiControl,, labelanswer, % textAnswerCorrect   ; Show the TEXT
+        Gui, Font, cGreen Bold                          ; Set color to GREEN
+        GuiControl, Font, labelanswer                   ; Apply color to labelanswer
+        GuiControl,, labelanswer, % textAnswerCorrect   ; Show the TEXT
 
-          errorLvl := 1                                   ; Change errorlevel for geoget script
-        } Else If RegExMatch(wb.Document.body.innerHTML, incorrect) {
-          If (debug = 1)
-            MsgBox, % "Incorrect :("
+        errorLvl := 1                                   ; Change errorlevel for geoget script
+      } Else If RegExMatch(wb.Document.body.innerHTML, incorrect) {
+        If (debug = 1)
+          MsgBox, % "Incorrect :("
 
-          Gui, Font, cRed Bold                            ; Set color to RED
-          GuiControl, Font, labelanswer                   ; Apply color to labelanswer
-          GuiControl,, labelanswer, % textAnswerIncorrect ; Show the TEXT
+        Gui, Font, cRed Bold                            ; Set color to RED
+        GuiControl, Font, labelanswer                   ; Apply color to labelanswer
+        GuiControl,, labelanswer, % textAnswerIncorrect ; Show the TEXT
 
-          errorLvl := 2                                   ; Change errorlevel for geoget script
-        } ;Else {                                         ; I think we don't even need it
-          ;If (debug = 1)
-          ;  MsgBox, % "error"
+        errorLvl := 2                                   ; Change errorlevel for geoget script
+      } ;Else {                                         ; I think we don't even need it
+        ;If (debug = 1)
+        ;  MsgBox, % "error"
 
-          ;Gui, Font, cBlue Bold                          ; Set color to RED
-          ;GuiControl, Font, labelanswer                  ; Apply color to labelanswer
-          ;GuiControl,, labelanswer, % textError          ; Show the TEXT
+        ;Gui, Font, cBlue Bold                          ; Set color to RED
+        ;GuiControl, Font, labelanswer                  ; Apply color to labelanswer
+        ;GuiControl,, labelanswer, % textError          ; Show the TEXT
 
-          ;errorLvl := 3
-        ;}
+        ;errorLvl := 3
+      ;}
     } Until (errorLvl != 0)                               ; Loop again and again until errorlevel is changed
   } Catch e {
-      MsgBox 16, % textError, % textErrorException . e.message . "`n" . e.extra
+      MsgBox 16, % textError, % textErrorException . e.extra
   }
 } ;=> CheckAnwser()
 
@@ -196,7 +241,8 @@ CheckAnwser(ByRef wb, correct, incorrect) {
 ; http://www.autohotkey.com/board/topic/47052-basic-webpage-controls-with-javascript-com-tutorial/
 ; http://www.autohotkey.com/board/topic/64563-basic-ahk-l-com-tutorial-for-webpages/
 Browser(ByRef wb) {
-  wb.Silent := True ; Turn Off all IE warnings, such as "if JS can run on page etc."
+  If (debug = 0)
+    wb.Silent := True ; Turn Off all IE warnings, such as "if JS can run on page etc."
 
   If (args[1] = "geocheck") { ; ==================================================> GEOCHECK (1)
     ; URL: http://geocheck.org/geo_inputchkcoord.php?gid=61241961c72ab1d-b813-47da-bf03-07c67bb81ac9
@@ -244,7 +290,7 @@ Browser(ByRef wb) {
         ; <tr><th colspan="2">P&#345;íli? mnoho pokus&#367;</th></tr>
         If (debug = 1)
           MsgBox, % "Proxy"
-            
+
         Sleep, 1000
         If (debug = 1)
           wb.Navigate("http://datp.de/proxy2/index.php?q=" . args[10] . "")        ; Navigate to webpage
@@ -272,7 +318,7 @@ Browser(ByRef wb) {
       } ; <= Proxy
       wb.Document.All.usercaptcha.Focus() ; Focus on captcha field
     } Catch e {
-      MsgBox 16, % textError, % textErrorException . e.message . "`n" . e.extra
+      MsgBox 16, % textError, % textErrorException . e.extra
       ExitApp, errorLvl
     }
 
@@ -359,7 +405,7 @@ Browser(ByRef wb) {
       Sleep, 500
       wb.Document.All.button.Click()
     } Catch e {
-      MsgBox 16, % textError, % textErrorException . e.message . "`n" . e.extra
+      MsgBox 16, % textError, % textErrorException . e.extra
       ExitApp, errorLvl
     }
 
@@ -387,7 +433,7 @@ Browser(ByRef wb) {
       wb.Document.All.LonMin.Value := args[8] . "." . args[9]
       wb.Document.All.recaptcha_response_field.Focus()
     } Catch e {
-      MsgBox 16, % textError, % textErrorException . e.message . "`n" . e.extra
+      MsgBox 16, % textError, % textErrorException . e.extra
       ExitApp, errorLvl
     }
 
@@ -417,7 +463,7 @@ Browser(ByRef wb) {
       Sleep, 500
       wb.Document.Forms[0].Submit()
     } Catch e {
-      MsgBox 16, % textError, % textErrorException . e.message . "`n" . e.extra
+      MsgBox 16, % textError, % textErrorException . e.extra
       ExitApp, errorLvl
     }
 
@@ -456,7 +502,7 @@ Browser(ByRef wb) {
       wb.Document.All.delka3.Value := args[9]
       wb.Document.All.code.Focus()
     } Catch e {
-      MsgBox 16, % textError, % textErrorException . e.message . "`n" . e.extra
+      MsgBox 16, % textError, % textErrorException . e.extra
       ExitApp, errorLvl
     }
 
@@ -493,7 +539,7 @@ Browser(ByRef wb) {
       Sleep, 500
       wb.Document.Forms[0].Submit()
     } Catch e {
-      MsgBox 16, % textError, % textErrorException . e.message . "`n" . e.extra
+      MsgBox 16, % textError, % textErrorException . e.extra
       ExitApp, errorLvl
     }
 
@@ -532,7 +578,7 @@ Browser(ByRef wb) {
         If (inputs[A_index-1].Type = "submit")                             ; If some of them is type="submit"
           inputs[A_index-1].Click()                                        ; Click on it
     } Catch e {
-      MsgBox 16, % textError, % textErrorException . e.message . "`n" . e.extra
+      MsgBox 16, % textError, % textErrorException . e.extra
       ExitApp, errorLvl
     }
 
@@ -560,7 +606,7 @@ Browser(ByRef wb) {
         If (inputs[A_index-1].Type = "submit")                             ; If some of them is type="submit"
           inputs[A_index-1].Click()                                        ; Click on it
     } Catch e {
-      MsgBox 16, % textError, % textErrorException . e.message . "`n" . e.extra
+      MsgBox 16, % textError, % textErrorException . e.extra
       ExitApp, errorLvl
     }
 
@@ -584,7 +630,7 @@ Browser(ByRef wb) {
       wb.Document.All.ListView1_txtKoords_0.Value := args[2] . args[3] . " " . args[4] . "." . args[5] . " " . args[6] . args[7] . " " . args[8] . "." . args[9]
       wb.Document.All.ListView1_txtCaptchaCode_0.Focus()
     } Catch e {
-      MsgBox 16, % textError, % textErrorException . e.message . "`n" . e.extra
+      MsgBox 16, % textError, % textErrorException . e.extra
       ExitApp, errorLvl
     }
 
@@ -611,7 +657,7 @@ Browser(ByRef wb) {
           inputs[A_index-1].Value := args[2] . args[3] . "° " . args[4] . "." . args[5] . " " . args[6] . args[7] . "° " . args[8] . "." . args[9]
       wb.Document.All.captcha.Focus()
     } Catch e {
-      MsgBox 16, % textError, % textErrorException . e.message . "`n" . e.extra
+      MsgBox 16, % textError, % textErrorException . e.extra
       ExitApp, errorLvl
     }
 
@@ -621,11 +667,46 @@ Browser(ByRef wb) {
     If (answer = 1)
       CheckAnwser(wb, "Smi)<span id=.?congrats.?>", "Smi)<span id=.?nope.?>")
 
+} Else If (SubStr(args[1], 1, 9) = "challenge") { ; ===============================> CHALLENGE (10)
+    ; URL: http://project-gc.com/Challenges/GC27Z84
+    ; Captcha: NO
+    Gui, Show,, % "Checker - " . args[1] ; Change title
+
+    ;If (debug = 1)
+    ;  MsgBox 16, % "", % args[10] . "?profile_name=" . UriEncode(SubStr(args[1], 11)) . "&submit=Filter"
+
+    wb.Navigate(args[10]) ; . "?profile_name=" . UriEncode(SubStr(args[1], 11)) . "&submit=Filter") ; Navigate to webpage
+    LoadWait(wb)          ; Wait for page load
+
+    ; Try to fill the webpage form
+    Try {
+      wb.Document.ParentWindow.ScrollTo(0,450) ; Scroll down because page has a huge picture in header
+
+      Loop, % (inputs := wb.Document.getElementsByTagName("input")).Length ; For all tags <input>
+        If (inputs[A_index-1].ID = "profile_name")                         ; If some of them is name="realcoords"
+          inputs[A_index-1].Value := SubStr(args[1], 11)                   ;UriEncode(SubStr(args[1], 11))
+
+      Sleep, 500
+
+      ; This form is difficult to submit, so we must do it by this unclean way
+      Loop, % (inputs := wb.Document.getElementsByTagName("button")).Length ; For all tags <input>
+        If (inputs[A_index-1].ID = "runChecker")                            ; If some of them is type="submit"
+          inputs[A_index-1].Click()                                         ; Click on it
+    } Catch e {
+      MsgBox 16, % textError, % textErrorException . e.extra
+      ExitApp, errorLvl
+    }
+
+    ; Check result after page reload
+    ; YES: <img src="http://maxcdn.project-gc.com/images/check48.png" alt="Check" title="Úspìch">
+    ; NO:  <img src="http://maxcdn.project-gc.com/images/check48.png" alt="Check" title="Úspìch">
+    ;If (answer = 1)
+    ;  CheckAnwser(wb, "Smi)<img src=.?congrats.?>", "Smi)<img src=.?nope.?>")
+
   } Else { ; ======================================================================> SERVICE ERROR
     MsgBox 16, % textError, % textErrorService
     ExitApp, errorLvl
   }
-
 } ; => Browser()
 
 ; Just for debugging
@@ -650,14 +731,18 @@ GuiSize: ; http://ahkscript.org/docs/commands/Gui.htm#GuiSize
 Return
 
 ; Run when GUI is closed
-GuiClose: ; http://ahkscript.org/docs/commands/Gui.htm#GuiClose
+GuiClose:          ; http://ahkscript.org/docs/commands/Gui.htm#GuiClose
   ObjRelease(pipa) ; Implement Tabstop for ActiveX > Shell.Explorer
   Gui Destroy
+  If iefix
+    FixIE(Prev)    ; Undo registry hack for latest rendering engine
   ExitApp, errorLvl
 Return
 
 ; Run when ESC is pressed with GUI active
-GuiEscape: ; http://ahkscript.org/docs/commands/Gui.htm#GuiEscape
+GuiEscape:         ; http://ahkscript.org/docs/commands/Gui.htm#GuiEscape
   ObjRelease(pipa) ; Implement Tabstop for ActiveX > Shell.Explorer
+  If iefix
+    FixIE(Prev)    ; Undo registry hack for latest rendering engine
   ExitApp, errorLvl
 Return

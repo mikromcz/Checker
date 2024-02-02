@@ -1,3 +1,8 @@
+** 0.2.6.1 (2016/07/01) **
+  * optimalizace kódu
+  * pøidána podpora ovìøení Challenge keší
+  * pøidáno nastavení iefix v INI, pro vynucení použití nejnovìjšího vykreslovacího jádra (místo výchozího IE7)
+  
 ** 0.2.5.3 (2016/06/12) **
   * pøidáno ovìøení na gccheck.com
   * pøidána nìjaká druhá verze gccounter.de
