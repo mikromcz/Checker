@@ -3,7 +3,7 @@
 ;; Www: http://geoget.ararat.cz/doku.php/user:skript:checker
 ;; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ;; Author: mikrom, http://mikrom.cz
-;; Version: 0.1.1.1
+;; Version: 0.1.2.0
 ;;
 ;; parameters  service     ns          dx          mx          sx          ew          dy          my          sy          url
 ;; eg.         checker     N           50          15          123         E           015         54          123         http://checker.org/check?=a56sjg4678gdg
@@ -35,15 +35,14 @@ Browser()
 Func Browser()
   $oIE = _IECreateEmbedded()
   GUICreate("Checker Browser", 1000, 600, (@DesktopWidth - 1000) / 2, (@DesktopHeight - 600) / 2, $WS_OVERLAPPEDWINDOW + $WS_CLIPSIBLINGS + $WS_CLIPCHILDREN)
-  ;GUICtrlCreateObj($oIE, 0, 0, 1000, 600)                                       ;; Creates an ActiveX control in the GUI.
+  ;GUICtrlCreateObj($oIE, 0, 0, 1000, 600)                               ;; Creates an ActiveX control in the GUI.
+  GUICtrlCreateObj($oIE, 0, 0, 1000, 580)                               ;; Creates an ActiveX control in the GUI.
 
-  GUICtrlCreateObj($oIE, 0, 0, 1000, 580)                                       ;; Creates an ActiveX control in the GUI.
+  $donate = GUICtrlCreateLabel("Pøispìjte na vývoj Checkeru", 860, 583) ;; Create label
+  GUICtrlSetCursor($donate, 0)                                          ;; Change mouse cursor to hand on hover
+  GUICtrlSetColor($donate, 0x0000FF)                                    ;; Draw tex with blue color
 
-  $donate = GUICtrlCreateLabel("Pøispìjte na vývoj Checkeru", 860, 583)         ;; Create label
-  GUICtrlSetCursor($donate, 0)                                                  ;; Change mouse cursor to hand on hover
-  GUICtrlSetColor($donate, 0x0000FF)                                            ;; Draw tex with blue color
-
-  GUISetState(@SW_SHOW)                                                         ;; Changes the state of a GUI window. Show GUI
+  GUISetState(@SW_SHOW)                                                 ;; Changes the state of a GUI window. Show GUI
 
   Switch $CmdLine[1]
     ;; ==========================================================================> GEOCHECK
@@ -68,105 +67,107 @@ Func Browser()
     ;; url: http://www.geochecker.com/index.php?code=e380cf72d82fa02a81bf71505e8c535c&action=check&wp=4743324457584d&name=536b6c656e696b202d20477265656e20486f757365
     ;; captcha: no
     Case "geochecker"
-      _IENavigate($oIE, $CmdLine[10])                                           ;; Open url
-      $oForm = _IEFormGetObjByName($oIE, "form")                                ;; Form name
-      _IEFormElementSetValue(_IEFormElementGetObjByName($oForm, "LatString"), $CmdLine[2] & " " & $CmdLine[3] & " " & $CmdLine[4] & "." & $CmdLine[5]) ;; LatString
-      _IEFormElementSetValue(_IEFormElementGetObjByName($oForm, "LonString"), $CmdLine[6] & " " & $CmdLine[7] & " " & $CmdLine[8] & "." & $CmdLine[9]) ;; LonString
-      _IEAction($oIE, "stop")                                                   ;; Cancels any pending navigation or download operation and stops any dynamic page elements, such as background sounds and animations.
-      Sleep(1000)                                                               ;; Wait a while
-      ;_IEAction(_IEFormElementGetObjByName($oForm, "button"), "click")          ;; Submit
-      _IEFormSubmit($oForm)                                                     ;; Submit 2nd version :)
-      _IELoadWait($oIE)                                                         ;; Wait for a browser page load to complete before returning
-      $oIE.document.parentwindow.scroll(0, 200)                                 ;; Scroll a little bit down :)
+      _IENavigate($oIE, $CmdLine[10])                                                                ;; Open url
+      $oForm = _IEFormGetObjByName($oIE, "form")                                                     ;; Form name
+      _IEFormElementSetValue(_IEFormElementGetObjByName($oForm, "LatString"), $CmdLine[2] & " " & _
+                                                                              $CmdLine[3] & " " & _
+                                                                              $CmdLine[4] & "." & _
+                                                                              $CmdLine[5])           ;; LatString
+      _IEFormElementSetValue(_IEFormElementGetObjByName($oForm, "LonString"), $CmdLine[6] & " " & _
+                                                                              $CmdLine[7] & " " & _
+                                                                              $CmdLine[8] & "." & _
+                                                                              $CmdLine[9])           ;; LonString
+      _IEAction($oIE, "stop")                                                                        ;; Cancels any pending navigation or download operation and stops any dynamic page elements, such as background sounds and animations.
+      Sleep(1000)                                                                                    ;; Wait a while
+      ;_IEAction(_IEFormElementGetObjByName($oForm, "button"), "click")                               ;; Submit
+      _IEFormSubmit($oForm)                                                                          ;; Submit 2nd version :)
+      _IELoadWait($oIE)                                                                              ;; Wait for a browser page load to complete before returning
+      $oIE.document.parentwindow.scroll(0, 200)                                                      ;; Scroll a little bit down :)
 
     ;; ==========================================================================> EVINCE
     ;; url: http://evince.locusprime.net/cgi-bin/index.cgi?q=d0ZNzQeHKReGKzr
     ;; captcha: yes
     Case "evince"
-      _IENavigate($oIE, $CmdLine[10])                                                                       ;; Open url
-      $oForm = _IEFormGetObjByName($oIE, "ev_form01")                                                       ;; Form name
-      _IEFormElementSetValue(_IEFormElementGetObjByName($oForm, "NorthSouth"), $CmdLine[2])                 ;; NorthSouth
-      _IEFormElementSetValue(_IEFormElementGetObjByName($oForm, "LatDeg"), $CmdLine[3])                     ;; LatDeg
-      _IEFormElementSetValue(_IEFormElementGetObjByName($oForm, "LatMin"), $CmdLine[4] & "." & $CmdLine[5]) ;; LatMin
-      _IEFormElementSetValue(_IEFormElementGetObjByName($oForm, "EastWest"), $CmdLine[6])                   ;; EastWest
-      _IEFormElementSetValue(_IEFormElementGetObjByName($oForm, "LonDeg"), $CmdLine[7])                     ;; LonDeg
-      _IEFormElementSetValue(_IEFormElementGetObjByName($oForm, "LonMin"), $CmdLine[8] & "." & $CmdLine[9]) ;; LonMin
-      _IEAction(_IEFormElementGetObjByName($oForm, "recaptcha_response_field"), "focus")                    ;; Captcha field - set focus
-      _IEAction($oIE, "stop")                                                                               ;; Cancels any pending navigation or download operation and stops any dynamic page elements, such as background sounds and animations.
-      _IELoadWait($oIE)                                                                                     ;; Wait for a browser page load to complete before returning
+      _IENavigate($oIE, $CmdLine[10])                                                             ;; Open url
+      $oForm = _IEFormGetObjByName($oIE, "ev_form01")                                             ;; Form name
+      _IEFormElementSetValue(_IEFormElementGetObjByName($oForm, "NorthSouth"), $CmdLine[2])       ;; NorthSouth
+      _IEFormElementSetValue(_IEFormElementGetObjByName($oForm, "LatDeg"), $CmdLine[3])           ;; LatDeg
+      _IEFormElementSetValue(_IEFormElementGetObjByName($oForm, "LatMin"), $CmdLine[4] & "." & _
+                                                                           $CmdLine[5])           ;; LatMin
+      _IEFormElementSetValue(_IEFormElementGetObjByName($oForm, "EastWest"), $CmdLine[6])         ;; EastWest
+      _IEFormElementSetValue(_IEFormElementGetObjByName($oForm, "LonDeg"), $CmdLine[7])           ;; LonDeg
+      _IEFormElementSetValue(_IEFormElementGetObjByName($oForm, "LonMin"), $CmdLine[8] & "." & _
+                                                                           $CmdLine[9])           ;; LonMin
+      _IEAction(_IEFormElementGetObjByName($oForm, "recaptcha_response_field"), "focus")          ;; Captcha field - set focus
+      _IEAction($oIE, "stop")                                                                     ;; Cancels any pending navigation or download operation and stops any dynamic page elements, such as background sounds and animations.
+      _IELoadWait($oIE)                                                                           ;; Wait for a browser page load to complete before returning
 
     ;; ==========================================================================> HERMANSKY
     ;; url: http://geo.hermansky.net/index.php?co=checker&code=2542e4245f80d4f7783e41ed7503fba6b3c8cc3188ff05
     ;; captcha: no
     Case "hermansky"
-      _IENavigate($oIE, $CmdLine[10])                                                            ;; Open url
-      ;$oForm = _IEFormGetObjByName($oIE, "form1")                                               ;; Form name - non exist!
-      _IEFormElementSetValue(_IEGetObjByName($oIE, "vyska"), $CmdLine[2])                        ;; vyska
-      _IEFormElementSetValue(_IEGetObjByName($oIE, "stupne21"), $CmdLine[3])                     ;; stupne21
-      _IEFormElementSetValue(_IEGetObjByName($oIE, "minuty21"), $CmdLine[4] & "." & $CmdLine[5]) ;; minuty21
-      _IEFormElementSetValue(_IEGetObjByName($oIE, "sirka"), $CmdLine[6])                        ;; sirka
-      _IEFormElementSetValue(_IEGetObjByName($oIE, "stupne22"), $CmdLine[7])                     ;; stupne22
-      _IEFormElementSetValue(_IEGetObjByName($oIE, "minuty22"), $CmdLine[8] & "." & $CmdLine[9]) ;; minuty22
-      _IEAction($oIE, "stop")                                                                    ;; Cancels any pending navigation or download operation and stops any dynamic page elements, such as background sounds and animations.
-      Sleep(1000)                                                                                ;; Wait a while
+      _IENavigate($oIE, $CmdLine[10])                                                  ;; Open url
+      ;$oForm = _IEFormGetObjByName($oIE, "form1")                                     ;; Form name - non exist!
+      _IEFormElementSetValue(_IEGetObjByName($oIE, "vyska"), $CmdLine[2])              ;; vyska
+      _IEFormElementSetValue(_IEGetObjByName($oIE, "stupne21"), $CmdLine[3])           ;; stupne21
+      _IEFormElementSetValue(_IEGetObjByName($oIE, "minuty21"), $CmdLine[4] & "." & _
+                                                                $CmdLine[5])           ;; minuty21
+      _IEFormElementSetValue(_IEGetObjByName($oIE, "sirka"), $CmdLine[6])              ;; sirka
+      _IEFormElementSetValue(_IEGetObjByName($oIE, "stupne22"), $CmdLine[7])           ;; stupne22
+      _IEFormElementSetValue(_IEGetObjByName($oIE, "minuty22"), $CmdLine[8] & "." & _
+                                                                $CmdLine[9])           ;; minuty22
+      _IEAction($oIE, "stop")                                                          ;; Cancels any pending navigation or download operation and stops any dynamic page elements, such as background sounds and animations.
+      Sleep(1000)                                                                      ;; Wait a while
       ;; Because submit button has no NAME we must do it this stupid way
-      $oButtons = _IETagNameGetCollection($oIE, "input")                                         ;; Search all inputs
+      $oButtons = _IETagNameGetCollection($oIE, "input")                               ;; Search all inputs
       For $oButton In $oButtons
-        If String($oButton.type) = "submit" Then                                                 ;; if input has type=submit
-         _IEAction($oButton, "click")                                                            ;; click on it
-         _IELoadWait($oIE)                                                                       ;; Wait for a browser page load to complete before returning
+        If String($oButton.type) = "submit" Then                                       ;; if input has type=submit
+         _IEAction($oButton, "click")                                                  ;; click on it
+         _IELoadWait($oIE)                                                             ;; Wait for a browser page load to complete before returning
         EndIf
       Next
-      $oIE.document.parentwindow.scroll(0, 600)                                                  ;; Scroll a little bit down :)
+      $oIE.document.parentwindow.scroll(0, 600)                                        ;; Scroll a little bit down :)
 
     ;; ==========================================================================> KOMURKA
     ;; url: http://geo.komurka.cz/check.php?cache=GC2JCEQ
     ;; captcha: yes
     Case "komurka"
-      _IENavigate($oIE, $CmdLine[10])                                                ;; Open url
-      $oForm = _IEFormGetObjByName($oIE, "form1")                                    ;; Form name
-      _IEFormElementOptionSelect(_IEGetObjByName($oForm, "select1"), $CmdLine[2])    ;; select1
-      _IEFormElementSetValue(_IEGetObjByName($oForm, "sirka1"), $CmdLine[3])         ;; sirka1
-      If StringLen($CmdLine[4]) <> 2 Then                                            ;; must be two digit
-        _IEFormElementSetValue(_IEGetObjByName($oForm, "sirka2"), "0" & $CmdLine[4]) ;; sirka2 (if one digit add leading zero)
-      Else
-        _IEFormElementSetValue(_IEGetObjByName($oForm, "sirka2"), $CmdLine[4])       ;; sirka2 (if two digit let it be)
-      EndIf
-      _IEFormElementSetValue(_IEGetObjByName($oForm, "sirka3"), $CmdLine[5])         ;; sirka3
-      _IEFormElementOptionSelect(_IEGetObjByName($oForm, "select2"), $CmdLine[6])    ;; select2
-      _IEFormElementSetValue(_IEGetObjByName($oForm, "delka1"), $CmdLine[7])         ;; delka1
-      If StringLen($CmdLine[8]) <> 2 Then                                            ;; must be two digit
-        _IEFormElementSetValue(_IEGetObjByName($oForm, "delka2"), "0" & $CmdLine[8]) ;; delka2 (if one digit add leading zero)
-      Else
-        _IEFormElementSetValue(_IEGetObjByName($oForm, "delka2"), $CmdLine[8])       ;; delka2 (if two digit let it be)
-      EndIf
-      _IEFormElementSetValue(_IEGetObjByName($oForm, "delka3"), $CmdLine[9])         ;; delka3
-      _IEAction(_IEFormElementGetObjByName($oForm, "code"), "focus")                 ;; Captcha field - set focus
-      _IEAction($oIE, "stop")                                                        ;; Cancels any pending navigation or download operation and stops any dynamic page elements, such as background sounds and animations.
-      _IELoadWait($oIE)                                                              ;; Wait for a browser page load to complete before returning
+      _IENavigate($oIE, $CmdLine[10])                                             ;; Open url
+      $oForm = _IEFormGetObjByName($oIE, "form1")                                 ;; Form name
+      _IEFormElementOptionSelect(_IEGetObjByName($oForm, "select1"), $CmdLine[2]) ;; select1
+      _IEFormElementSetValue(_IEGetObjByName($oForm, "sirka1"), $CmdLine[3])      ;; sirka1
+      _IEFormElementSetValue(_IEGetObjByName($oForm, "sirka2"), $CmdLine[4])      ;; sirka2 (if two digit let it be)
+      _IEFormElementSetValue(_IEGetObjByName($oForm, "sirka3"), $CmdLine[5])      ;; sirka3
+      _IEFormElementOptionSelect(_IEGetObjByName($oForm, "select2"), $CmdLine[6]) ;; select2
+      _IEFormElementSetValue(_IEGetObjByName($oForm, "delka1"), $CmdLine[7])      ;; delka1
+      _IEFormElementSetValue(_IEGetObjByName($oForm, "delka2"), $CmdLine[8])      ;; delka2 (if two digit let it be)
+      _IEFormElementSetValue(_IEGetObjByName($oForm, "delka3"), $CmdLine[9])      ;; delka3
+      _IEAction(_IEFormElementGetObjByName($oForm, "code"), "focus")              ;; Captcha field - set focus
+      _IEAction($oIE, "stop")                                                     ;; Cancels any pending navigation or download operation and stops any dynamic page elements, such as background sounds and animations.
+      _IELoadWait($oIE)                                                           ;; Wait for a browser page load to complete before returning
 
     ;; ==========================================================================> GCCOUNTER
     ;; url: http://gccounter.com/gcchecker.php?site=gcchecker_check&id=2076
     ;; captcha: no
     Case "gccounter"
-      _IENavigate($oIE, $CmdLine[10])                                           ;; Open url
-      ;$oForm = _IEFormGetObjByName($oIE, "form1")                              ;; Form name - non exist!
-      _IEFormElementOptionSelect(_IEGetObjByName($oIE, "Lat_R"), $CmdLine[2])   ;; Lat_R
-      _IEFormElementSetValue(_IEGetObjByName($oIE, "Lat_G"), $CmdLine[3])       ;; Lat_G
-      _IEFormElementSetValue(_IEGetObjByName($oIE, "Lat_M"), $CmdLine[4])       ;; Lat_M
-      _IEFormElementSetValue(_IEGetObjByName($oIE, "Lat_MM"), $CmdLine[5])      ;; Lat_MM
-      _IEFormElementOptionSelect(_IEGetObjByName($oIE, "Lon_R"), $CmdLine[6])   ;; Lon_R
-      _IEFormElementSetValue(_IEGetObjByName($oIE, "Lon_G"), $CmdLine[7])       ;; Lon_G
-      _IEFormElementSetValue(_IEGetObjByName($oIE, "Lon_M"), $CmdLine[8])       ;; Lon_M
-      _IEFormElementSetValue(_IEGetObjByName($oIE, "Lon_MM"), $CmdLine[9])      ;; Lon_MM
-      _IEAction($oIE, "stop")                                                   ;; Cancels any pending navigation or download operation and stops any dynamic page elements, such as background sounds and animations.
-      Sleep(1000)                                                               ;; Wait a while
+      _IENavigate($oIE, $CmdLine[10])                                         ;; Open url
+      ;$oForm = _IEFormGetObjByName($oIE, "form1")                            ;; Form name - non exist!
+      _IEFormElementOptionSelect(_IEGetObjByName($oIE, "Lat_R"), $CmdLine[2]) ;; Lat_R
+      _IEFormElementSetValue(_IEGetObjByName($oIE, "Lat_G"), $CmdLine[3])     ;; Lat_G
+      _IEFormElementSetValue(_IEGetObjByName($oIE, "Lat_M"), $CmdLine[4])     ;; Lat_M
+      _IEFormElementSetValue(_IEGetObjByName($oIE, "Lat_MM"), $CmdLine[5])    ;; Lat_MM
+      _IEFormElementOptionSelect(_IEGetObjByName($oIE, "Lon_R"), $CmdLine[6]) ;; Lon_R
+      _IEFormElementSetValue(_IEGetObjByName($oIE, "Lon_G"), $CmdLine[7])     ;; Lon_G
+      _IEFormElementSetValue(_IEGetObjByName($oIE, "Lon_M"), $CmdLine[8])     ;; Lon_M
+      _IEFormElementSetValue(_IEGetObjByName($oIE, "Lon_MM"), $CmdLine[9])    ;; Lon_MM
+      _IEAction($oIE, "stop")                                                 ;; Cancels any pending navigation or download operation and stops any dynamic page elements, such as background sounds and animations.
+      Sleep(1000)                                                             ;; Wait a while
       ;; Because submit button has no NAME we must do it this stupid way
-      $oButtons = _IETagNameGetCollection($oIE, "input")                        ;; Search all inputs
+      $oButtons = _IETagNameGetCollection($oIE, "input")                      ;; Search all inputs
       For $oButton In $oButtons
-        If String($oButton.type) = "submit" Then                                ;; If input has type=submit
-         _IEAction($oButton, "click")                                           ;; Click on it
-         _IELoadWait($oIE)                                                      ;; Wait for a browser page load to complete before returning
+        If String($oButton.type) = "submit" Then                              ;; If input has type=submit
+         _IEAction($oButton, "click")                                         ;; Click on it
+         _IELoadWait($oIE)                                                    ;; Wait for a browser page load to complete before returning
         EndIf
       Next
 
@@ -174,39 +175,43 @@ Func Browser()
     ;; url: http://www.certitudes.org/certitude?wp=GC2QFYT
     ;; captcha: no
     Case "certitudes" 
-      _IENavigate($oIE, $CmdLine[10])                                           ;; Open url
-      ;$oForm = _IEFormGetObjByName($oIE, "form")                               ;; Form name - non exist!
-      _IEFormElementSetValue(_IEGetObjByName($oIE, "coordinates"), $CmdLine[2] & " " & $CmdLine[3] & " " & $CmdLine[4] & "." & $CmdLine[5] & " " & $CmdLine[6] & " " & $CmdLine[7] & " " & $CmdLine[8] & "." & $CmdLine[9]) ; Lat_G
-      _IEAction($oIE, "stop")                                                   ;; Cancels any pending navigation or download operation and stops any dynamic page elements, such as background sounds and animations.
-      Sleep(1000)                                                               ;; Wait a while
+      _IENavigate($oIE, $CmdLine[10])                                                    ;; Open url
+      ;$oForm = _IEFormGetObjByName($oIE, "form")                                        ;; Form name - non exist!
+      _IEFormElementSetValue(_IEGetObjByName($oIE, "coordinates"), $CmdLine[2] & " " & _
+                                                                   $CmdLine[3] & " " & _
+                                                                   $CmdLine[4] & "." & _
+                                                                   $CmdLine[5] & " " & _
+                                                                   $CmdLine[6] & " " & _
+                                                                   $CmdLine[7] & " " & _
+                                                                   $CmdLine[8] & "." & _
+                                                                   $CmdLine[9])          ;; Lat_G
+      _IEAction($oIE, "stop")                                                            ;; Cancels any pending navigation or download operation and stops any dynamic page elements, such as background sounds and animations.
+      Sleep(1000)                                                                        ;; Wait a while
       ;; Because submit button has no NAME we must do it this stupid way
-      $oButtons = _IETagNameGetCollection($oIE, "input")                        ;; Search all inputs
+      $oButtons = _IETagNameGetCollection($oIE, "input")                                 ;; Search all inputs
       For $oButton In $oButtons
-        If String($oButton.type) = "submit" Then                                ;; If input has type=submit
-         _IEAction($oButton, "click")                                           ;; Click on it
-         _IELoadWait($oIE)                                                      ;; Wait for a browser page load to complete before returning
+        If String($oButton.type) = "submit" Then                                         ;; If input has type=submit
+         _IEAction($oButton, "click")                                                    ;; Click on it
+         _IELoadWait($oIE)                                                               ;; Wait for a browser page load to complete before returning
         EndIf
       Next
-      $oIE.document.parentwindow.scroll(0, 100)                                 ;; Scroll a little bit down :)
+      $oIE.document.parentwindow.scroll(0, 100)                                          ;; Scroll a little bit down :)
 
     ;; ==========================================================================> FINAR
     ;; url: http://gc.elanot.cz/index.php/data-final.html
     ;; captcha: no
     Case "finar"
-      _IENavigate($oIE, $CmdLine[10])                                           ;; Open url
-      $oForm = _IEFormGetObjByName($oIE, "fabrikList")                          ;; Form name
-      _IEAction(_IEFormElementGetObjByName($oForm, "fabrik_list_filter_all_1_com_fabrik_1"), "focus") ;; Set focus
-      If StringLen($CmdLine[4]) <> 2 Then                                       ;; must be two digit
-        $cmd4 = "0" & $CmdLine[4]                                               ;; add leading zero if one digit
-      Else
-        $cmd4 = $CmdLine[4]
-      EndIf
-      If StringLen($CmdLine[8]) <> 2 Then                                       ;; must be two digit
-        $cmd8 = "0" & $CmdLine[8]                                               ;; add leading zero if one digit
-      Else
-        $cmd8 = $CmdLine[8]
-      EndIf
-      _IEFormElementSetValue(_IEGetObjByName($oIE, "fabrik_list_filter_all_1_com_fabrik_1"), $CmdLine[2] & " " & $CmdLine[3] & "° " & $cmd4 & "." & $CmdLine[5] & " " & $CmdLine[6] & " " & $CmdLine[7] & "° " & $cmd8 & "." & $CmdLine[9]) ; coordinates in gc.com format
+      _IENavigate($oIE, $CmdLine[10])                                                                               ;; Open url
+      $oForm = _IEFormGetObjByName($oIE, "fabrikList")                                                              ;; Form name
+      _IEAction(_IEFormElementGetObjByName($oForm, "fabrik_list_filter_all_1_com_fabrik_1"), "focus")               ;; Set focus
+      _IEFormElementSetValue(_IEGetObjByName($oIE, "fabrik_list_filter_all_1_com_fabrik_1"), $CmdLine[2] & " " & _
+                                                                                             $CmdLine[3] & "° " & _
+                                                                                             $CmdLine[4] & "." & _
+                                                                                             $CmdLine[5] & " " & _
+                                                                                             $CmdLine[6] & " " & _
+                                                                                             $CmdLine[7] & "° " & _
+                                                                                             $CmdLine[8] & "." & _
+                                                                                             $CmdLine[9])            ;; coordinates in gc.com format
       _IEAction($oIE, "stop")                                                   ;; Cancels any pending navigation or download operation and stops any dynamic page elements, such as background sounds and animations.
       Sleep(1000)                                                               ;; Wait a while
       _IEAction(_IEFormElementGetObjByName($oForm, "filter"), "click")          ;; Click on it!

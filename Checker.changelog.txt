@@ -1,3 +1,7 @@
+** 0.1.2.0 (2014/11/16) **
+  * optimalizace kódu
+  * doplnìní pøekladu
+
 ** 0.1.1.2 (2014/10/07) **
   * Oprava chyby s doplòováním nuly k souøadnicím u jednoho webu
   * Pøidána lokalizace do èeštiny
