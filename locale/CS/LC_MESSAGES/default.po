@@ -6,8 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Checker\n"
-"POT-Creation-Date: 2017-03-15 21:58\n"
-"PO-Revision-Date: 2017-03-15 22:07+0100\n"
+"POT-Creation-Date: 2022-08-05 20:01\n"
+"PO-Revision-Date: 2022-08-05 20:09+0200\n"
 "Last-Translator: mikrom <mikrom@mikrom.cz>\n"
 "Language-Team: mikrom <mikrom@mikrom.cz>\n"
 "MIME-Version: 1.0\n"
@@ -31,46 +31,86 @@ msgstr "OK"
 msgid "Cancel"
 msgstr "Zrušit"
 
-#: Checker.ggc.pas:21 Checker.ggp.pas:21
+#: Checker.ggc.pas:23 Checker.ggp.pas:23
 msgid "Open and fill checker page (geocheck.org, geochecker.com, evince.locusprime.net, etc.)"
 msgstr "Pokud je v listingu odkaz na ověření, otevře web a předvyplní souřadnice"
 
-#: Checker.ggi.pas:19
+#: Checker.ggi.pas:21
 msgid "Changelog"
 msgstr "Seznam změn"
 
-#. EncodeUrlElement(GEOGET_OWNER);
-#: Checker.lib.pas:296
+#. "Uspesne overeno"
+#: Checker.lib.pas:181
+msgid "OK: Succesfuly verified!"
+msgstr "OK: Úspěšně ověřeno!"
+
+#. "Kontrolovane souradnice jsou chybne"
+#: Checker.lib.pas:182
+msgid "Error: Coordinates do not match!"
+msgstr "Chyba: Souřadnice jsou chybné!"
+
+#. "Keska neexistuje"
+#: Checker.lib.pas:184
+#, fuzzy
+msgid "Error: Geocache not found!"
+msgstr "Chyba: Nenalezen odkaz na žádnou ověřovací službu!"
+
+#. "BM nemuze overit souradnice PMO kese"
+#: Checker.lib.pas:186
+msgid "Error: Basic member cannot verify PMO geocache!"
+msgstr "Chyba: Běžní hráči nemohou kontrolovat Pémiové keše!"
+
+#. "Nelze overit nepublikovanou nebo archivovanou kesku"
+#: Checker.lib.pas:187
+msgid "Error: Cannot verify an unpublished or archived geocache!"
+msgstr "Chyba: Nelze zkontrolovat nepublikované, nebo archivované keše!"
+
+#. "Prekrocen limit poctu kontrol (10/10 minut)"
+#: Checker.lib.pas:188
+msgid "Error: Limit exceeded, only 10 in 10 minutes allowed!"
+msgstr "Chyba: Překročen limit počtu ověření! Povoleno 10 během 10 minut."
+
+#. "Návratová hodnota"
+#: Checker.lib.pas:189
+msgid "Result: "
+msgstr "Výsledek: "
+
+#. "ERR: neocekavana navratova hodnota"
+#: Checker.lib.pas:743
+msgid "Error: Unexpected return value: "
+msgstr "Chyba: Neočekávaná hodnota: "
+
+#: Checker.lib.pas:751
 msgid "Error: No coordinate checker URL found!"
 msgstr "Chyba: Nenalezen odkaz na žádnou ověřovací službu!"
 
-#. Show name of selected item
-#: Checker.lib.pas:323
+#: Checker.lib.pas:788
 msgid "Error: You didn't select anything!"
 msgstr "Chyba: Nebylo nic vybráno!"
 
-#. AHK script run without error, but not found if result was correct or not
-#: Checker.lib.pas:341
-msgid "OK, neither correct or incorrect"
-msgstr "OK, ani dobře ani špatně."
+#: Checker.lib.pas:851
+msgid ""
+"Error: This should not happen!\n"
+"No or wrong exit code from Checker.ahk"
+msgstr ""
+"Chyba: Toto se nemělo stát!\n"
+"Žádný, nebo špatný exit kód z Checker.ahk"
 
-#. If it WAS correct add special comment to the Final waypoint
-#: Checker.lib.pas:343
-msgid "Correct solution! :)"
-msgstr "Správné řešení! :)"
-
-#. If it WAS NOT correct add special comment to the Final waypoint
-#: Checker.lib.pas:347
-msgid "Incorrect solution! :("
-msgstr "Špatné řešení! :("
-
-#: Checker.lib.pas:350
-msgid "Error"
-msgstr "Chyba"
-
-#: Checker.lib.pas:363
+#: Checker.lib.pas:868
 msgid "Wrong coordinates. Maybe they are zero"
 msgstr "Špatné souřadnice. Možná jsou nulové."
+
+#~ msgid "OK, neither correct or incorrect"
+#~ msgstr "OK, ani dobře ani špatně."
+
+#~ msgid "Correct solution! :)"
+#~ msgstr "Správné řešení! :)"
+
+#~ msgid "Incorrect solution! :("
+#~ msgstr "Špatné řešení! :("
+
+#~ msgid "Error"
+#~ msgstr "Chyba"
 
 #~ msgid ""
 #~ "No coordinate checker site found, try look at finar.cz?\n"

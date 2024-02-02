@@ -1,4 +1,10 @@
-** 3.00.0 (2021/05/01) **
+** 3.1.0 (2022/??/??) **
+  * pøidána detekce mrtvého ovìøovaèe "evince.locusprime.invalid" (bylo jen evince.locusprime.net)
+  * pokud je u keše více než jedno ovìøení, je možno zvolit jaké chceme (U GC9Q4Y3 jsou tøi geocheckery, u GC6DJTY deset), nápad gord
+  * aktualizace AutoHotkey na v 1.1.34.03
+  * aktualizace pøekladu
+
+** 3.0.0 (2021/05/01) **
   * pøidána podpora GZ Checker (https://infin.ity.me.uk/GZInput.php) - ale ten web je dìlaný v MS FrontPage a moc nejde
   * pøidána podpora geotjek.org
   * pøidána podpora puzzle-checker.com (GC80HFF, GC8X0WQ, ...) se vším všudy (ovìøení správnosti, zkopírování poznámky)

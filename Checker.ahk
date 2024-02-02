@@ -3,7 +3,7 @@
 ; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ; Icon: https://icons8.com/icon/18401/Thumb-Up
 ; Author: mikrom, https://www.mikrom.cz
-; Version: 3.00.1
+; Version: 3.0.1
 ;
 ; Documentation: http://ahkscript.org/docs/AutoHotkey.htm
 ; FAQ: http://www.autohotkey.com/docs/FAQ.htm
@@ -1310,6 +1310,7 @@ Browser(ByRef wb)
     {
         ; URL: http://www.gc-apps.com/geochecker/show/b1a0a77fa830ddbb6aa4ed4c69057e79
         ; URL: http://www.gc-apps.com/index.php?option=com_geochecker&view=item&id=b1a0a77fa830ddbb6aa4ed4c69057e79
+        ; URL: https://www.gc-apps.com/de/checker/ef608b5264d09b9492f6d747d1b8bc2f/try (2021)
         ; Captcha: YES
 
         Gui, Show,, % "Checker - " . args[1]                                        ; Change title
@@ -1322,35 +1323,39 @@ Browser(ByRef wb)
         ; Try to fill the webpage form
         Try
         {
-            If (args[2] = "N")
-            {
-                wb.Document.All.try_fields_latitude_0.SelectedIndex := 0
-            }
-
-            If (args[2] = "S")
-            {
-                wb.Document.All.try_fields_latitude_0.SelectedIndex := 1
-            }
-
-            wb.Document.All.try_fields_latitude_1.Value := args[3]
-            wb.Document.All.try_fields_latitude_2.Value := args[4]
-            wb.Document.All.try_fields_latitude_3.Value := args[5]
-
-            If (args[6] = "W")
-            {
-                wb.Document.All.try_fields_longitude_0.SelectedIndex := 0
-            }
-
-            If (args[6] = "E")
-            {
-                wb.Document.All.try_fields_longitude_0.SelectedIndex := 1
-            }
-
-            wb.Document.All.try_fields_longitude_1.Value := args[7]
-            wb.Document.All.try_fields_longitude_2.Value := args[8]
-            wb.Document.All.try_fields_longitude_3.Value := args[9]
-
-            wb.Document.All.try_captcha.Focus()
+            ;If (args[2] = "N")
+            ;{
+            ;    wb.Document.All.try_fields_latitude_0.SelectedIndex := 0
+            ;}
+            ;
+            ;If (args[2] = "S")
+            ;{
+            ;    wb.Document.All.try_fields_latitude_0.SelectedIndex := 1
+            ;}
+            ;    
+            ;wb.Document.All.try_fields_latitude_1.Value := args[3]
+            ;wb.Document.All.try_fields_latitude_2.Value := args[4]
+            ;wb.Document.All.try_fields_latitude_3.Value := args[5]
+            ;
+            ;If (args[6] = "W")
+            ;{
+            ;    wb.Document.All.try_fields_longitude_0.SelectedIndex := 0
+            ;}
+            ;
+            ;If (args[6] = "E")
+            ;{
+            ;    wb.Document.All.try_fields_longitude_0.SelectedIndex := 1
+            ;}
+            ;
+            ;wb.Document.All.try_fields_longitude_1.Value := args[7]
+            ;wb.Document.All.try_fields_longitude_2.Value := args[8]
+            ;wb.Document.All.try_fields_longitude_3.Value := args[9]
+            ;
+            ;wb.Document.All.try_captcha.Focus()
+            
+            ; 2021
+            ;wb.Document.All.try_fields_coordinates.Value := args[2] . args[3] . "° " . args[4] . "." . args[5] . " " . args[6] . args[7] . "° " . args[8] . "." . args[9]
+            ;wb.Document.Forms[0].Submit()
 
         }
         Catch e
