@@ -19,7 +19,7 @@ Switch $CmdLine[1]
   Case "geocheck"
     $title = "GeoCheck - Check your coordinates"
     ShellExecute($CmdLine[10])
-    If WinWaitActive($title, "", 15) Then
+    If WinWaitActive($title, "", 30) Then
       Sleep(1000)
       Send("{TAB 37}")
       If($CmdLine[2] = "N") Then
@@ -53,7 +53,7 @@ Switch $CmdLine[1]
   Case "geochecker"
     $title = "GeoChecker link for "
     ShellExecute($CmdLine[10])
-    If WinWaitActive($title, "", 15) Then
+    If WinWaitActive($title, "", 30) Then
       Sleep(1000)
       Send("{TAB 17}")
       Send($CmdLine[2])
@@ -81,7 +81,7 @@ Switch $CmdLine[1]
   Case "evince"
     $title = "evince - coordinate verification"
     ShellExecute($CmdLine[10])
-    If WinWaitActive($title, "", 15) Then
+    If WinWaitActive($title, "", 30) Then
       Sleep(1000)
       Send("+{TAB}")
       Send($CmdLine[2])
@@ -107,7 +107,7 @@ Switch $CmdLine[1]
   Case "hermansky"
     $title = "GPS Pøevodník / Kontrolor"
     ShellExecute($CmdLine[10])
-    If WinWaitActive($title, "", 15) Then
+    If WinWaitActive($title, "", 30) Then
       Sleep(1000)
       Send("{TAB 7}")
       Send($CmdLine[2])
@@ -134,7 +134,7 @@ Switch $CmdLine[1]
   Case "komurka"
     $title = ".:: http://geo.komurka.cz ::."
     ShellExecute($CmdLine[10])
-    If WinWaitActive($title, "", 15) Then
+    If WinWaitActive($title, "", 30) Then
       Sleep(1000)
       Send("{TAB 3}")
       Send($CmdLine[2])
@@ -160,7 +160,7 @@ Switch $CmdLine[1]
   Case "gccounter"
     $title = "GCCounter"
     ShellExecute($CmdLine[10])
-    If WinWaitActive($title, "", 15) Then
+    If WinWaitActive($title, "", 30) Then
       Sleep(1000)
       Send("{TAB 3}")
       Send($CmdLine[2])

@@ -30,7 +30,7 @@ var
   n:Integer;
 begin
   if GC.IsSelected then begin // for cache
-    ShowMessage('Warning: Corrected coordinates used!');
+    //ShowMessage('Warning: Corrected coordinates used!');
     s:=FormatCoordNum(GC.CorrectedLatNum,GC.CorrectedLonNum);
   end
   else begin // for waypoint
