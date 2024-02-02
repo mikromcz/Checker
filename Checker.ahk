@@ -2,7 +2,7 @@
 ; Www: http://geoget.ararat.cz/doku.php/user:skript:checker
 ; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ; Author: mikrom, http://mikrom.cz
-; Version: 2.12.0
+; Version: 2.13.0
 ;
 ; Documentation: http://ahkscript.org/docs/AutoHotkey.htm
 ; FAQ: http://www.autohotkey.com/docs/FAQ.htm
@@ -25,19 +25,21 @@ SendMode, Input              ; Recommended for new scripts due to its superior s
 SetWorkingDir, %A_ScriptDir% ; Ensures a consistent starting directory.
 
 ; Global variables
-global args := []    ; Commandline parameters array
-global errorLvl := 0 ; For sure set default error level, (0 - without error (default), 1 - success, 2 - wrong)
-global debug := 0    ; INI: Debugging mode, change it in the INI!
-global proxy := 0    ; INI: Use proxy if you are banned for many tries, change in the INI!
-global answer := 0   ; INI: Check if verification was successful or not, change in the INI!
-global iefix :=0     ; INI: Try to fix IE render engine to latest by changing registry, change in the INI!
-global cnt := 0      ; Only counter that we increment while we are waiting for verification page
+Global args := []    ; Commandline parameters array
+Global errorLvl := 0 ; For sure set default error level, (0 - without error (default), 1 - success, 2 - wrong)
+Global debug := 0    ; INI: Debugging mode, change it in the INI!
+Global proxy := 0    ; INI: Use proxy if you are banned for many tries, change in the INI!
+Global answer := 0   ; INI: Check if verification was successful or not, change in the INI!
+Global iefix := 0    ; INI: Try to fix IE render engine to latest by changing registry, change in the INI!
+Global certfix := 0  ; INI: Disable some strict settings for some HTTPS websites, change in the INI!
+Global cnt := 0      ; Only counter that we increment while we are waiting for verification page
 
 ; Read setting from INI ^
-IniRead, debug, %A_ScriptDir%\Checker.ini, % "Checker", % "debug"   ; For enabling debug mode, show some infos, ListVars, ..
-IniRead, proxy, %A_ScriptDir%\Checker.ini, % "Checker", % "proxy"   ; If user is banned for many tries in short time, we try load page with proxyserver
-IniRead, iefix, %A_ScriptDir%\Checker.ini, % "Checker", % "iefix"   ; Try to fix IE render engine to latest by changing registry
-IniRead, answer, %A_ScriptDir%\Checker.ini, % "Checker", % "answer" ; Define return check result
+IniRead, debug,   %A_ScriptDir%\Checker.ini, % "Checker", % "debug"     ; For enabling debug mode, show some infos, ListVars, ..
+IniRead, proxy,   %A_ScriptDir%\Checker.ini, % "Checker", % "proxy"     ; If user is banned for many tries in short time, we try load page with proxyserver
+IniRead, iefix,   %A_ScriptDir%\Checker.ini, % "Checker", % "iefix"     ; Try to fix IE render engine to latest by changing registry
+IniRead, answer,  %A_ScriptDir%\Checker.ini, % "Checker", % "answer"    ; Define return check result
+IniRead, certfix, %A_ScriptDir%\Checker.ini, % "Checker", % "certfix"   ; Disable some strict settings for SSL certificates
 
 ; Change icon of GUI title, tray, ...
 ; Icon from: http://www.iconarchive.com/show/colorful-long-shadow-icons-by-graphicloads/Hand-thumbs-up-like-2-icon.html
@@ -46,38 +48,38 @@ Menu, Tray, Icon, %A_ScriptDir%\Checker.ico,,1
 ; Language switch
 ; https://autohotkey.com/docs/misc/Languages.htm
 If (A_Language = "0405") { ; Czech
-  global textError           := "Chyba"
-  global textErrorFill       := "Chyba: Nelze vyplnit sou¯adnice!`n`nPravdÏpodobnÏ se naËetla öpatn· str·nka, nap¯Ìklad ozn·menÌ o p¯ekroËenÌ limitu."
-  global textErrorException  := "Ajaj, tohle se nemÏlo st·t.`n`nV˝jimka: "
-  global textErrorParam      := "Chyba: Neplatn˝ poËet parametr˘!`n`nPovolenÈ parametry jsou:`n[service] [N|S] [Dx] [Mx] [Sx] [E|W] [Dy] [My] [Sy] [URL]`n`nPouûity byly tyto:`n"
-  global textErrorService    := "Chyba: Pouûita nepodporovan· sluûba!`nPodporov·ny jsou: geocheck, geochecker, evince, hermansky, komurka, gccounter, gccounter2, certitudes, gpscache, gccheck, challenge!."
-  global textErrorTimeout    := "Chyba: Vypröel Ëasov˝ limit naËÌt·nÌ str·nky.`nZkuste F5 pro obnovenÌ."
-  global textDonate          := "Zvaûte podporu pluginu p¯es <a href=""http://goo.gl/dCKefD"">PayPal</a>, nebo mi napiöte <a href=""mailto:mikrom@mikrom.cz"">email</a>"
-  global textHint            := "Pro ukonËenÌ m˘ûete pouûÌt ESC a pro obnovenÌ str·nky F5"
-  global textLoading         := "NaËÌt·m..."
-  global textAnswerChecking  := "Kontroluji..."
-  global textAnswerCorrect   := "Spr·vnÏ!"
-  global textAnswerIncorrect := "äpatnÏ!"
-  global textEvince          := "UpozornÏnÌ: Web http://evince.locusprime.net je mrtev. Nelze nic vyplnit/ovÏ¯it."
+  Global textError           := "Chyba"
+  Global textErrorFill       := "Chyba: Nelze vyplnit sou¯adnice!`n`nPravdÏpodobnÏ se naËetla öpatn· str·nka, nap¯Ìklad ozn·menÌ o p¯ekroËenÌ limitu."
+  Global textErrorException  := "Ajaj, tohle se nemÏlo st·t.`n`nV˝jimka: "
+  Global textErrorParam      := "Chyba: Neplatn˝ poËet parametr˘!`n`nPovolenÈ parametry jsou:`n[service] [N|S] [Dx] [Mx] [Sx] [E|W] [Dy] [My] [Sy] [URL]`n`nPouûity byly tyto:`n"
+  Global textErrorService    := "Chyba: Pouûita nepodporovan· sluûba!`nPodporov·ny jsou: geocheck, geochecker, evince, hermansky, komurka, gccounter, gccounter2, certitudes, gpscache, gccheck, challenge!."
+  Global textErrorTimeout    := "Chyba: Vypröel Ëasov˝ limit naËÌt·nÌ str·nky.`nZkuste F5 pro obnovenÌ."
+  Global textDonate          := "Zvaûte podporu pluginu p¯es <a href=""http://goo.gl/dCKefD"">PayPal</a>, nebo mi napiöte <a href=""mailto:mikrom@mikrom.cz"">email</a>"
+  Global textHint            := "Pro ukonËenÌ m˘ûete pouûÌt ESC a pro obnovenÌ str·nky F5"
+  Global textLoading         := "NaËÌt·m..."
+  Global textAnswerChecking  := "Kontroluji..."
+  Global textAnswerCorrect   := "Spr·vnÏ!"
+  Global textAnswerIncorrect := "äpatnÏ!"
+  Global textEvince          := "UpozornÏnÌ: Web evince.locusprime.net je mrtev. Nelze nic vyplnit/ovÏ¯it.`nKontaktuj autora keöe aù zmÏnÌ sluûbu pro ovÏ¯enÌ."
+  Global textDoxina          := "UpozornÏnÌ: Web doxina.filipruzicka.net je mrtev. Nelze nic vyplnit/ovÏ¯it.`nKontaktuj autora keöe aù zmÏnÌ sluûbu pro ovÏ¯enÌ."
 } Else { ; Other = English
-  global textError           := "Error"
-  global textErrorFill       := "Error: Can't fill coordinates!`n`nProbably wrong page loaded, like limit exceeded."
-  global textErrorException  := "Oops, this should not happen.`n`nException: "
-  global textErrorParam      := "Error: Invalid number of parameters!`n`nAllowed parameters are:`n[service] [N|S] [Dx] [Mx] [Sx] [E|W] [Dy] [My] [Sy] [URL]`n`nReceived parameters are:`n"
-  global textErrorService    := "Error: Invalid service selected!`nUse only: geocheck, geochecker, evince, hermansky, komurka, gccounter, gccounter2, certitudes, gpscache, gccheck, challenge!."
-  global textErrorTimeout    := "Error: Timeout while page load.`nTry press F5 for reload."
-  global textDonate          := "You can donate plugin by <a href=""http://goo.gl/dCKefD"">PayPal</a>, or send me an <a href=""mailto:mikrom@mikrom.cz"">email</a>"
-  global textHint            := "You can use ESC for quit and F5 for page reload"
-  global textLoading         := "Loading..."
-  global textAnswerChecking  := "Checking..."
-  global textAnswerCorrect   := "Correct!"
-  global textAnswerIncorrect := "Incorrect!"
-  global textEvince          := "Warning: Site http://evince.locusprime.net is dead. It is not possible to fill/check anything."
+  Global textError           := "Error"
+  Global textErrorFill       := "Error: Can't fill coordinates!`n`nProbably wrong page loaded, like limit exceeded."
+  Global textErrorException  := "Oops, this should not happen.`n`nException: "
+  Global textErrorParam      := "Error: Invalid number of parameters!`n`nAllowed parameters are:`n[service] [N|S] [Dx] [Mx] [Sx] [E|W] [Dy] [My] [Sy] [URL]`n`nReceived parameters are:`n"
+  Global textErrorService    := "Error: Invalid service selected!`nUse only: geocheck, geochecker, evince, hermansky, komurka, gccounter, gccounter2, certitudes, gpscache, gccheck, challenge!."
+  Global textErrorTimeout    := "Error: Timeout while page load.`nTry press F5 for reload."
+  Global textDonate          := "You can donate plugin by <a href=""http://goo.gl/dCKefD"">PayPal</a>, or send me an <a href=""mailto:mikrom@mikrom.cz"">email</a>"
+  Global textHint            := "You can use ESC for quit and F5 for page reload"
+  Global textLoading         := "Loading..."
+  Global textAnswerChecking  := "Checking..."
+  Global textAnswerCorrect   := "Correct!"
+  Global textAnswerIncorrect := "Incorrect!"
+  Global textEvince          := "Warning: Site evince.locusprime.net is dead. It is not possible to fill/check anything.`nContact author of the cache to change verification service."
+  Global textDoxina          := "Warning: Site doxina.filipruzicka.net is dead. It is not possible to fill/check anything.`nContact author of the cache to change verification service."
 }
 
 ; Add CMD paremeters to (pseudo) array. It's not necessary, parameters are in variables %1%, %2%, .. but seems not to work in my case.
-; http://www.autohotkey.com/docs/Tutorial.htm#s7
-; http://ahkscript.org/docs/misc/Arrays.htm#pseudo
 paramList := ""
 Loop, %0% {
   args[A_Index] := %A_Index%
@@ -90,44 +92,56 @@ If (args.MaxIndex() != 10) {
   ExitApp, errorLvl
 }
 
-; Apply registry hack for latest rendering engine
-If iefix
-  Prev := FixIE()
-
 ; Create GUI
-; http://www.autohotkey.com/docs/commands/Gui.htm
 Gui, +Resize +OwnDialogs +MinSize640x480                           ; Allow change GUI size, MsgBoxes is owned by main window, Set minimal window size
 Gui, Add, ActiveX, x0 y0 w1000 h580 vWB, Shell.Explorer            ; The final parameter is the name of the ActiveX component.
 Gui, Add, Link, x5 y+0 vHint, % textHint . ". " . textDonate . "." ; Hint and donate text at the bottom
 Gui, Add, Text, x940 w60 vLabelAnswer, % " "                       ; Label for showing verification status Success|Error
-;ComObjConnect(WB, WB_events)
 Gui, Show, Center w1000 h600, % "Checker"                          ; Show the main window (with title Checker)
 
 ; Force embedded IE (shell.explorer) to use the latest installed render engine (and not default IE7)
 ; https://autohotkey.com/board/topic/93660-embedded-ie-shellexplorer-render-issues-fix-force-it-to-use-a-newer-render-engine/
 ; based on: https://weblog.west-wind.com/posts/2011/May/21/Web-Browser-Control-Specifying-the-IE-Version
-; Or maybe somehow add this tag in HTML: <meta http-equiv="X-UA-Compatible" content="IE=Edge">
 FixIE(Version=0, ExeName="") {
-	static Key := "Software\Microsoft\Internet Explorer\MAIN\FeatureControl\FEATURE_BROWSER_EMULATION"
-	, Versions := {7:7000, 8:8888, 9:9999, 10:10001, 11:11001}
+  Static Key := "HKCU\SOFTWARE\Microsoft\Internet Explorer\Main\FeatureControl\FEATURE_BROWSER_EMULATION"
+  , Versions := {7:7000, 8:8888, 9:9999, 10:10001, 11:11001}
 
-	if Versions.HasKey(Version)
-		Version := Versions[Version]
+  If Versions.HasKey(Version)
+    Version := Versions[Version]
 
-	if !ExeName
-	{
-		if A_IsCompiled
-			ExeName := A_ScriptName
-		else
-			SplitPath, A_AhkPath, ExeName
-	}
+  If !ExeName {
+    If A_IsCompiled
+      ExeName := A_ScriptName
+    Else
+      SplitPath, A_AhkPath, ExeName
+  }
 
-	RegRead, PreviousValue, HKCU, %Key%, %ExeName%
-	if (Version = "")
-		RegDelete, HKCU, %Key%, %ExeName%
-	else
-		RegWrite, REG_DWORD, HKCU, %Key%, %ExeName%, %Version%
-	return PreviousValue
+  RegRead, PreviousValue, %Key%, %ExeName%
+  
+  If (Version = "")
+    RegDelete, %Key%, %ExeName%
+  Else
+    RegWrite, REG_DWORD, %Key%, %ExeName%, %Version%
+
+  Return PreviousValue
+}
+
+; Fix IE settings for certificates (temporary change one setting in registry)
+; "Revocation Information For The Security Certificate For This Site Is Not Available"
+; "Nejsou k dispozici informace o odvolani certifikatu zabezpeceni tohoto serveru"
+; Necessary for http://gccheck.com
+FixIEcert(Cert=0) {
+  Static Key := "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings"
+  , ValueName := "CertificateRevocation"
+
+  RegRead, PreviousCertValue, %Key%, %ValueName%
+
+  If (Cert = 0)
+    RegWrite, REG_DWORD, %Key%, %ValueName%, 0
+  Else
+    RegWrite, REG_DWORD, %Key%, %ValueName%, 1
+
+  Return PreviousCertValue
 }
 
 ; Encode special characters to URI (for ex. "space" is %20)
@@ -190,7 +204,7 @@ LoadWait(ByRef wb) {
     Else
       GuiControl,, labelanswer, % cnt . "_1"
 
-    If cnt >= 50                              ; Timeout .1 x 10 = 1000ms, so 5 seconds?
+    If (cnt >= 50)                            ; Timeout .1 x 10 = 1000ms, so 5 seconds?
       Return ;wb.Stop                         ; Cancels a pending navigation or download, and stops dynamic page elements, such as background sounds and animations.
   } Until (wb.Busy)
 
@@ -204,7 +218,7 @@ LoadWait(ByRef wb) {
     Else
       GuiControl,, labelanswer, % cnt . "_2"
 
-    If cnt >= 50                              ; Timeout .1 x 10 = 1000ms, so 5 seconds?
+    If (cnt >= 50)                            ; Timeout .1 x 10 = 1000ms, so 5 seconds?
       Return ;wb.Stop                         ; Cancels a pending navigation or download, and stops dynamic page elements, such as background sounds and animations.
   } Until (!wb.Busy)
 
@@ -214,7 +228,7 @@ LoadWait(ByRef wb) {
 
   Return True
 
-  Sleep, 500                                  ; Just for sure
+  Sleep, 1000                                  ; Just for sure
 } ; => LoadWait()
 
 ; Function for check returned page for the information if verification was successful or not
@@ -233,7 +247,6 @@ CheckAnwser(ByRef wb, correct, incorrect) {
       Else
         GuiControl,, labelanswer, % " "
 
-      ; https://autohotkey.com/docs/commands/RegExMatch.htm
       If RegExMatch(wb.Document.body.innerHTML, correct) {
         If (debug = 1)
           MsgBox, % "Correct :)"
@@ -264,7 +277,7 @@ CheckAnwser(ByRef wb, correct, incorrect) {
       ;}
     } Until (errorLvl != 0)                             ; Loop again and again until errorlevel is changed
   } Catch e {
-    If (debug = 0) 
+    If (debug != 0)
       MsgBox 16, % textError, % textErrorException . e.extra
     Else
       MsgBox 16, % textError, % textErrorException . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
@@ -275,7 +288,7 @@ CheckAnwser(ByRef wb, correct, incorrect) {
 ; http://www.autohotkey.com/board/topic/47052-basic-webpage-controls-with-javascript-com-tutorial/
 ; http://www.autohotkey.com/board/topic/64563-basic-ahk-l-com-tutorial-for-webpages/
 Browser(ByRef wb) {
-  If (debug = 0)
+  If (debug != 0)
     wb.Silent := True ; Turn Off all IE warnings, such as "if JS can run on page etc."
 
   If (args[1] = "geocheck") { ; ==================================================> GEOCHECK (1)
@@ -330,7 +343,7 @@ Browser(ByRef wb) {
           wb.Navigate("https://geocaching.mikrom.cz/proxy/index.php?q=" . args[10] . "")        ; Navigate to webpage
         Else
           wb.Navigate("https://geocaching.mikrom.cz/proxy/index.php?q=" . args[10] . "&hl=1e7") ; Navigate to webpage
-        LoadWait(wb)                                                                      ; Wait for page load
+        LoadWait(wb)                                                                            ; Wait for page load
 
         ; Checking radiobuttons is little bit difficult
         Loop, % (lat := wb.Document.getElementsByName("lat")).Length ; Get elements named "lat"
@@ -353,7 +366,7 @@ Browser(ByRef wb) {
       wb.Document.All.usercaptcha.Focus() ; Focus on captcha field
     } Catch e {
       MsgBox 16, % textError, % textErrorFill
-      If (debug = 0)
+      If (debug != 0)
         ExitApp, errorLvl
     }
 
@@ -403,7 +416,8 @@ Browser(ByRef wb) {
         (din losning er korrekt!!!)|
         (l.+sningen er korrekt!!!)|
         (din l.+sning .+r r.+tt!!!)|
-        (TvÈ .+e.+enÌ je spr·vnÈ!!!)"
+        (TvÈ .+e.+enÌ je spr·vnÈ!!!)|
+		(ZadanÈ sou.+adnice nejsou zcela p.+esnÈ)"
       )
       notokay :=
       (LTrim Join
@@ -432,7 +446,7 @@ Browser(ByRef wb) {
     Gui, Show,, % "Checker - " . args[1] ; Change title
 
     wb.Navigate(args[10] . "&language=English") ; Navigate to webpage
-    LoadWait(wb)          ; Wait for page load
+    LoadWait(wb)                                ; Wait for page load
 
     ; Try to fill the webpage form
     Try {
@@ -441,7 +455,7 @@ Browser(ByRef wb) {
       Sleep, 500
       wb.Document.All.button.Click()
     } Catch e {
-      If (debug = 0) {
+      If (debug != 0) {
         MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
       } Else
@@ -452,7 +466,7 @@ Browser(ByRef wb) {
     ; YES: <div class="success">Success!</div> # <DIV class=success>Success!</DIV>
     ; NO:  <div class="wrong">Incorrect</div> | (ES: <div class="wrong">Incorrecto</div>) # <DIV class=wrong>Incorrect</DIV>
     If (answer = 1)
-      CheckAnwser(wb, "Smi)<div class=.?success.?>", "Smi)<div class=.?wrong.?>")
+      CheckAnwser(wb, "Smi)<div class=.?success.?", "Smi)<div class=.?wrong.?")
 
   } Else If (args[1] = "evince") { ; ==============================================> EVINCE (3)
     ; URL: http://evince.locusprime.net/cgi-bin/index.cgi?q=d0ZNzQeHKReGKzr
@@ -473,7 +487,7 @@ Browser(ByRef wb) {
     ;  wb.Document.All.recaptcha_response_field.Focus()
     ;} Catch e {
     ;  MsgBox 16, % textError, % textErrorFill
-    ;  If (debug = 0)
+    ;  If (debug != 0)
     ;    ExitApp, errorLvl
     ;}
 
@@ -486,7 +500,7 @@ Browser(ByRef wb) {
     ; Since 2017 website looks dead
     MsgBox, 48, % textError, % textEvince
     ExitApp, errorLvl
-    
+
   } Else If (args[1] = "hermansky") { ; ===========================================> HERMANSKY (4)
     ; URL: http://geo.hermansky.net/index.php?co=checker&code=22377facb3ee0fbbf6e5e2b7dee042ee8687a55cd
     ; Captcha: NO
@@ -503,7 +517,7 @@ Browser(ByRef wb) {
       If (wb.Document.getElementsByName("vteriny11").Length = 0) { ; For classic old DegMin version
         If (debug = 1)
           MsgBox, % "Deg Min version"
-          
+
         wb.Document.All.vyska.Value := args[2]
         wb.Document.All.stupne21.Value := args[3]
         wb.Document.All.minuty21.Value := args[4] . "." . args[5]
@@ -513,7 +527,7 @@ Browser(ByRef wb) {
       } Else If (wb.Document.getElementsByName("vteriny11").Length <> 0) { ; For new DegMinSec version
         If (debug = 1)
           MsgBox, % "Deg Min Sec version"
-          
+
         wb.Document.All.vyska.Value := args[2]
         wb.Document.All.stupne11.Value := args[3]
         wb.Document.All.minuty11.Value := args[4]
@@ -526,7 +540,7 @@ Browser(ByRef wb) {
       Sleep, 500
       wb.Document.Forms[0].Submit()
     } Catch e {
-      If (debug = 0) {
+      If (debug != 0) {
         MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
       } Else
@@ -568,7 +582,7 @@ Browser(ByRef wb) {
       wb.Document.All.delka3.Value := args[9]
       wb.Document.All.code.Focus()
     } Catch e {
-      If (debug = 0) {
+      If (debug != 0) {
         MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
       } Else
@@ -608,7 +622,7 @@ Browser(ByRef wb) {
       Sleep, 500
       wb.Document.Forms[0].Submit()
     } Catch e {
-      If (debug = 0) {
+      If (debug != 0) {
         MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
       } Else
@@ -650,7 +664,7 @@ Browser(ByRef wb) {
         If (inputs[A_index-1].Type = "submit")                             ; If some of them is type="submit"
           inputs[A_index-1].Click()                                        ; Click on it
     } Catch e {
-      If (debug = 0) {
+      If (debug != 0) {
         MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
       } Else
@@ -681,7 +695,7 @@ Browser(ByRef wb) {
         If (inputs[A_index-1].Type = "submit")                             ; If some of them is type="submit"
           inputs[A_index-1].Click()                                        ; Click on it
     } Catch e {
-      If (debug = 0) {
+      If (debug != 0) {
         MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
       } Else
@@ -705,10 +719,12 @@ Browser(ByRef wb) {
 
     ; Try to fill the webpage form
     Try {
-      wb.Document.All.ListView1_txtKoords_0.Value := args[2] . args[3] . " " . args[4] . "." . args[5] . " " . args[6] . args[7] . " " . args[8] . "." . args[9]
-      wb.Document.All.ListView1_txtCaptchaCode_0.Focus()
+	  If (wb.Document.getElementsByName("ListView1$ctrl0$txtKoords").Length <> 0) {
+        wb.Document.All.ListView1_txtKoords_0.Value := args[2] . args[3] . " " . args[4] . "." . args[5] . " " . args[6] . args[7] . " " . args[8] . "." . args[9]
+        wb.Document.All.ListView1_txtCaptchaCode_0.Focus()
+	  }
     } Catch e {
-      If (debug = 0) {
+      If (debug != 0) {
         MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
       } Else
@@ -716,16 +732,16 @@ Browser(ByRef wb) {
     }
 
     ; Check result after page reload
-    ; YES: xxx
-    ; NO:  <table><td><img alt=":)" src="http://cool-web.de/images/smiley-weird-80.png"></td><td style="font-weight:bold;color:grey;font-size:17pt;padding-left:20px;width:500px;">Sie haben eine besondere Koordinate eingegeben, zu der der Owner eine Nachricht hinterlegt hat!<br><br></td></tr></table><b>Die Mitteilung des Owners lautet:</b><br><br>Gratuliere,  du hast die Header Koordinaten richtig eingegeben! Hier findest du jedoch leider nichts!<br><br><br /><br /></td></tr>
-    ;If (answer = 1)
-    ;  CheckAnwser(wb, "Smi)xxx", "Smi)<img alt=.?:).? src=.?http:\/\/cool-web\.de\/images\/smiley-weird-80\.png.?>")
+    ; YES: <img alt=":)" src="/images/smiley-good-80.png">
+    ; NO:  <img alt=":)" src="http://cool-web.de/images/smiley-bad-80.png"> (or smiley-weird ???? )
+    If (answer = 1)
+      CheckAnwser(wb, "Smi)images\/smiley-good-80\.png.?>", "Smi)images\/smiley-bad-80\.png.?>")
 
   } Else If (args[1] = "gccheck") { ; =============================================> GCCHECK (9)
     ; URL: http://gccheck.com/GC5EJH7
     ; Captcha: YES
     Gui, Show,, % "Checker - " . args[1] ; Change title
-    
+
     wb.Navigate(args[10]) ; Navigate to webpage
     LoadWait(wb)          ; Wait for page load
 
@@ -738,7 +754,7 @@ Browser(ByRef wb) {
           inputs[A_index-1].Value := args[2] . args[3] . "∞ " . args[4] . "." . args[5] . " " . args[6] . args[7] . "∞ " . args[8] . "." . args[9]
       wb.Document.All.captcha.Focus()
     } Catch e {
-      If (debug = 0) {
+      If (debug != 0) {
         MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
       } Else
@@ -751,8 +767,8 @@ Browser(ByRef wb) {
     If (answer = 1)
       CheckAnwser(wb, "Smi)<span id=.?congrats.?>", "Smi)<span id=.?nope.?>")
 
-  } Else If (SubStr(args[1], 1, 9) = "challenge") { ; ===============================> CHALLENGE (10)
-    ; URL: http://project-gc.com/Challenges/GC27Z84
+  } Else If (SubStr(args[1], 1, 10) = "challenge|") { ; ===============================> CHALLENGE (10)
+    ; URL: http://project-gc.com/Challenges/GC5KDPR/11265
     ; Captcha: NO
     Gui, Show,, % "Checker - " . args[1] ; Change title
 
@@ -777,7 +793,7 @@ Browser(ByRef wb) {
         If (inputs[A_index-1].ID = "runChecker")                            ; If some of them is type="submit"
           inputs[A_index-1].Click()                                         ; Click on it
     } Catch e {
-      If (debug = 0) {
+      If (debug != 0) {
         MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
       } Else
@@ -785,10 +801,24 @@ Browser(ByRef wb) {
     }
 
     ; Check result after page reload
-    ; YES: <img src="http://maxcdn.project-gc.com/images/check48.png" alt="Check" title="⁄spÏch">
-    ; NO:  <img src="http://maxcdn.project-gc.com/images/check48.png" alt="Check" title="⁄spÏch">
+    ; YES: <div id="challengeFulfilled" class="hide">
+    ; NO:  <div id="challengeUnfulfilled" class="hide">
+    If (answer = 1)
+      CheckAnwser(wb, "Smi)<div id=.?challengeFulfilled.?", "Smi)<div id=.?challengeUnfulfilled.?")
+
+  } Else If (SubStr(args[1], 1, 10) = "challenge2") { ; ===============================> CHALLENGE2 (10.1)
+    ; URL: http://project-gc.com/Challenges/GC27Z84
+    ; Captcha: NO
+    Gui, Show,, % "Checker - " . args[1] ; Change title
+
+    wb.Navigate(args[10] . "?profile_name=" . UriEncode(SubStr(args[1], 12)) . "&submit=Filter") ; Navigate to webpage
+    LoadWait(wb)          ; Wait for page load
+
+    ; Check result after page reload
+    ; YES: 
+    ; NO:  
     ;If (answer = 1)
-    ;  CheckAnwser(wb, "Smi)<img src=.?congrats.?>", "Smi)<img src=.?nope.?>")
+    ;  CheckAnwser(wb, "Smi)<div id=.?challengeFulfilled.?", "Smi)<div id=.?challengeUnfulfilled.?")
 
   } Else If (args[1] = "gcappsGeochecker") { ; =============================================> GC-APPS GEOCHECKER (11.1)
     ; URL: http://www.gc-apps.com/geochecker/show/b1a0a77fa830ddbb6aa4ed4c69057e79
@@ -802,23 +832,23 @@ Browser(ByRef wb) {
     ; Try to fill the webpage form
     Try {
       If (args[2] = "N")
-        wb.Document.All.jform_ns.SelectedIndex := 0
+        wb.Document.All.checker_fields_latitude_0.SelectedIndex := 0
       If (args[2] = "S")
-        wb.Document.All.jform_ns.SelectedIndex := 1
-      wb.Document.All.jform_nsa.Value := args[3]
-      wb.Document.All.jform_nsb.Value := args[4]
-      wb.Document.All.jform_nsc.Value := args[5]
+        wb.Document.All.checker_fields_latitude_0.SelectedIndex := 1
+      wb.Document.All.checker_fields_latitude_1.Value := args[3]
+      wb.Document.All.checker_fields_latitude_2.Value := args[4]
+      wb.Document.All.checker_fields_latitude_3.Value := args[5]
       If (args[6] = "W")
-        wb.Document.All.jform_we.SelectedIndex := 0
+        wb.Document.All.checker_fields_longitude_0.SelectedIndex := 0
       If (args[6] = "E")
-        wb.Document.All.jform_we.SelectedIndex := 1
-      wb.Document.All.jform_wea.Value := args[7]
-      wb.Document.All.jform_web.Value := args[8]
-      wb.Document.All.jform_wec.Value := args[9]
+        wb.Document.All.checker_fields_longitude_0.SelectedIndex := 1
+      wb.Document.All.checker_fields_longitude_1.Value := args[7]
+      wb.Document.All.checker_fields_longitude_2.Value := args[8]
+      wb.Document.All.checker_fields_longitude_3.Value := args[9]
 
-      wb.Document.All._captcha.Focus()
+      wb.Document.All.show_captcha.Focus()
     } Catch e {
-      If (debug = 0) {
+      If (debug != 0) {
         MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
       } Else
@@ -844,7 +874,7 @@ Browser(ByRef wb) {
     ; Captcha: YES
     Gui, Show,, % "Checker - " . args[1] ; Change title
 
-    wb.Navigate(args[10]) ; Navigate to webpage
+    wb.Navigate(args[10] . "&z=1") ; Navigate to webpage
     LoadWait(wb)          ; Wait for page load
 
     ; Try to fill the webpage form
@@ -866,7 +896,7 @@ Browser(ByRef wb) {
 
       wb.Document.All.seccode.Focus()
     } Catch e {
-      If (debug = 0) {
+      If (debug != 0) {
         MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
       } Else
@@ -875,11 +905,11 @@ Browser(ByRef wb) {
 
     ; Check result after page reload
     ; YES: <font color="#00AA00" size=5><b>ETUSIVU UUSIKSI! SEH&Auml;N OSUI JA UPPOSI!</b></font>
-    ; YES: <font color="#00AA00" size=5><b>SEH&Auml;N MENI KUIN STR&Ouml;MS&Ouml;SS&Auml;! WAUDE!</b></font>
-    ; YES: <font color="#00AA00" size=5><b>WHOPII!!!! NAPPIIN MENI!</b></font>
+    ; YES: <font color="#00AA00" size=5><b>GREAT! AWESOME! SPECTACULAR!</b></font><font size=3><p>Thats it! You got that one right!</font>
     ; NO:  <font color="#FF0000" size=5><b>EI, EI, EI :(</b></font>
+	; NO:  <font color="#FF0000" size=5><b>NO, NO, NO :(</b></font><font size=3><p>Unfortunately your solution was not right :( </font>
     If (answer = 1)
-      CheckAnwser(wb, "Smi)<font color=.?#00AA00.? size=.?5.?>", "Smi)<font color=.?#FF0000.? size=.?5.?>")
+      CheckAnwser(wb, "Smi)Thats it! You got that one right!", "Smi)Unfortunately your solution was not right")
 
   } Else If (args[1] = "geowii") { ; =============================================> GEOWII (13)
     ; URL: http://geowii.miga.lv/wii/GC55D0E
@@ -900,7 +930,7 @@ Browser(ByRef wb) {
       }
 
     } Catch e {
-      If (debug = 0) {
+      If (debug != 0) {
         MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
       } Else
@@ -939,7 +969,7 @@ Browser(ByRef wb) {
       wb.Document.All.captcha.Focus()
 
     } Catch e {
-      If (debug = 0) {
+      If (debug != 0) {
         MsgBox 16, % textError, % textErrorFill
         ExitApp, errorLvl
       } Else
@@ -952,23 +982,41 @@ Browser(ByRef wb) {
     If (answer = 1)
       CheckAnwser(wb, "Smi)class=.?success.?", "Smi)class=.?fail.?")
 
+  } Else If (args[1] = "doxina") { ; =============================================> DOXINA (15)
+    ; URL: http://doxina.filipruzicka.net/cache.php?id=480
+    ; Captcha: ?
+    Gui, Show,, % "Checker - " . args[1] ; Change title
+
+    ; Since 2017 website looks dead
+    MsgBox, 48, % textError, % textDoxina
+    ExitApp, errorLvl
+
   } Else { ; ======================================================================> SERVICE ERROR
     MsgBox 16, % textError, % textErrorService
-    If (debug = 0)
+    If (debug != 0)
       ExitApp, errorLvl
   }
+
 } ; => Browser()
 
 ; Just for debugging
 If (debug = 1)
   ListVars
 
+; Apply registry hack for latest rendering engine
+If iefix
+  Prev := FixIE()
+
+; Apply registry settings for SSL certificates
+If certfix
+  Global Cert := FixIEcert()
+  
 ; Call main function
 Browser(wb)
 Return
 
 ; F5 for reload page (and fill form again)
-F5:: ; http://ahkscript.org/docs/KeyList.htm
+F5::
   Browser(wb)
 Return
 
@@ -979,26 +1027,29 @@ If (debug = 1)
 Return
 
 ; Run when GUI is resized
-GuiSize: ; http://ahkscript.org/docs/commands/Gui.htm#GuiSize
-  ; http://www.autohotkey.com/docs/commands/GuiControl.htm
+GuiSize:
   GuiControl, Move, wb, % "w" A_GuiWidth "h" A_GuiHeight - 20
   GuiControl, Move, hint, % "x" 5 "y" A_GuiHeight - 15
   GuiControl, Move, labelanswer, % "x" A_GuiWidth - 60 "y" A_GuiHeight - 15
 Return
 
 ; Run when GUI is closed
-GuiClose:          ; http://ahkscript.org/docs/commands/Gui.htm#GuiClose
+GuiClose:
   ObjRelease(pipa) ; Implement Tabstop for ActiveX > Shell.Explorer
   Gui Destroy
   If iefix
     FixIE(Prev)    ; Undo registry hack for latest rendering engine
+  If certfix
+    FixIEcert(Cert)
   ExitApp, errorLvl
 Return
 
 ; Run when ESC is pressed with GUI active
-GuiEscape:         ; http://ahkscript.org/docs/commands/Gui.htm#GuiEscape
+GuiEscape:
   ObjRelease(pipa) ; Implement Tabstop for ActiveX > Shell.Explorer
   If iefix
     FixIE(Prev)    ; Undo registry hack for latest rendering engine
+  If certfix
+    FixIEcert(Cert)
   ExitApp, errorLvl
 Return

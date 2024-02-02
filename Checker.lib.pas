@@ -4,7 +4,7 @@
   Www: http://geoget.ararat.cz/doku.php/user:skript:checker
   Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
   Author: mikrom, http://mikrom.cz
-  Version: 2.12.1
+  Version: 2.13.0
 
   ToDo:
   * This is maybe interesting: http://www.regular-expressions.info/duplicatelines.html
@@ -30,11 +30,13 @@ const
   gpscacheRegex    = '(?i)https?:\/\/(www\.)?geochecker\.gps-cache\.de\/check\.aspx\?id\=[^"''<\s]+';
   gccheckRegex     = '(?i)https?:\/\/(www\.)?gccheck\.com\/GC[^"''<\s]+';
   challengeRegex   = '(?i)https?:\/\/(www\.)?project-gc\.com\/Challenges\/GC[A-Z0-9]+\/\d+[^"''<\s]+';
-  gcappsGeoRegex   = '(?i)https?:\/\/(www\.)?gc-apps\.com\/geochecker\/show\/[^"''<\s]+'; // '(?i)https?:\/\/(www\.)?gc-apps\.com\/(geochecker\/show\/)|(index\.php\?option=com_geochecker&view=item&id=)([^"''<\s]+)';
+  challenge2Regex  = '(?i)https?:\/\/(www\.)?project-gc\.com\/Challenges\/GC[A-Z0-9]+"';
+  gcappsGeoRegex   = '(?i)https?:\/\/(www\.)?gc-apps\.com\/geochecker\/show\/[^"''<\s]+';
   gcappsMultiRegex = '(?i)https?:\/\/(www\.)?gc-apps\.com\/multichecker\/show\/[^"''<\s]+';
   geocacheFiRegex  = '(?i)https?:\/\/(www\.)?geocache\.fi\/checker\/\?[^"''<\s]+';
   geowiiRegex      = '(?i)https?:\/\/(www\.)?geowii\.miga\.lv\/wii\/[^"''<\s]+';
   gcmRegex         = '(?i)https?:\/\/(www\.)?gc\.gcm\.cz\/validator\/[^"''<\s]+';
+  doxinaRegex      = '(?i)https?:\/\/(www\.)?doxina\.filipruzicka\.net\/cache\.php\?id=[^"''<\s]+';
 
 var
   debug, answer: Boolean;
@@ -89,15 +91,15 @@ var
   url, s, coordinates, service, description, correct, incorrect: String;
   i, n: Integer;
   ini: TIniFile;
-  servicename, serviceurl: TStringList;
-  servNum: Integer;
+  serviceName, serviceUrl: TStringList;
+  serviceNum: Integer;
 begin
   {Read configuration from INI}
   ini := TIniFile.Create(GEOGET_SCRIPTDIR+'\Checker\Checker.ini');
   try
-    debug := ini.ReadBool('Checker', 'debug', False);
-    answer := ini.ReadBool('Checker', 'answer', False);
-    correct := ini.ReadString('Checker', 'correct', 'CORRECT');
+    debug     := ini.ReadBool('Checker', 'debug', False);
+    answer    := ini.ReadBool('Checker', 'answer', False);
+    correct   := ini.ReadString('Checker', 'correct', 'CORRECT');
     incorrect := ini.ReadString('Checker', 'incorrect', 'INCORRECT');
   finally
     ini.Free;
@@ -120,125 +122,146 @@ begin
   {Just for sure if coordinates are not zero}
   if coords <> '???' then begin
 
-    servicename := TStringList.Create;
-    serviceurl := TStringList.Create;
-    try
+    serviceName := TStringList.Create;
+    serviceUrl := TStringList.Create;
 
+    try
       {Try to find type of the checking service - geocheck.org, geochecker.com, evince.locusprime.net, etc..}
       {
       GEOCHECK
       url: geocheck.org/geo_inputchkcoord.php?gid=61241961c72ab1d-b813-47da-bf03-07c67bb81ac9
       captcha: yes
       }
-      if RegexFind(geocheckRegex, description) then begin
-        serviceurl.Add(RegExSubstitute(geocheckRegex, description, '$0#'));
-        servicename.Add('geocheck');
-        Inc(servNum);
+      s := RegExSubstitute(geocheckRegex, description, '$0#');
+      if s <> '' then begin
+        serviceName.Add('geocheck');
+        serviceUrl.Add(s);
+        Inc(serviceNum);
       end;
       {
       GEOCHECKER
       url: http://www.geochecker.com/index.php?code=e380cf72d82fa02a81bf71505e8c535c&action=check&wp=4743324457584d&name=536b6c656e696b202d20477265656e20486f757365
       captcha: no
       }
-      if RegexFind(geocheckerRegex, description) then begin
-        serviceurl.Add(RegExSubstitute(geocheckerRegex, description, '$0#'));
-        servicename.Add('geochecker');
-        Inc(servNum);
+      s := RegExSubstitute(geocheckerRegex, description, '$0#');
+      if s <> '' then begin
+        serviceName.Add('geochecker');
+        serviceUrl.Add(s);
+        Inc(serviceNum);
       end;
       {
-      EVINCE
+      EVINCE - DEAD
       url: http://evince.locusprime.net/cgi-bin/index.cgi?q=d0ZNzQeHKReGKzr
       captcha: yes
       }
-      if RegexFind(evinceRegex, description) then begin
-        serviceurl.Add(RegExSubstitute(evinceRegex, description, '$0#'));
-        servicename.Add('evince');
-        Inc(servNum);
+      s := RegExSubstitute(evinceRegex, description, '$0#');
+      if s <> '' then begin
+        serviceName.Add('evince');
+        serviceUrl.Add(s);
+        Inc(serviceNum);
       end;
       {
       HERMANSKY
       url: http://geo.hermansky.net/index.php?co=checker&code=2542e4245f80d4f7783e41ed7503fba6b3c8cc3188ff05
       captcha: no
       }
-      if RegexFind(hermanskyRegex, description) then begin
-        serviceurl.Add(RegExSubstitute(hermanskyRegex, description, '$0#'));
-        servicename.Add('hermansky');
-        Inc(servNum);
+      s := RegExSubstitute(hermanskyRegex, description, '$0#');
+      if s <> '' then begin
+        serviceName.Add('hermansky');
+    s := ReplaceString(s, 'speedygt.ic.cz/gps', 'geo.hermansky.net');
+        serviceUrl.Add(s);
+        Inc(serviceNum);
       end;
       {
       KOMURKA
       url: http://geo.komurka.cz/check.php?cache=GC2JCEQ
       captcha: yes
       }
-      if RegexFind(komurkaRegex, description) then begin
-        serviceurl.Add(RegExSubstitute(komurkaRegex, description, '$0#'));
-        servicename.Add('komurka');
-        Inc(servNum);
+      s := RegExSubstitute(komurkaRegex, description, '$0#');
+      if s <> '' then begin
+        serviceName.Add('komurka');
+        serviceUrl.Add(s);
+        Inc(serviceNum);
       end;
       {
       GCCOUNTER
       url: http://gccounter.com/gcchecker.php?site=gcchecker_check&id=2076
       captcha: no
       }
-      if RegexFind(gccounterRegex, description) then begin
-        serviceurl.Add(RegExSubstitute(gccounterRegex, description, '$0#'));
-        servicename.Add('gccounter');
-        Inc(servNum);
+      s := RegExSubstitute(gccounterRegex, description, '$0#');
+      if s <> '' then begin
+        serviceName.Add('gccounter');
+        serviceUrl.Add(s);
+        Inc(serviceNum);
       end;
       {
       GCCOUNTER2
       url: http://gccounter.de/GCchecker/Check?cacheID=3545
       captcha: no
       }
-      if RegexFind(gccounter2Regex, description) then begin
-        serviceurl.Add(RegExSubstitute(gccounter2Regex, description, '$0#'));
-        servicename.Add('gccounter2');
-        Inc(servNum);
+      s := RegExSubstitute(gccounter2Regex, description, '$0#');
+      if s <> '' then begin
+        serviceName.Add('gccounter2');
+        serviceUrl.Add(s);
+        Inc(serviceNum);
       end;
       {
       CERTITUDES
       url: http://www.certitudes.org/certitude?wp=GC2QFYT
       captcha: no
       }
-      if RegexFind(certitudesRegex, description) then begin
-        serviceurl.Add(RegExSubstitute(certitudesRegex, description, '$0#'));
-        servicename.Add('certitudes');
-        Inc(servNum);
+      s := RegExSubstitute(certitudesRegex, description, '$0#');
+      if s <> '' then begin
+        serviceName.Add('certitudes');
+        serviceUrl.Add(s);
+        Inc(serviceNum);
       end;
       {
       GPS-CACHE
       url: http://geochecker.gps-cache.de/check.aspx?id=7c52d196-b9d2-4b23-ad99-5d6e1bece187
       captcha: yes
       }
-      if RegexFind(gpscacheRegex, description) then begin
-        serviceurl.Add(RegExSubstitute(gpscacheRegex, description, '$0#'));
-        servicename.Add('gpscache');
-        Inc(servNum);
+      s := RegExSubstitute(gpscacheRegex, description, '$0#');
+      if s <> '' then begin
+        serviceName.Add('gpscache');
+        serviceUrl.Add(s);
+        Inc(serviceNum);
       end;
       {
       GCCHECK
       url: http://gccheck.com/GC5EJH7
       captcha: yes
       }
-      if RegexFind(gccheckRegex, description) then begin
-        //url := RegExSubstitute(gccheckRegex, description, '$0#');
-        //if SeparateLeft(url, ':') = 'http' then url := ReplaceString(url, 'http', 'https');
-        //serviceurl.Add(url); 
-        serviceurl.Add(RegExSubstitute(gccheckRegex, description, '$0#'));
-        servicename.Add('gccheck');
-        Inc(servNum);
+      s := RegExSubstitute(gccheckRegex, description, '$0#');
+      if s <> '' then begin
+        serviceName.Add('gccheck');
+        serviceUrl.Add(s);
+        Inc(serviceNum);
       end;
       {
       CHALLENGE
-      url: http://project-gc.com/Challenges/GC27Z84         (zde staèí poslat s parametry)
-      url: http://project-gc.com/Challenges/GC5KDPR/11265   (zde se musi kliknout na submit a mit IE10+)
+      url: http://project-gc.com/Challenges/GC5KDPR/11265 - musi se kliknout na submit a mit IE10+
       url: http://project-gc.com/Tools/Challenges?ccId=85&amp;ccTagId=378&amp;ccCountry=Czech+Republic
       captcha: no
       }
-      if RegexFind(challengeRegex, description) then begin
-        serviceurl.Add(RegExSubstitute(challengeRegex, description, '$0#'));
-        service := '"challenge|' + GEOGET_OWNER +'"'; //EncodeUrlElement(GEOGET_OWNER);
-        Inc(servNum);
+      s := RegExSubstitute(challengeRegex, description, '$0#');
+      if s <> '' then begin
+        serviceName.Add('"challenge|' + GEOGET_OWNER +'"'); //EncodeUrlElement(GEOGET_OWNER);
+        serviceUrl.Add(s);
+        Inc(serviceNum);
+      end;
+      {
+      CHALLENGE2
+      url: http://project-gc.com/Challenges/GC27Z84 - staèí poslat s parametry (http://project-gc.com/Challenges/GC27Z84?profile_name=mikrom&submit=Filter)
+      url: http://project-gc.com/Tools/Challenges?ccId=85&amp;ccTagId=378&amp;ccCountry=Czech+Republic
+      captcha: no
+      }
+      s := RegExSubstitute(challenge2Regex, description, '$0#');
+      if s <> '' then begin
+        serviceName.Add('"challenge2|' + GEOGET_OWNER +'"'); //EncodeUrlElement(GEOGET_OWNER);
+        s := SeparateLeft(s, '"'); // Regex returns URL ending with "
+        serviceUrl.Add(s);
+        Inc(serviceNum);
       end;
       {
       GC-APPS GEOCHECKER
@@ -246,53 +269,69 @@ begin
       url: http://www.gc-apps.com/index.php?option=com_geochecker&view=item&id=b1a0a77fa830ddbb6aa4ed4c69057e79
       captcha: yes
       }
-      if RegexFind(gcappsGeoRegex, description) then begin
-        serviceurl.Add(RegExSubstitute(gcappsGeoRegex, description, '$0#'));
-        servicename.Add('gcappsGeochecker');
-        Inc(servNum);
+      s := RegExSubstitute(gcappsGeoRegex, description, '$0#');
+      if s <> '' then begin
+        serviceName.Add('gcappsGeochecker');
+        serviceUrl.Add(s);
+        Inc(serviceNum);
       end;
       {
       GC-APPS MULTICHECKER
       url: http://beta.gc-apps.com/checker/try/6e520532c3aa8c150ab90a82bf68d874
       captcha: ?
       }
-      if RegexFind(gcappsMultiRegex, description) then begin
-        serviceurl.Add(RegExSubstitute(gcappsMultiRegex, description, '$0#'));
-        servicename.Add('gcappsMultichecker');
-        Inc(servNum);
+      s := RegExSubstitute(gcappsMultiRegex, description, '$0#');
+      if s <> '' then begin
+        serviceName.Add('gcappsMultichecker');
+        serviceUrl.Add(s);
+        Inc(serviceNum);
       end;
       {
       GEOCACHE.FI
       url: http://www.geocache.fi/checker/?uid=M9KAR6VJJG5VCDCSZQCR&act=check&wp=GC4CEFD
       captcha: yes
       }
-      if RegexFind(geocacheFiRegex, description) then begin
-        serviceurl.Add(RegExSubstitute(geocacheFiRegex, description, '$0#'));
-        servicename.Add('geocachefi');
-        Inc(servNum);
+      s := RegExSubstitute(geocacheFiRegex, description, '$0#');
+      if s <> '' then begin
+        serviceName.Add('geocachefi');
+        serviceUrl.Add(s);
+        Inc(serviceNum);
       end;
       {
       GEOWII.MIGA.LV
       url: http://geowii.miga.lv/wii/GC55D0E
       captcha: -
       }
-      if RegexFind(geowiiRegex, description) then begin
-        serviceurl.Add(RegExSubstitute(geowiiRegex, description, '$0#'));
-        servicename.Add('geowii');
-        Inc(servNum);
+      s := RegExSubstitute(geowiiRegex, description, '$0#');
+      if s <> '' then begin
+        serviceName.Add('geowii');
+        serviceUrl.Add(s);
+        Inc(serviceNum);
       end;
       {
       GC.GCM.CZ
       url: https://gc.gcm.cz/validator/index.php?uuid=7f401a15-231e-44c8-a6e6-bf8b9c69a624
       captcha: yes
       }
-      if RegexFind(gcmRegex, description) then begin
-        serviceurl.Add(RegExSubstitute(gcmRegex, description, '$0#'));
-        servicename.Add('gcm');
-        Inc(servNum);
+      s := RegExSubstitute(gcmRegex, description, '$0#');
+      if s <> '' then begin
+        serviceName.Add('gcm');
+        serviceUrl.Add(s);
+        Inc(serviceNum);
+      end;
+      {
+      DOXINA - DEAD
+      url: http://doxina.filipruzicka.net/cache.php?id=480
+      captcha: ?
+      }
+      s := RegExSubstitute(doxinaRegex, description, '$0#');
+      if s <> '' then begin
+        serviceName.Add('doxina');
+        serviceUrl.Add(s);
+        Inc(serviceNum);
       end;
       {Nothing found}
-      if servNum = 0 then begin
+      if serviceNum = 0 then begin
         ShowMessage(_('Error: No coordinate checker URL found!'));
         if debug then StringToFile(description, GEOGET_SCRIPTDIR + '\Checker\description.html');
         GeoAbort;
@@ -303,8 +342,8 @@ begin
       coordinates := CorrectCoords(coordinates); // Add leading zeroes to minutes if missing
 
       {If there more than 1 services found}
-      if servNum > 1 then begin
-        CheckerForm_ListBox.Items.Assign(servicename); // Just fill ListBox with TStringList
+      if serviceNum > 1 then begin
+        CheckerForm_ListBox.Items.Assign(serviceName); // Just fill ListBox with TStringList
         CheckerForm_ListBox.Selected[0] := true;
 
         {Show Window (Cancel return 1, OK return 2)}
@@ -314,8 +353,8 @@ begin
             for i:=0 to CheckerForm_ListBox.Items.Count-1 do begin
               if CheckerForm_ListBox.Selected[i] then begin
                 service := CheckerForm_ListBox.Items[CheckerForm_ListBox.ItemIndex]; // Just get selected item
-                url := TrimUrl(serviceurl[i]);                                       // Get same row from stringlist with URLs
-                if debug then ShowMessage(CheckerForm_ListBox.Items[CheckerForm_ListBox.ItemIndex] + CRLF + serviceurl[i]); // Show name of selected item
+                url := TrimUrl(serviceUrl[i]);                                       // Get same row from stringlist with URLs
+                if debug then ShowMessage(CheckerForm_ListBox.Items[CheckerForm_ListBox.ItemIndex] + CRLF + serviceUrl[i]); // Show name of selected item
               end;
             end;
           end
@@ -327,8 +366,8 @@ begin
         CheckerForm.Close;
       end
       else begin
-        service := servicename[0];
-        url := TrimUrl(serviceurl[0]);
+        service := serviceName[0];
+        url := TrimUrl(serviceUrl[0]);
       end;
 
       {Make command for running AHK}
@@ -354,8 +393,8 @@ begin
         RunExecNoWait(s);
 
     finally
-      serviceurl.Free;
-      servicename.Free;
+      serviceName.Free;
+      serviceUrl.Free;
     end;
   end
   {Wrong coordinates, maybe they are zero}
