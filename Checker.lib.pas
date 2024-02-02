@@ -4,7 +4,7 @@
   Www: http://geoget.ararat.cz/doku.php/user:skript:checker
   Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
   Author: mikrom, http://mikrom.cz
-  Version: 2.11.0
+  Version: 2.11.1
 
   ToDo:
   * This is maybe interesting: http://www.regular-expressions.info/duplicatelines.html
@@ -47,12 +47,12 @@ begin
     
       if GC.Waypoints[n].Comment <> '' then begin                // If there is already some comment
         if RegexFind('^\{[^}]+\}', GC.Waypoints[n].Comment) then // And HAVE our tag at the begining
-          GC.Waypoints[n].UpdateComment(RegexReplace('^\{([^}]+)\}', GC.Waypoints[n].Comment, '{'+ans+' '+FormatDateTime('dd"."mm"."yyyy', Now())+'}', true)) // REPLACE the existing tag
+          GC.Waypoints[n].UpdateComment(RegexReplace('^\{([^}]+)\}', GC.Waypoints[n].Comment, '{' + ans + ' ' + FormatDateTime('dd"."mm"."yyyy', Now()) + '}', true)) // REPLACE the existing tag
         else                                                     // Else ADD tag at the begining
-          GC.Waypoints[n].UpdateComment('{'+ans+' '+FormatDateTime('dd"."mm"."yyyy', Now())+'} ' + GC.Waypoints[n].Comment);
+          GC.Waypoints[n].UpdateComment('{' + ans + ' ' + FormatDateTime('dd"."mm"."yyyy', Now()) + '} ' + CRLF + GC.Waypoints[n].Comment);
       end
       else                                                       // Or if comment has no our tag, then ADD only tag
-        GC.Waypoints[n].UpdateComment('{'+ans+' '+FormatDateTime('dd"."mm"."yyyy', Now())+'}');
+        GC.Waypoints[n].UpdateComment('{' + ans + ' ' + FormatDateTime('dd"."mm"."yyyy', Now()) + '}');
         
       GeoListUpdateID(GC.ID);                                    // Refresh chache in the list
     end;
