@@ -4,7 +4,7 @@
   Www: http://geoget.ararat.cz/doku.php/user:skript:checker
   Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
   Author: mikrom, http://mikrom.cz
-  Version: 0.2.9.0
+  Version: 2.10.0
 
   ToDo:
   * This is maybe interesting: http://www.regular-expressions.info/duplicatelines.html
@@ -26,6 +26,8 @@ const
   gcappsGeoRegex   = '(?i)https?:\/\/(www\.)?gc-apps\.com\/geochecker\/show\/([^"''<\s]+)'; // '(?i)https?:\/\/(www\.)?gc-apps\.com\/(geochecker\/show\/)|(index\.php\?option=com_geochecker&view=item&id=)([^"''<\s]+)';
   gcappsMultiRegex = '(?i)https?:\/\/(www\.)?gc-apps\.com\/multichecker\/show\/([^"''<\s]+)';
   geocacheFiRegex  = '(?i)https?:\/\/(www\.)?geocache\.fi\/checker\/\?.+wp\=([^"''<\s]+)';
+  geowiiRegex      = '(?i)https?:\/\/(www\.)?geowii\.miga\.lv\/wii\/([^"''<\s]+)';
+  
 var
   debug, answer: Boolean;
   coords: String;
@@ -237,10 +239,20 @@ begin
     else if RegexFind(geocacheFiRegex, description) then begin
       url := RegExSubstitute(geocacheFiRegex, description, '$0#'); // Parse URL from listing (on purpose it ends with '#')
       service := 'geocachefi';
+    end
+    {
+    GEOWII.MIGA.LV
+    url: http://geowii.miga.lv/wii/GC55D0E
+    captcha: -
+    }
+    else if RegexFind(geowiiRegex, description) then begin
+      url := RegExSubstitute(geowiiRegex, description, '$0#'); // Parse URL from listing (on purpose it ends with '#')
+      service := 'geowii';
     end 
     {Standard behavior}
     else begin
       ShowMessage(_('Error: No coordinate checker URL found!'));
+      if debug then StringToFile(description, GEOGET_SCRIPTDIR + '\Checker\description.html');
       GeoAbort;
     end;
 

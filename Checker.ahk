@@ -2,7 +2,7 @@
 ; Www: http://geoget.ararat.cz/doku.php/user:skript:checker
 ; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ; Author: mikrom, http://mikrom.cz
-; Version: 0.2.9.0
+; Version: 2.10.0
 ;
 ; Documentation: http://ahkscript.org/docs/AutoHotkey.htm
 ; FAQ: http://www.autohotkey.com/docs/FAQ.htm
@@ -321,7 +321,8 @@ Browser(ByRef wb) {
       wb.Document.All.usercaptcha.Focus() ; Focus on captcha field
     } Catch e {
       MsgBox 16, % textError, % textErrorFill
-      ExitApp, errorLvl
+      If (debug = 0)
+        ExitApp, errorLvl
     }
 
     ; Check result after page reload
@@ -408,7 +409,8 @@ Browser(ByRef wb) {
       wb.Document.All.button.Click()
     } Catch e {
       MsgBox 16, % textError, % textErrorFill
-      ExitApp, errorLvl
+      If (debug = 0)
+        ExitApp, errorLvl
     }
 
     ; Check result after page reload
@@ -436,7 +438,8 @@ Browser(ByRef wb) {
       wb.Document.All.recaptcha_response_field.Focus()
     } Catch e {
       MsgBox 16, % textError, % textErrorFill
-      ExitApp, errorLvl
+      If (debug = 0)
+        ExitApp, errorLvl
     }
 
     ; Check result after page reload
@@ -466,7 +469,8 @@ Browser(ByRef wb) {
       wb.Document.Forms[0].Submit()
     } Catch e {
       MsgBox 16, % textError, % textErrorFill
-      ExitApp, errorLvl
+      If (debug = 0)
+        ExitApp, errorLvl
     }
 
     Sleep, 1000
@@ -505,7 +509,8 @@ Browser(ByRef wb) {
       wb.Document.All.code.Focus()
     } Catch e {
       MsgBox 16, % textError, % textErrorFill
-      ExitApp, errorLvl
+      If (debug = 0)
+        ExitApp, errorLvl
     }
 
     ; Check result after page reload
@@ -542,7 +547,8 @@ Browser(ByRef wb) {
       wb.Document.Forms[0].Submit()
     } Catch e {
       MsgBox 16, % textError, % textErrorFill
-      ExitApp, errorLvl
+      If (debug = 0)
+        ExitApp, errorLvl
     }
 
     ; Check result after page reload
@@ -581,7 +587,8 @@ Browser(ByRef wb) {
           inputs[A_index-1].Click()                                        ; Click on it
     } Catch e {
       MsgBox 16, % textError, % textErrorFill
-      ExitApp, errorLvl
+      If (debug = 0)
+        ExitApp, errorLvl
     }
 
     ; Check result after page reload
@@ -609,7 +616,8 @@ Browser(ByRef wb) {
           inputs[A_index-1].Click()                                        ; Click on it
     } Catch e {
       MsgBox 16, % textError, % textErrorFill
-      ExitApp, errorLvl
+      If (debug = 0)
+        ExitApp, errorLvl
     }
 
     ; Check result after page reload
@@ -633,7 +641,8 @@ Browser(ByRef wb) {
       wb.Document.All.ListView1_txtCaptchaCode_0.Focus()
     } Catch e {
       MsgBox 16, % textError, % textErrorFill
-      ExitApp, errorLvl
+      If (debug = 0)
+        ExitApp, errorLvl
     }
 
     ; Check result after page reload
@@ -660,7 +669,8 @@ Browser(ByRef wb) {
       wb.Document.All.captcha.Focus()
     } Catch e {
       MsgBox 16, % textError, % textErrorFill
-      ExitApp, errorLvl
+      If (debug = 0)
+        ExitApp, errorLvl
     }
 
     ; Check result after page reload
@@ -696,7 +706,8 @@ Browser(ByRef wb) {
           inputs[A_index-1].Click()                                         ; Click on it
     } Catch e {
       MsgBox 16, % textError, % textErrorFill
-      ExitApp, errorLvl
+      If (debug = 0)
+        ExitApp, errorLvl
     }
 
     ; Check result after page reload
@@ -734,7 +745,8 @@ Browser(ByRef wb) {
       wb.Document.All._captcha.Focus()
     } Catch e {
       MsgBox 16, % textError, % textErrorFill
-      ExitApp, errorLvl
+      If (debug = 0)
+        ExitApp, errorLvl
     }
 
     ; Check result after page reload
@@ -779,7 +791,8 @@ Browser(ByRef wb) {
       wb.Document.All.seccode.Focus()
     } Catch e {
       MsgBox 16, % textError, % textErrorFill
-      ExitApp, errorLvl
+      If (debug = 0)
+        ExitApp, errorLvl
     }
 
     ; Check result after page reload
@@ -790,9 +803,40 @@ Browser(ByRef wb) {
     If (answer = 1)
       CheckAnwser(wb, "Smi)<font color=.?#00AA00.? size=.?5.?>", "Smi)<font color=.?#FF0000.? size=.?5.?>")
       
+  } Else If (args[1] = "geowii") { ; =============================================> GEOWII (13)
+    ; URL: http://geowii.miga.lv/wii/GC55D0E
+    ; Captcha: -
+    Gui, Show,, % "Checker - " . args[1] ; Change title
+
+    wb.Navigate(args[10]) ; Navigate to webpage
+    LoadWait(wb)          ; Wait for page load
+
+    ; Try to fill the webpage form
+    Try {
+
+      ; Sometimes You need to login to GC.com, and allow access
+      ; In this case fill nothing, just wait for user action and maybe next time
+      If (wb.Document.getElementsByName("ctl00$ContentBody$uxAllowAccessButton").Length = 0) {
+        wb.Document.All.verifyCoordinates.Value := args[2] . args[3] . "° " . args[4] . "." . args[5] . " " . args[6] . args[7] . "° " . args[8] . "." . args[9]
+        ;wb.Document.Forms[0].Submit()
+      }
+      
+    } Catch e {
+      MsgBox 16, % textError, % textErrorFill
+      If (debug = 0)
+        ExitApp, errorLvl
+    }
+
+    ; Check result after page reload
+    ; YES: <h4 class="text-success">Congratulations! The coordinates you entered <strong>N 56&#176; 56.784 E 024&#176; 05.973</strong> are correct!</h4>
+    ; NO:  <h4 class="text-danger">The coordinates you entered <strong>N 56&#176; 56.784 E 024&#176; 05.911</strong> are incorrect.</h4>
+    If (answer = 1)
+      CheckAnwser(wb, "Smi)class=.?text-success.?", "Smi)class=.?text-danger.?")
+      
   } Else { ; ======================================================================> SERVICE ERROR
     MsgBox 16, % textError, % textErrorService
-    ExitApp, errorLvl
+    If (debug = 0)
+      ExitApp, errorLvl
   }
 } ; => Browser()
 
