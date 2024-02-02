@@ -2,7 +2,7 @@
 ; Www: http://geoget.ararat.cz/doku.php/user:skript:checker
 ; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ; Author: mikrom, http://mikrom.cz
-; Version: 2.10.0
+; Version: 2.11.0
 ;
 ; Documentation: http://ahkscript.org/docs/AutoHotkey.htm
 ; FAQ: http://www.autohotkey.com/docs/FAQ.htm
@@ -832,6 +832,43 @@ Browser(ByRef wb) {
     ; NO:  <h4 class="text-danger">The coordinates you entered <strong>N 56&#176; 56.784 E 024&#176; 05.911</strong> are incorrect.</h4>
     If (answer = 1)
       CheckAnwser(wb, "Smi)class=.?text-success.?", "Smi)class=.?text-danger.?")
+      
+  } Else If (args[1] = "gcm") { ; =============================================> GC.GCM.CZ (14)
+    ; URL: https://gc.gcm.cz/validator/index.php?uuid=7f401a15-231e-44c8-a6e6-bf8b9c69a624
+    ; Captcha: YES
+    Gui, Show,, % "Checker - " . args[1] ; Change title
+
+    wb.Navigate(args[10]) ; Navigate to webpage
+    LoadWait(wb)          ; Wait for page load
+
+    ; Try to fill the webpage form
+    Try {
+      If (args[2] = "N")
+        wb.Document.All.lat_ns.SelectedIndex := 0
+      If (args[2] = "S")
+        wb.Document.All.lat_ns.SelectedIndex := 1   
+      wb.Document.All.lat_deg.Value := args[3]
+      wb.Document.All.lat_min.Value := args[4] . "." . args[5]
+      If (args[6] = "E")
+        wb.Document.All.lon_ew.SelectedIndex := 0
+      If (args[6] = "W")
+        wb.Document.All.lon_ew.SelectedIndex := 1
+      wb.Document.All.lon_deg.Value := args[7]
+      wb.Document.All.lon_min.Value := args[8] . "." . args[9]
+      
+      wb.Document.All.captcha.Focus()
+      
+    } Catch e {
+      MsgBox 16, % textError, % textErrorFill
+      If (debug = 0)
+        ExitApp, errorLvl
+    }
+
+    ; Check result after page reload
+    ; YES: <h3 class="success">Výbornì!</h3>
+    ; NO:  <h3 class="fail">Bohužel :(</h3>
+    If (answer = 1)
+      CheckAnwser(wb, "Smi)class=.?success.?", "Smi)class=.?fail.?")
       
   } Else { ; ======================================================================> SERVICE ERROR
     MsgBox 16, % textError, % textErrorService

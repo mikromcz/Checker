@@ -1,4 +1,8 @@
-** 2.10.0 ** (2017/02/03)**
+** 2.11.0 (2017/02/15) **
+  * pøidána podpora gc.gcm.cz
+  * oprava parsování geocache.fi
+  
+** 2.10.0 (2017/02/03) **
   * pøidána podpora geowii.miga.lv
   * drobné opravy a úpravy debug módu
 

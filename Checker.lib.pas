@@ -4,29 +4,31 @@
   Www: http://geoget.ararat.cz/doku.php/user:skript:checker
   Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
   Author: mikrom, http://mikrom.cz
-  Version: 2.10.0
+  Version: 2.11.0
 
   ToDo:
   * This is maybe interesting: http://www.regular-expressions.info/duplicatelines.html
+  * pokud se najde víc ovìøení, tak vybrat který použít
 }
 
 const
   {Define search regex here, good test is here: https://regex101.com/ or http://regexr.com/}
-  geocheckRegex    = '(?i)https?:\/\/(www\.)?(geocheck\.org|geotjek\.dk)\/geo_inputchkcoord([^"''<\s]+)';
-  geocheckerRegex  = '(?i)https?:\/\/(www\.)?geochecker\.com\/index\.php([^"''<\s]+)';
-  evinceRegex      = '(?i)https?:\/\/(www\.)?evince\.locusprime\.net\/cgi-bin\/([^"''<\s]+)';
-  hermanskyRegex   = '(?i)https?:\/\/(www\.)?(geo\.hermansky\.net|speedygt\.ic\.cz\/gps)\/index\.php\?co\=checker([^"''<\s]+)';
-  komurkaRegex     = '(?i)https?:\/\/(www\.)?geo\.komurka\.cz\/check\.php([^"''<\s]+)';
-  gccounterRegex   = '(?i)https?:\/\/(www\.)?gccounter\.(de|com)\/gcchecker\.php([^"''<\s]+)';
-  gccounter2Regex  = '(?i)https?:\/\/(www\.)?gccounter\.(de|com)\/GCchecker\/Check([^"''<\s]+)';
-  certitudesRegex  = '(?i)https?:\/\/(www\.)?certitudes\.org\/certitude(\.php)?\?wp\=([^"''<\s]+)';
-  gpscacheRegex    = '(?i)https?:\/\/(www\.)?geochecker\.gps-cache\.de\/check\.aspx\?id\=([^"''<\s]+)';
-  gccheckRegex     = '(?i)https?:\/\/(www\.)?gccheck\.com\/(GC[^"''<\s]+)';
+  geocheckRegex    = '(?i)https?:\/\/(www\.)?(geocheck\.org|geotjek\.dk)\/geo_inputchkcoord[^"''<\s]+';
+  geocheckerRegex  = '(?i)https?:\/\/(www\.)?geochecker\.com\/index\.php[^"''<\s]+';
+  evinceRegex      = '(?i)https?:\/\/(www\.)?evince\.locusprime\.net\/cgi-bin\/[^"''<\s]+';
+  hermanskyRegex   = '(?i)https?:\/\/(www\.)?(geo\.hermansky\.net|speedygt\.ic\.cz\/gps)\/index\.php\?co\=checker[^"''<\s]+';
+  komurkaRegex     = '(?i)https?:\/\/(www\.)?geo\.komurka\.cz\/check\.php[^"''<\s]+';
+  gccounterRegex   = '(?i)https?:\/\/(www\.)?gccounter\.(de|com)\/gcchecker\.php[^"''<\s]+';
+  gccounter2Regex  = '(?i)https?:\/\/(www\.)?gccounter\.(de|com)\/GCchecker\/Check[^"''<\s]+';
+  certitudesRegex  = '(?i)https?:\/\/(www\.)?certitudes\.org\/certitude(\.php)?\?wp\=[^"''<\s]+';
+  gpscacheRegex    = '(?i)https?:\/\/(www\.)?geochecker\.gps-cache\.de\/check\.aspx\?id\=[^"''<\s]+';
+  gccheckRegex     = '(?i)https?:\/\/(www\.)?gccheck\.com\/GC[^"''<\s]+';
   challengeRegex   = '(?i)https?:\/\/(www\.)?project-gc\.com\/Challenges\/GC[A-Z0-9]+\/\d+[^"''<\s]+';
-  gcappsGeoRegex   = '(?i)https?:\/\/(www\.)?gc-apps\.com\/geochecker\/show\/([^"''<\s]+)'; // '(?i)https?:\/\/(www\.)?gc-apps\.com\/(geochecker\/show\/)|(index\.php\?option=com_geochecker&view=item&id=)([^"''<\s]+)';
-  gcappsMultiRegex = '(?i)https?:\/\/(www\.)?gc-apps\.com\/multichecker\/show\/([^"''<\s]+)';
-  geocacheFiRegex  = '(?i)https?:\/\/(www\.)?geocache\.fi\/checker\/\?.+wp\=([^"''<\s]+)';
-  geowiiRegex      = '(?i)https?:\/\/(www\.)?geowii\.miga\.lv\/wii\/([^"''<\s]+)';
+  gcappsGeoRegex   = '(?i)https?:\/\/(www\.)?gc-apps\.com\/geochecker\/show\/[^"''<\s]+'; // '(?i)https?:\/\/(www\.)?gc-apps\.com\/(geochecker\/show\/)|(index\.php\?option=com_geochecker&view=item&id=)([^"''<\s]+)';
+  gcappsMultiRegex = '(?i)https?:\/\/(www\.)?gc-apps\.com\/multichecker\/show\/[^"''<\s]+';
+  geocacheFiRegex  = '(?i)https?:\/\/(www\.)?geocache\.fi\/checker\/\?[^"''<\s]+';
+  geowiiRegex      = '(?i)https?:\/\/(www\.)?geowii\.miga\.lv\/wii\/[^"''<\s]+';
+  gcmRegex         = '(?i)https?:\/\/(www\.)?gc\.gcm\.cz\/validator\/[^"''<\s]+';
   
 var
   debug, answer: Boolean;
@@ -248,7 +250,16 @@ begin
     else if RegexFind(geowiiRegex, description) then begin
       url := RegExSubstitute(geowiiRegex, description, '$0#'); // Parse URL from listing (on purpose it ends with '#')
       service := 'geowii';
-    end 
+    end
+    {
+    GC.GCM.CZ
+    url: https://gc.gcm.cz/validator/index.php?uuid=7f401a15-231e-44c8-a6e6-bf8b9c69a624
+    captcha: yes
+    }
+    else if RegexFind(gcmRegex, description) then begin
+      url := RegExSubstitute(gcmRegex, description, '$0#'); // Parse URL from listing (on purpose it ends with '#')
+      service := 'gcm';
+    end    
     {Standard behavior}
     else begin
       ShowMessage(_('Error: No coordinate checker URL found!'));
