@@ -4,7 +4,7 @@
   Www: http://geoget.ararat.cz/doku.php/user:skript:checker
   Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
   Author: mikrom, http://mikrom.cz
-  Version: 0.0.1.6
+  Version: 0.0.1.8
 }
 
 function PluginCaption: string;
@@ -75,36 +75,72 @@ begin
       url:=RegExSubstitute('(https?://|www\.)(geocheck\.org|geotjek\.dk)\/geo_inputchkcoord([^"'']+)',GC.LongDescription,'$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
       url:=TrimUrl(url);
       service:='geocheck';
+      {
+      captcha: ano
+      url:
+      form:
+      }
     end
-    else if RegexFind('(https?://|www\.)geochecker\.com([^"'']+)',GC.LongDescription) then begin
-      url:=RegExSubstitute('(https?://|www\.)geochecker\.com([^"'']+)',GC.LongDescription,'$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
+    else if RegexFind('(https?://|www\.)geochecker\.com\/index\.php([^"'']+)',GC.LongDescription) then begin
+      url:=RegExSubstitute('(https?://|www\.)geochecker\.com\/index\.php([^"'']+)',GC.LongDescription,'$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
       url:=TrimUrl(url);
       service:='geochecker';
+      {
+      captcha: ano
+      url:
+      form:
+      }
     end
     else if RegexFind('(https?://|www\.)evince\.locusprime\.net\/cgi-bin\/([^"'']+)',GC.LongDescription) then begin
       url:=RegExSubstitute('(https?://|www\.)evince\.locusprime\.net\/cgi-bin\/([^"'']+)',GC.LongDescription,'$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
       url:=TrimUrl(url);
       service:='evince';
+      {
+      captcha: ano
+      url:
+      form:
+      }
     end
     else if RegexFind('(https?://|www\.)(geo\.hermansky\.net|speedygt\.ic\.cz\/gps)\/index\.php\?co\=checker([^"'']+)',GC.LongDescription) then begin
       url:=RegExSubstitute('(https?://|www\.)(geo\.hermansky\.net|speedygt\.ic\.cz\/gps)\/index\.php\?co\=checker([^"'']+)',GC.LongDescription,'$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
       url:=TrimUrl(url);
       service:='hermansky';
+      {
+      captcha: ne
+      url: http://geo.hermansky.net/index.php?co=checker&code=2542e4245f80d4f7783e41ed7503fba6b3c8cc3188ff05
+      form: &vyska=N&stupne21=50&minuty21=13.061&sirka=E&stupne22=014&minuty22=16.024
+      }
     end
     else if RegexFind('(https?://|www\.)geo\.komurka\.cz\/check\.php([^"'']+)',GC.LongDescription) then begin
       url:=RegExSubstitute('(https?://|www\.)geo\.komurka\.cz\/check\.php([^"'']+)',GC.LongDescription,'$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
       url:=TrimUrl(url);
       service:='komurka';
+      {
+      captcha: ano
+      url: http://geo.komurka.cz/check.php?cache=GC2JCEQ
+      form: http://geo.komurka.cz/check.php?select1=N&sirka1=49&sirka2=02&sirka3=728&select2=E&delka1=014&delka2=06&delka3=635&code=DWUL&Submit=+Ov%EC%F8it+
+      }
     end
-    else if RegexFind('(https?://|www\.)gccounter\.de\/gcchecker\.php([^"'']+)',GC.LongDescription) then begin
-      url:=RegExSubstitute('(https?://|www\.)gccounter\.de\/gcchecker\.php([^"'']+)',GC.LongDescription,'$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
+    else if RegexFind('(https?://|www\.)gccounter\.(de|com)\/gcchecker\.php([^"'']+)',GC.LongDescription) then begin
+      url:=RegExSubstitute('(https?://|www\.)gccounter\.(de|com)\/gcchecker\.php([^"'']+)',GC.LongDescription,'$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
       url:=TrimUrl(url);
       service:='gccounter';
+      {
+      captcha: ne
+      url: http://gccounter.com/gcchecker.php?site=gcchecker_check&id=2076
+      form: http://gccounter.com/gcchecker.php?site=gcchecker_check&id=2076&Lat_R=N&Lat_G=50&Lat_M=12&Lat_MM=345&Lon_R=E&Lon_G=12&Lon_M=33&Lon_MM=456
+      }
     end
     else if RegexFind('(https?://|www\.)certitudes\.org\/certitude\?wp\=([^"'']+)',GC.LongDescription) then begin
       url:=RegExSubstitute('(https?://|www\.)certitudes\.org\/certitude\?wp\=([^"'']+)',GC.LongDescription,'$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
       url:=TrimUrl(url);
       service:='certitudes';
+      {
+      captcha: ne
+      url: http://www.certitudes.org/certitude?wp=GC2QFYT
+      form: http://www.certitudes.org/certify?waypoint=GC2QFYT&mapping=off&coordinates=N+50+09.800+E+014+08.169&anonymous=yes
+      hacker poplach :)
+      }
     end
     else begin
       ShowMessage('error: ani geocheck.org, ani geochecker.com, ani evince, ani hermansky!');

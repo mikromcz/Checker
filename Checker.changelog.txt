@@ -1,3 +1,9 @@
+=== 0.1.0.0 (2014/05/01) ===
+  * kompletnì pøepsáno, otevírá se ve vlastním prohlížeèi
+  * oprava vkládání souøadnic na geo.komurka.cz. web neakceptuje minuty bez úvodní nuly pokud se jedná o jednociferné èíslo
+  * úprava parsování z geochecker.com
+  * pøidáno gccounter.com (nejen gccounter.de)
+
 === 0.0.1.7 (2014/04/28) ===
   * dodìlána podpora webu certitudes.org (bez pøihlášení)
 
