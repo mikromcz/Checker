@@ -1,3 +1,6 @@
+** 0.2.8.0 (2017/01/22) **
+  * pokud se bìhem instalace zjistí, že v INI neexistuje klíè iefix, tak ho radìji zapíšeme s hodnotou 1 (true)
+
 ** 0.2.7.1 (2017/01/08) **
   * pøidána podpora gc-apps.com/geochecker (a trochu i gc-apps.com/multichecker)
   * oprava zapisování výsledku do poznámky waypointu. pokud je v INI napsano jen napø. correct= (bez hodnoty), tak se nezapíše

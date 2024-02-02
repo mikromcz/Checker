@@ -5,7 +5,7 @@
   Www: http://geoget.ararat.cz/doku.php/user:skript:checker
   Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
   Author: mikrom, http://mikrom.cz
-  Version: 0.2.2.1
+  Version: 0.2.8.0
 }
 
 {$include InstallTool.lib.pas}
@@ -28,12 +28,18 @@ begin
   if FileExists(GEOGET_SCRIPTDIR+'\Checker\WinAPIError.au3') then DeleteFile(GEOGET_SCRIPTDIR+'\Checker\WinAPIError.au3');
   if FileExists(GEOGET_SCRIPTDIR+'\Checker\WindowsConstants.au3') then DeleteFile(GEOGET_SCRIPTDIR+'\Checker\WindowsConstants.au3');
 
-  {move special settings to ini}
-  if FileExists(GEOGET_SCRIPTDIR+'\Checker\finar.txt') then begin
-    ini := TIniFile.Create(GEOGET_SCRIPTDIR+'\Checker\Checker.ini');
-    ini.WriteBool('Checker', 'finar', True);
+  {delete finar.txt}
+  if FileExists(GEOGET_SCRIPTDIR+'\Checker\finar.txt') then DeleteFile(GEOGET_SCRIPTDIR+'\Checker\finar.txt');
+  
+  ini := TIniFile.Create(GEOGET_SCRIPTDIR+'\Checker\Checker.ini');
+  try
+    {delete key finar from ini}
+    if ini.ValueExists('Checker', 'finar') then ini.DeleteKey('Checker', 'finar');
+  
+    {if there is no iefix better set it to true}
+    if not ini.ValueExists('Checker', 'iefix') then ini.WriteBool('Checker', 'iefix', True);
+  finally
     ini.Free;
-    DeleteFile(GEOGET_SCRIPTDIR+'\Checker\finar.txt');
   end;
   
   {installtool}

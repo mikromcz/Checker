@@ -4,7 +4,7 @@
   Www: http://geoget.ararat.cz/doku.php/user:skript:checker
   Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
   Author: mikrom, http://mikrom.cz
-  Version: 0.2.7.1
+  Version: 0.2.8.0
 
   ToDo:
   * This is maybe interesting: http://www.regular-expressions.info/duplicatelines.html
@@ -80,13 +80,16 @@ var
   ini: TIniFile;
 begin
   {Read configuration from INI}
-  ini       := TIniFile.Create(GEOGET_SCRIPTDIR+'\Checker\Checker.ini');
-    debug     := ini.ReadBool('Checker', 'debug', False);
-    answer    := ini.ReadBool('Checker', 'answer', False);
-    correct   := ini.ReadString('Checker', 'correct', 'CORRECT');
+  ini := TIniFile.Create(GEOGET_SCRIPTDIR+'\Checker\Checker.ini');
+  try
+    debug := ini.ReadBool('Checker', 'debug', False);
+    answer := ini.ReadBool('Checker', 'answer', False);
+    correct := ini.ReadString('Checker', 'correct', 'CORRECT');
     incorrect := ini.ReadString('Checker', 'incorrect', 'INCORRECT');
-  ini.Free;
-
+  finally
+    ini.Free;
+  end;
+  
   {This cache GC3PVWQ have url in short description, so we join short and long together}
   description := GC.ShortDescription + GC.LongDescription;
 
