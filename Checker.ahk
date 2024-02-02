@@ -3,7 +3,7 @@
 ; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ; Icon: https://icons8.com/icon/18401/Thumb-Up
 ; Author: mikrom, https://www.mikrom.cz
-; Version: 3.0.1
+; Version: 3.1.1
 ;
 ; Documentation: http://ahkscript.org/docs/AutoHotkey.htm
 ; FAQ: http://www.autohotkey.com/docs/FAQ.htm
@@ -64,7 +64,7 @@ If (A_Language = "0405")        ; Czech
     Global textErrorFill        := "Chyba: Nelze vyplnit souøadnice!`n`nPravdìpodobnì se naèetla špatná stránka, napøíklad oznámení o pøekroèení limitu.`nZkuste to ještì jednou, a pokud se bude chyba opakovat, dejte mi vìdìt."
     Global textErrorException   := "Ajaj, tohle se nemìlo stát.`n`nVýjimka: "
     Global textErrorParam       := "Chyba: Neplatný poèet parametrù!`n`nPovolené parametry jsou:`n[service] [N|S] [Dx] [Mx] [Sx] [E|W] [Dy] [My] [Sy] [URL]`n`nPoužity byly tyto:`n"
-    Global textErrorService     := "Chyba: Použita nepodporovaná služba!`nPodporovány jsou: geocheck, geochecker, evince, hermansky, komurka, gccounter, gccounter2, certitudes, gpscache, gccheck, challenge, challenge2, gcappsGeochecker, gcappsMultichecker, geowii, gcm, doxina, geocacheplanner, gctoolbox, nanochecker!."
+    Global textErrorService     := "Chyba: Použita nepodporovaná služba!`nPodporovány jsou: geocheck, geochecker, evince, hermansky, komurka, gccounter, gccounter2, certitudes, gpscache, gccheck, challenge, challenge2, gcappsGeochecker, gcappsMultichecker, geocachefi, geowii, gcm, doxina, geocacheplanner, gctoolbox, nanochecker, gzchecker, puzzlechecker, gocaching, gccc, gccom!."
     Global textErrorTimeout     := "Chyba: Vypršel èasový limit naèítání stránky.`nZkuste F5 pro obnovení."
     Global textErrorGeocheck    := "Chyba: Chybí název a/nebo kód keše.`nKeš je pravdìpodobnì smazána z geocheck.org.`nOvìøení asi neprojde, ale za pokus to stojí."
     Global textDonate           := "Zvažte podporu pluginu pøes <a href=""http://goo.gl/dCKefD"">PayPal</a>, nebo mi napište <a href=""mailto:mikrom@mikrom.cz"">email</a>"
@@ -84,7 +84,7 @@ Else                            ; Other = English
     Global textErrorFill        := "Error: Can't fill coordinates!`n`nProbably wrong page loaded, like limit exceeded.`nTry it again, and if it fails again let me know."
     Global textErrorException   := "Oops, this should not happen.`n`nException: "
     Global textErrorParam       := "Error: Invalid number of parameters!`n`nAllowed parameters are:`n[service] [N|S] [Dx] [Mx] [Sx] [E|W] [Dy] [My] [Sy] [URL]`n`nReceived parameters are:`n"
-    Global textErrorService     := "Error: Invalid service selected!`nUse only: geocheck, geochecker, evince, hermansky, komurka, gccounter, gccounter2, certitudes, gpscache, gccheck, challenge, challenge2, gcappsGeochecker, gcappsMultichecker, geowii, gcm, doxina, geocacheplanner, gctoolbox, nanochecker!."
+    Global textErrorService     := "Error: Invalid service selected!`nUse only: geocheck, geochecker, evince, hermansky, komurka, gccounter, gccounter2, certitudes, gpscache, gccheck, challenge, challenge2, gcappsGeochecker, gcappsMultichecker, geocachefi, geowii, gcm, doxina, geocacheplanner, gctoolbox, nanochecker, gzchecker, puzzlechecker, gocaching, gccc, gccom!."
     Global textErrorTimeout     := "Error: Timeout while page load.`nTry press F5 for reload."
     Global textErrorGeocheck    := "Error: Cache name and/or code missing.`nCache is probably deleted from geocheck.org.`nVerification probably fail, but worth for try."
     Global textDonate           := "You can donate plugin by <a href=""http://goo.gl/dCKefD"">PayPal</a>, or send me an <a href=""mailto:mikrom@mikrom.cz"">email</a>"
@@ -982,7 +982,7 @@ Browser(ByRef wb)
         ExitApp, exitCode
 
     }
-    Else If (args[1] = "gccounter") ; ==========================================> GCCOUNTER (5)
+    Else If (args[1] = "gccounterA") ; ==========================================> GCCOUNTER (5)
     {
         ; URL: http://gccounter.com/gcchecker.php?site=gcchecker_check&id=2076
         ; Captcha: NO
@@ -1034,7 +1034,7 @@ Browser(ByRef wb)
         ExitApp, exitCode
 
     }
-    Else If (args[1] = "gccounter2") ; =========================================> GCCOUNTER2 (6)
+    Else If (args[1] = "gccounterB") ; =========================================> GCCOUNTER2 (6)
     {
         ; URL: http://gccounter.com/gcchecker.php?site=gcchecker_check&id=2076
         ; Captcha: NO
@@ -1718,96 +1718,58 @@ Browser(ByRef wb)
         ; Try to fill the webpage form
         Try
         {
-
-            If (wb.Document.All.Name.Value = "")
+            If (args[2] = "N")
             {
-                ; Display hidden field -> Type username "anonymous" -> Find Continue button and click on it -> Fill coordinates
-
-                wb.Document.getElementByID("Anon").Style.Display := "block" ; Simulate click on No and set anonymous name field visible
-                wb.Document.getElementByID("Name").Value := "Checker"       ; fill your name (maxlength= 10)
-
-                ; Click on: <input type="button" value="Continue" onclick="LogOut()">
-                Loop, % (inputs := wb.Document.getElementsByTagName("input")).Length                   ; For all tags <input>
-                {
-                    If ((inputs[A_index-1].Type = "button") && (inputs[A_index-1].Value = "Continue")) ; If some of them is type="button" and value="Continue"
-                    {
-                        inputs[A_index-1].Click()                                                       ; Click on it
-                        Break
-                    }
-                }
-
-                Sleep, 1000 ; Wait for page to load
-
-                ; Call GZchecker
-                GoSub, GZchecker
-                Return
-
-            }
-            Else
-            {
-                ; Just fill cordinates
-
-                ; Call GZchecker
-                GoSub, GZchecker
-                Return
+                ;wb.Document.All.Lat1.SelectedIndex := 0
             }
 
-            ; Because we'll use it twice, we can call this with Gosub
-            GZchecker:
-                If (args[2] = "N")
-                {
-                    wb.Document.All.Lat.SelectedIndex := 0
-                }
+            If (args[2] = "S")
+            {
+                ;wb.Document.All.Lat2.SelectedIndex := 1
+            }
 
-                If (args[2] = "S")
-                {
-                    wb.Document.All.Lat.SelectedIndex := 1
-                }
+            ;wb.Document.All.LatD.Value := args[3]
+            ;wb.Document.All.LatM.Value := args[4]
+            ;wb.Document.All.LatMD.Value := args[5]
 
-                wb.Document.All.LatD.Value := args[3]
-                wb.Document.All.LatM.Value := args[4]
-                wb.Document.All.LatMD.Value := args[5]
+            If (args[6] = "E")
+            {
+                ;wb.Document.All.Long.SelectedIndex := 0
+            }
 
-                If (args[6] = "E")
-                {
-                    wb.Document.All.Long.SelectedIndex := 0
-                }
+            If (args[6] = "W")
+            {
+            ;    wb.Document.All.Long.SelectedIndex := 1
+            }
 
-                If (args[6] = "W")
-                {
-                    wb.Document.All.Long.SelectedIndex := 1
-                }
+            ;wb.Document.All.LongD.Value := args[7]
+            ;wb.Document.All.LongM.Value := args[8]
+            ;wb.Document.All.LongMD.Value := args[9]
 
-                wb.Document.All.LongD.Value := args[7]
-                wb.Document.All.LongM.Value := args[8]
-                wb.Document.All.LongMD.Value := args[9]
+            ; Untick checkbox "Allow username to be displayed"
+            ;wb.Document.All.Tick.Checked := False
 
-                ; Untick checkbox "Allow username to be displayed"
-                wb.Document.All.Tick.Checked := False
+            ; Focus Solution Comment field
+            ;wb.Document.All.SolComm.Focus()
 
-                ; Focus Solution Comment field
-                ;wb.Document.All.SolComm.Focus()
-
-                ;Sleep, 1000
+            ;Sleep, 1000
                 
-                ; (1) Click on Submit: <input type="button" value="Submit" id="B1" name="B1" onclick="vetall();">
-                ;wb.Document.All.B1.Value := "muehehe"
-                ;wb.Document.All.B1.Click()
+            ; (1) Click on Submit: <input type="button" value="Submit" id="B1" name="B1" onclick="vetall();">
+            ;wb.Document.All.B1.Value := "muehehe"
+            ;wb.Document.All.B1.Click()
 
-                ; (2) This form is difficult to submit, so we need to do it by this unclean way
-                ;Loop, % (inputs := wb.Document.getElementsByTagName("input")).Length   ; For all tags <input>
-                ;{
-                ;    If (inputs[A_index-1].ID = "B1")                            ; If some of them is type="submit"
-                ;    {
-                ;        inputs[A_index-1].Value := "muhehe"
-                ;        inputs[A_index-1].Click()                                       ; Click on it
-                ;    }
-                ;}
-                
-                ; (3) Call vetall() directly -> "object not defined"
-                ;wb.navigate("javascript:vetall();")
-
-            Return
+            ; (2) This form is difficult to submit, so we need to do it by this unclean way
+            ;Loop, % (inputs := wb.Document.getElementsByTagName("input")).Length   ; For all tags <input>
+            ;{
+            ;    If (inputs[A_index-1].ID = "B1")                            ; If some of them is type="submit"
+            ;    {
+            ;        inputs[A_index-1].Value := "muhehe"
+            ;        inputs[A_index-1].Click()                                       ; Click on it
+            ;    }
+            ;}
+            
+            ; (3) Call vetall() directly -> "object not defined"
+            ;wb.navigate("javascript:vetall();")
 
         }
         Catch e

@@ -4,11 +4,10 @@
     Www: https://www.geoget.cz/doku.php/user:skript:checker
     Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
     Author: mikrom, http://mikrom.cz
-    Version: 3.1.0
+    Version: 3.1.1
 
     ToDo:
     * This might be interesting: http://www.regular-expressions.info/duplicatelines.html
-    * pokud se najde více stejných ovìøení napø MoM: GC213AF, GC6DJTY
 
     * Arne1: mám takový nápad - zatím jsem nebádal zda to bude realizovatelné.
              Když je ovìøovaèem Certitude, tak by se mohl kouknout do poznámky u keše, zda tam není øádek uvozený "certitude:" (napøíklad)
@@ -46,23 +45,25 @@ const
     gccheckRegex         = '(?i)(https?:)?\/\/(www\.)?gccheck\.com\/GC[^"''<\s]+';
     challengeRegex       = '(?i)(https?:)?\/\/(www\.)?project-gc\.com\/Challenges\/GC[A-Z0-9]+\/\d+[^"''<\s]+';
     challenge2Regex      = '(?i)(https?:)?\/\/(www\.)?project-gc\.com\/Challenges\/GC[A-Z0-9]+"';
-    gcappsGeoRegex       = '(?i)(https?:)?\/\/(www\.)?gc-apps\.com\/(en|de)?\/?(checker|geochecker\/show)\/[^"''<\s]+';
+    gcappsGeoRegex       = '(?i)(https?:)?\/\/(www\.)?gc-apps\.com\/(en|de)?\/?(checker|geochecker\/show)\/[a-z0-9]+\/try';
     gcappsMultiRegex     = '(?i)(https?:)?\/\/(www\.)?gc-apps\.com\/multichecker\/show\/[^"''<\s]+';
     geocacheFiRegex      = '(?i)(https?:)?\/\/(www\.)?geocache\.fi\/checker\/\?[^"''<\s]+';
     geowiiRegex          = '(?i)(https?:)?\/\/(www\.)?geowii\.miga\.lv\/wii\/[^"''<\s]+';
-    gcmRegex             = '(?i)(https?:)?\/\/(www\.)?(gc\.gcm\.cz\/validator|validator\.gcm\.cz)\/[^"''<\s]+';
+    gcmRegex             = '(?i)(https?:)?\/\/(www\.)?(gc\.gcm\.cz\/validator|validator\.gcm\.cz)\/index[^"''<\s]+';
     doxinaRegex          = '(?i)(https?:)?\/\/(www\.)?doxina\.filipruzicka\.net\/cache\.php\?id=[^"''<\s]+';
     geocachePlannerRegex = '(?i)(https?:)?\/\/(www\.)?geocache-planer\.de\/CAL\/checker\.php[^"''<\s]+';
     gctoolboxRegex       = '(?i)(https?:)?\/\/(www\.)?gctoolbox\.de\/index\.php\?goto=tools&showtool=coordinatechecker[^"''<\s]+';
     nanocheckerRegex     = '(?i)(https?:)?\/\/(www\.)?nanochecker\.sternli\.ch\/\?g=[^"''<\s]+';
     gzcheckerRegex       = '(?i)(https?:)?\/\/infin\.ity\.me\.uk\/GZ\.php\?MC=[^"''<\s]+';
     puzzleCheckerRegex   = '(?i)(https?:)?\/\/(www\.)?puzzle-checker\.com\/?\?wp=[^"''<\s]+';
-    gocachingRegex       = '(?i)(https?:)?\/\/(www\.)?gocaching\.de\/[^"''<\s]+';
+    gocachingRegex       = '(?i)(https?:)?\/\/(www\.)?gocaching\.de\/cochecker[^"''<\s]+';
     gcccRegex            = '(?i)(https?:)?\/\/(www\.)?gccc\.eu\/\?page=[^"''<\s]+';
 
 var
     answer, history: Boolean;
     coords: String;
+    serviceName, serviceUrl: TStringList;
+    serviceNum: Integer;
 
 {Update waypoint comment. Add custom string (correct|incorrect from ini) at the begining of the waypoint comment. String will be in curly brackets!}
 procedure UpdateWaypointComment(ans: String);
@@ -120,12 +121,13 @@ end;
 function TrimUrl(url: String): String;
 begin
     {$ifdef DEBUG_HELPER} LDHp('TrimUrl'); {$endif}
-
     {$ifdef DEBUG_HELPER} LDH('in:  ' + url); {$endif}
+    
     url := RegexReplace('\n.*', url, '', False); // Sometimes it is on two rows
-    //{$ifdef DEBUG_HELPER} LDH('url: ' + url); {$endif}
     url := RegexReplace('#.*', url, '', False); // Preventing doubled urls (www.neco.cz/odkazwww.neco.cz/odkaz)
+    
     {$ifdef DEBUG_HELPER} LDH('out: ' + url); {$endif}
+    
     result := url;
 end;
 
@@ -191,6 +193,58 @@ begin
     if (s <> '') then ShowMessage(s);
 end;
 
+{Go through all resultr from regex and if there is more than one, add them one by one to a CheckerList}
+procedure AddToCheckersList(s, name: String);
+var
+    i: Integer;
+    list: TStringList;
+begin
+    if (s <> '') then begin
+    
+        {$ifdef DEBUG_HELPER} LDHp('AddToCheckersList'); {$endif}
+        
+        list := TStringList.Create;
+        try
+            list.Delimiter := #10;
+            list.DelimitedText := s;
+
+            {Fill list by number of occurences}
+            for i := 0 to list.Count - 1 do begin
+
+                {If there is more then one checker (from the same web), then add a serial number at the end}
+                if (list.Count > 1) then begin
+                    {$ifdef DEBUG_HELPER} LDH('Service: name=' + name + IntToStr(i + 1)); {$endif}
+                    {$ifdef DEBUG_HELPER} LDH('Service: url=' + list[i]); {$endif}
+                    serviceName.Add(name + ' (' +IntToStr(i + 1) + ')');
+                end
+                else begin
+                    {$ifdef DEBUG_HELPER} LDH('Service: name=' + name); {$endif}
+                    {$ifdef DEBUG_HELPER} LDH('Service: url=' + + list[i]); {$endif}
+                    serviceName.Add(name);
+                end;
+
+                serviceUrl.Add(list[i]);
+                Inc(serviceNum);
+            end;
+
+        finally
+            list.Free;
+        end;
+
+    end;
+end;
+
+{Remove digits from given string}
+function RemoveSerialNum(s: String): String;
+begin
+    {$ifdef DEBUG_HELPER} LDHp('RemoveSerialNum'); {$endif}
+    {$ifdef DEBUG_HELPER} LDH('In:  ' + s); {$endif}
+    
+    Result := RegexReplace('\s\(\d+\)', s, '', true);
+    
+    {$ifdef DEBUG_HELPER} LDH('Out: ' + Result); {$endif}
+end;
+
 {Main function. Mainly just sifting by service and call AHK at the end}
 procedure Checker(runFrom: String);
 var
@@ -198,11 +252,11 @@ var
     writenotfound: Boolean;
     i, n: Integer;
     ini: TIniFile;
-    serviceName, serviceUrl, serviceUrl2: TStringList;
-    serviceNum: Integer;
 begin
     {$ifdef DEBUG_HELPER} LDHInit(true); {$endif}
+    {$ifdef DEBUG_HELPER} LDHp('----------------------------------------'); {$endif}
     {$ifdef DEBUG_HELPER} LDHp('Checker'); {$endif}
+    {$ifdef DEBUG_HELPER} LDHp('----------------------------------------'); {$endif}
 
     {Read configuration from INI}
     ini := TIniFile.Create(GEOGET_SCRIPTDIR+'\Checker\Checker.ini');
@@ -243,9 +297,6 @@ begin
 
         serviceName := TStringList.Create;
         serviceUrl := TStringList.Create;
-        
-        serviceUrl2 := TStringList.Create;
-        serviceUrl2.Delimiter := #10;
 
         try
             {Try to find type of the checking service - geocheck.org, geochecker.com, evince.locusprime.net, etc..}
@@ -254,141 +305,64 @@ begin
             url: geocheck.org/geo_inputchkcoord.php?gid=61241961c72ab1d-b813-47da-bf03-07c67bb81ac9
             captcha: yes
             }
-            s := RegexExtract(geocheckRegex, description); //s := RegExSubstitute(geocheckRegex, description, '$0#');
-            if (s <> '') then begin
+            s := RegexExtract(geocheckRegex, description);
+            AddToCheckersList(s, 'geocheck');
 
-                serviceUrl2.Clear;
-                serviceUrl2.DelimitedText := s;
-                
-                for i := 0 to serviceUrl2.Count - 1 do begin
-                    serviceName.Add('geocheck');
-                    serviceUrl.Add(serviceUrl2[i]);
-                    Inc(serviceNum);
-                end;
-
-                {$ifdef DEBUG_HELPER} LDH('Service: geocheck'); {$endif}
-            end;
             {
             GEOCHECKER
             url: http://www.geochecker.com/index.php?code=e380cf72d82fa02a81bf71505e8c535c&action=check&wp=4743324457584d&name=536b6c656e696b202d20477265656e20486f757365
             captcha: no
             }
-            s := RegExSubstitute(geocheckerRegex, description, '$0#');
-            if (s <> '') then begin
-                
-                serviceUrl2.Clear;
-                serviceUrl2.DelimitedText := s;
-                
-                for i := 0 to serviceUrl2.Count - 1 do begin
-                    serviceName.Add('geochecker');
-                    serviceUrl.Add(serviceUrl2[i]);
-                    Inc(serviceNum);
-                end;
-                
-                {$ifdef DEBUG_HELPER} LDH('Service: geochecker'); {$endif}
-            end;
+            s := RegexExtract(geocheckerRegex, description);
+            AddToCheckersList(s, 'geochecker');
+
             {
             EVINCE - DEAD
             url: http://evince.locusprime.net/cgi-bin/index.cgi?q=d0ZNzQeHKReGKzr
             captcha: yes
             }
-            s := RegExSubstitute(evinceRegex, description, '$0#');
-            if (s <> '') then begin
-                
-                serviceUrl2.Clear;
-                serviceUrl2.DelimitedText := s;
-                
-                for i := 0 to serviceUrl2.Count - 1 do begin
-                    serviceName.Add('evince');
-                    serviceUrl.Add(serviceUrl2[i]);
-                    Inc(serviceNum);
-                end;
-                
-                {$ifdef DEBUG_HELPER} LDH('Service: evince'); {$endif}
-            end;
+            s := RegexExtract(evinceRegex, description);
+            AddToCheckersList(s, 'evince');
+
             {
             HERMANSKY
             url: http://geo.hermansky.net/index.php?co=checker&code=2542e4245f80d4f7783e41ed7503fba6b3c8cc3188ff05
             captcha: no
             }
-            s := RegExSubstitute(hermanskyRegex, description, '$0#');
-            if (s <> '') then begin
-            
-                serviceUrl2.Clear;
-                s := ReplaceString(s, 'speedygt.ic.cz/gps', 'geo.hermansky.net');
-                serviceUrl2.DelimitedText := s;
-                
-                for i := 0 to serviceUrl2.Count - 1 do begin
-                    serviceName.Add('hermansky');
-                    serviceUrl.Add(serviceUrl2[i]);
-                    Inc(serviceNum);
-                end;
-                serviceName.Add('hermansky');
+            s := RegexExtract(hermanskyRegex, description);
+            s := ReplaceString(s, 'speedygt.ic.cz/gps', 'geo.hermansky.net');
+            AddToCheckersList(s, 'hermansky');
 
-                {$ifdef DEBUG_HELPER} LDH('Service: hermansky'); {$endif}
-            end;
             {
             KOMURKA - DEAD
             url: http://geo.komurka.cz/check.php?cache=GC2JCEQ
             captcha: yes
             }
-            s := RegExSubstitute(komurkaRegex, description, '$0#');
-            if (s <> '') then begin
-                
-                serviceUrl2.Clear;
-                serviceUrl2.DelimitedText := s;
-                
-                for i := 0 to serviceUrl2.Count - 1 do begin
-                    serviceName.Add('komurka');
-                    serviceUrl.Add(serviceUrl2[i]);
-                    Inc(serviceNum);
-                end;
-                
-                {$ifdef DEBUG_HELPER} LDH('Service: komurka'); {$endif}
-            end;
+            s := RegexExtract(komurkaRegex, description);
+            AddToCheckersList(s, 'komurka');
+
             {
             GCCOUNTER - DEAD
             url: http://gccounter.com/gcchecker.php?site=gcchecker_check&id=2076
             captcha: no
             }
-            s := RegExSubstitute(gccounterRegex, description, '$0#');
-            if (s <> '') then begin
-                serviceUrl2.Clear;
-                serviceUrl2.DelimitedText := s;
-                
-                for i := 0 to serviceUrl2.Count - 1 do begin
-                    serviceName.Add('gccounter');
-                    serviceUrl.Add(serviceUrl2[i]);
-                    Inc(serviceNum);
-                end;
-                
-                {$ifdef DEBUG_HELPER} LDH('Service: gccounter'); {$endif}
-            end;
+            s := RegexExtract(gccounterRegex, description);
+            AddToCheckersList(s, 'gccounter');
+
             {
             GCCOUNTER2 - DEAD
             url: http://gccounter.de/GCchecker/Check?cacheID=3545
             captcha: no
             }
-            s := RegExSubstitute(gccounter2Regex, description, '$0#');
-            if (s <> '') then begin
-                
-                serviceUrl2.Clear;
-                serviceUrl2.DelimitedText := s;
-                
-                for i := 0 to serviceUrl2.Count - 1 do begin
-                    serviceName.Add('gccounter2');
-                    serviceUrl.Add(serviceUrl2[i]);
-                    Inc(serviceNum);
-                end;
-                
-                {$ifdef DEBUG_HELPER} LDH('Service: gccounter2'); {$endif}
-            end;
+            s := RegexExtract(gccounter2Regex, description);
+            AddToCheckersList(s, 'gccounter2');
+
             {
             CERTITUDES
             url: http://www.certitudes.org/certitude?wp=GC2QFYT
             captcha: no
             }
-            s := RegExSubstitute(certitudesRegex, description, '$0#');
+            s := RegexExtract(certitudesRegex, description);
             if (s <> '') then begin
 
                 // look for note "certitudes: xxx"
@@ -402,64 +376,44 @@ begin
                 Inc(serviceNum);
                 {$ifdef DEBUG_HELPER} LDH('Service: certitudes'); {$endif}
             end;
+            
             {
             GPS-CACHE
             url: http://geochecker.gps-cache.de/check.aspx?id=7c52d196-b9d2-4b23-ad99-5d6e1bece187
             captcha: yes
             }
-            s := RegExSubstitute(gpscacheRegex, description, '$0#');
-            if (s <> '') then begin
-                
-                serviceUrl2.Clear;
-                serviceUrl2.DelimitedText := s;
-                
-                for i := 0 to serviceUrl2.Count - 1 do begin
-                    serviceName.Add('gpscache');
-                    serviceUrl.Add(serviceUrl2[i]);
-                    Inc(serviceNum);
-                end;
-                
-                {$ifdef DEBUG_HELPER} LDH('Service: gpscache'); {$endif}
-            end;
+            s := RegexExtract(gpscacheRegex, description);
+            AddToCheckersList(s, 'gpscache');
+
             {
             GCCHECK
             url: http://gccheck.com/GC5EJH7
             captcha: yes
             }
-            s := RegExSubstitute(gccheckRegex, description, '$0#');
-            if (s <> '') then begin
-                
-                serviceUrl2.Clear;
-                serviceUrl2.DelimitedText := s;
-                
-                for i := 0 to serviceUrl2.Count - 1 do begin
-                    serviceName.Add('gccheck');
-                    serviceUrl.Add(serviceUrl2[i]);
-                    Inc(serviceNum);
-                end;
-                
-                {$ifdef DEBUG_HELPER} LDH('Service: gccheck'); {$endif}
-            end;
+            s := RegexExtract(gccheckRegex, description);
+            AddToCheckersList(s, 'gccheck');
+
             {
             CHALLENGE
-            url: http://project-gc.com/Challenges/GC5KDPR/11265 - musi se kliknout na submit a mit IE10+
-            url: http://project-gc.com/Tools/Challenges?ccId=85&amp;ccTagId=378&amp;ccCountry=Czech+Republic
+            url: https://project-gc.com/Challenges/GC5KDPR/11265 - musi se kliknout na submit a mit IE10+
             captcha: no
+            (url vsech pro CZ: https://project-gc.com/Tools/Challenges?ccId=85&amp;ccTagId=378&amp;ccCountry=Czech+Republic)
             }
-            s := RegExSubstitute(challengeRegex, description, '$0#');
+            s := RegexExtract(challengeRegex, description);
             if (s <> '') then begin
                 serviceName.Add('"challenge|' + GEOGET_OWNER +'"'); //EncodeUrlElement(GEOGET_OWNER);
                 serviceUrl.Add(s);
                 Inc(serviceNum);
                 {$ifdef DEBUG_HELPER} LDH('Service: challenge'); {$endif}
             end;
+            
             {
             CHALLENGE2
-            url: http://project-gc.com/Challenges/GC27Z84 - staèí poslat s parametry (http://project-gc.com/Challenges/GC27Z84?profile_name=mikrom&submit=Filter)
-            url: http://project-gc.com/Tools/Challenges?ccId=85&amp;ccTagId=378&amp;ccCountry=Czech+Republic
+            url: https://project-gc.com/Challenges/GC27Z84 - staèí poslat s parametry (https://project-gc.com/Challenges/GC27Z84?profile_name=mikrom&submit=Filter)
             captcha: no
+            (url vsech pro CZ: https://project-gc.com/Tools/Challenges?ccId=85&amp;ccTagId=378&amp;ccCountry=Czech+Republic)
             }
-            s := RegExSubstitute(challenge2Regex, description, '$0#');
+            s := RegexExtract(challenge2Regex, description);
             if (s <> '') then begin
                 serviceName.Add('"challenge2|' + GEOGET_OWNER +'"'); //EncodeUrlElement(GEOGET_OWNER);
                 s := SeparateLeft(s, '"'); // Regex returns URL ending with "
@@ -467,161 +421,74 @@ begin
                 Inc(serviceNum);
                 {$ifdef DEBUG_HELPER} LDH('Service: challenge2'); {$endif}
             end;
+            
             {
             GC-APPS GEOCHECKER
             url: http://www.gc-apps.com/geochecker/show/b1a0a77fa830ddbb6aa4ed4c69057e79
             url: http://www.gc-apps.com/index.php?option=com_geochecker&view=item&id=b1a0a77fa830ddbb6aa4ed4c69057e79
             captcha: yes
             }
-            s := RegExSubstitute(gcappsGeoRegex, description, '$0#');
-            if (s <> '') then begin
-                
-                serviceUrl2.Clear;
-                serviceUrl2.DelimitedText := s;
-                
-                for i := 0 to serviceUrl2.Count - 1 do begin
-                    serviceName.Add('gcappsGeochecker');
-                    serviceUrl.Add(serviceUrl2[i]);
-                    Inc(serviceNum);
-                end;
-                
-                {$ifdef DEBUG_HELPER} LDH('Service: gcappsGeochecker'); {$endif}
-            end;
+            s := RegexExtract(gcappsGeoRegex, description);
+            AddToCheckersList(s, 'gcappsGeochecker');
+
             {
             GC-APPS MULTICHECKER
             url: http://beta.gc-apps.com/checker/try/6e520532c3aa8c150ab90a82bf68d874
             captcha: ?
             }
-            s := RegExSubstitute(gcappsMultiRegex, description, '$0#');
-            if (s <> '') then begin
-                
-                serviceUrl2.Clear;
-                serviceUrl2.DelimitedText := s;
-                
-                for i := 0 to serviceUrl2.Count - 1 do begin
-                    serviceName.Add('gcappsMultichecker');
-                    serviceUrl.Add(serviceUrl2[i]);
-                    Inc(serviceNum);
-                end;
-                
-                {$ifdef DEBUG_HELPER} LDH('Service: gcappsMultichecker'); {$endif}
-            end;
+            s := RegexExtract(gcappsMultiRegex, description);
+            AddToCheckersList(s, 'gcappsMultichecker');
+
             {
             GEOCACHE.FI
             url: http://www.geocache.fi/checker/?uid=M9KAR6VJJG5VCDCSZQCR&act=check&wp=GC4CEFD
             captcha: yes
             }
-            s := RegExSubstitute(geocacheFiRegex, description, '$0#');
-            if (s <> '') then begin
-                
-                serviceUrl2.Clear;
-                serviceUrl2.DelimitedText := s;
-                
-                for i := 0 to serviceUrl2.Count - 1 do begin
-                    serviceName.Add('geocachefi');
-                    serviceUrl.Add(serviceUrl2[i]);
-                    Inc(serviceNum);
-                end;
-                
-                {$ifdef DEBUG_HELPER} LDH('Service: geocachefi'); {$endif}
-            end;
+            s := RegexExtract(geocacheFiRegex, description);
+            AddToCheckersList(s, 'geocachefi');
+
             {
             GEOWII.MIGA.LV
             url: http://geowii.miga.lv/wii/GC55D0E
             captcha: -
             }
-            s := RegExSubstitute(geowiiRegex, description, '$0#');
-            if (s <> '') then begin
-                
-                serviceUrl2.Clear;
-                serviceUrl2.DelimitedText := s;
-                
-                for i := 0 to serviceUrl2.Count - 1 do begin
-                    serviceName.Add('geowii');
-                    serviceUrl.Add(serviceUrl2[i]);
-                    Inc(serviceNum);
-                end;
-                
-                {$ifdef DEBUG_HELPER} LDH('Service: geowii'); {$endif}
-            end;
+            s := RegexExtract(geowiiRegex, description);
+            AddToCheckersList(s, 'geowii');
+
             {
             GC.GCM.CZ
             url: https://gc.gcm.cz/validator/index.php?uuid=7f401a15-231e-44c8-a6e6-bf8b9c69a624
             captcha: yes
             }
-            s := RegExSubstitute(gcmRegex, description, '$0#');
-            if (s <> '') then begin
-                
-                serviceUrl2.Clear;
-                s := ReplaceString(s, 'gc.gcm.cz/validator', 'validator.gcm.cz');
-                serviceUrl2.DelimitedText := s;
-                
-                for i := 0 to serviceUrl2.Count - 1 do begin
-                    serviceName.Add('gcm');
-                    serviceUrl.Add(serviceUrl2[i]);
-                    Inc(serviceNum);
-                end;
-                
-                {$ifdef DEBUG_HELPER} LDH('Service: gcm'); {$endif}
-            end;
+            s := RegexExtract(gcmRegex, description);
+            s := ReplaceString(s, 'gc.gcm.cz/validator', 'validator.gcm.cz');
+            AddToCheckersList(s, 'gcm');
+
             {
             DOXINA - DEAD
             url: http://doxina.filipruzicka.net/cache.php?id=480
             captcha: ?
             }
-            s := RegExSubstitute(doxinaRegex, description, '$0#');
-            if (s <> '') then begin
-                
-                serviceUrl2.Clear;
-                serviceUrl2.DelimitedText := s;
-                
-                for i := 0 to serviceUrl2.Count - 1 do begin
-                    serviceName.Add('doxina');
-                    serviceUrl.Add(serviceUrl2[i]);
-                    Inc(serviceNum);
-                end;
-                
-                {$ifdef DEBUG_HELPER} LDH('Service: doxina'); {$endif}
-            end;
+            s := RegexExtract(doxinaRegex, description);
+            AddToCheckersList(s, 'doxina');
+
             {
             GEOCACHE-PLANNER
             url: https://geocache-planer.de/CAL/checker.php?CALID=GJHTSLO&KEY=0JZRSAG
             captcha: NO
             }
-            s := RegExSubstitute(geocachePlannerRegex, description, '$0#');
-            if (s <> '') then begin
-                
-                serviceUrl2.Clear;
-                serviceUrl2.DelimitedText := s;
-                
-                for i := 0 to serviceUrl2.Count - 1 do begin
-                    serviceName.Add('geocacheplanner');
-                    serviceUrl.Add(serviceUrl2[i]);
-                    Inc(serviceNum);
-                end;
-                
-                {$ifdef DEBUG_HELPER} LDH('Service: geocacheplanner'); {$endif}
-            end;
+            s := RegexExtract(geocachePlannerRegex, description);
+            AddToCheckersList(s, 'geocacheplanner');
+
             {
             GCTOOLBOX
             url: http://www.gctoolbox.de/index.php?goto=tools&showtool=coordinatechecker&solve=true&id=2062&lang=ger
             captcha: NO
             }
-            s := RegExSubstitute(gctoolboxRegex, description, '$0#');
-            if (s <> '') then begin
-            
-                serviceUrl2.Clear;
-                s := ReplaceString(s, 'lang=ger', 'lang=eng'); // Force ENGLISH
-                serviceUrl2.DelimitedText := s;
-                
-                for i := 0 to serviceUrl2.Count - 1 do begin
-                    serviceName.Add('gctoolbox');
-                    serviceUrl.Add(serviceUrl2[i]);
-                    Inc(serviceNum);
-                end;
-                
-                {$ifdef DEBUG_HELPER} LDH('Service: gctoolbox'); {$endif}
-            end;
+            s := RegexExtract(gctoolboxRegex, description);
+            s := ReplaceString(s, 'lang=ger', 'lang=eng'); // Force ENGLISH
+            AddToCheckersList(s, 'gctoolbox');
+
             {
             NANOCHECKER
             url: https://nanochecker.sternli.ch/?g=GC662FD
@@ -641,86 +508,45 @@ begin
                 Inc(serviceNum);
                 {$ifdef DEBUG_HELPER} LDH('Service: nanochecker'); {$endif}
             end;
+            
             {
             GZ CHECKER
             url: http://infin.ity.me.uk/GZ.php?MC=RR074
             captcha: NO
             }
-            s := RegExSubstitute(gzcheckerRegex, description, '$0#');
-            if (s <> '') then begin
-                
-                serviceUrl2.Clear;
-                serviceUrl2.DelimitedText := s;
-                
-                for i := 0 to serviceUrl2.Count - 1 do begin
-                    serviceName.Add('gzchecker');
-                    serviceUrl.Add(serviceUrl2[i]);
-                    Inc(serviceNum);
-                end;
-                
-                {$ifdef DEBUG_HELPER} LDH('Service: gzchecker'); {$endif}
-            end;
+            s := RegexExtract(gzcheckerRegex, description);
+            AddToCheckersList(s, 'gzchecker');
+
             {
             PUZZLE CHECKER
             url: https://puzzle-checker.com/?wp=GC80HFF
             captcha: YES
             }
-            s := RegExSubstitute(puzzleCheckerRegex, description, '$0#');
-            if (s <> '') then begin
-                
-                serviceUrl2.Clear;
-                serviceUrl2.DelimitedText := s;
-                
-                for i := 0 to serviceUrl2.Count - 1 do begin
-                    serviceName.Add('puzzlechecker');
-                    serviceUrl.Add(serviceUrl2[i]);
-                    Inc(serviceNum);
-                end;
-                
-                {$ifdef DEBUG_HELPER} LDH('Service: puzzlechecker'); {$endif}
-            end;
+            s := RegexExtract(puzzleCheckerRegex, description);
+            AddToCheckersList(s, 'puzzlechecker');
+
             {
             GOCACHING
             url: http://www.gocaching.de/cochecker.php?check=406
             captcha: YES
             }
-            s := RegExSubstitute(gocachingRegex, description, '$0#');
-            if (s <> '') then begin
-                
-                serviceUrl2.Clear;
-                serviceUrl2.DelimitedText := s;
-                
-                for i := 0 to serviceUrl2.Count - 1 do begin
-                    serviceName.Add('gocaching');
-                    serviceUrl.Add(serviceUrl2[i]);
-                    Inc(serviceNum);
-                end;
-                
-                {$ifdef DEBUG_HELPER} LDH('Service: gocaching'); {$endif}
-            end;
+            s := RegexExtract(gocachingRegex, description);
+            AddToCheckersList(s, 'gocaching');
+
             {
             GCCC
             url: http://gccc.eu/?page=GC6FBFA
             captcha: NO
             }
-            s := RegExSubstitute(gcccRegex, description, '$0#');
-            if (s <> '') then begin
-                
-                serviceUrl2.Clear;
-                serviceUrl2.DelimitedText := s;
-                
-                for i := 0 to serviceUrl2.Count - 1 do begin
-                    serviceName.Add('gccc');
-                    serviceUrl.Add(serviceUrl2[i]);
-                    Inc(serviceNum);
-                end;
-                
-                {$ifdef DEBUG_HELPER} LDH('Service: gccc'); {$endif}
-            end;
+            s := RegexExtract(gcccRegex, description);
+            AddToCheckersList(s, 'gccc');
 
-            //## Gord - start (vyzkousime overovatko na gc.com)
+            {
+            GEOCACHING.COM
+            geocaching.com coordinate verify via GC.Api by Gord
+            }
             if (serviceNum = 0) then begin
-              serviceName.Add('gc.com');
+              serviceName.Add('gccom');
               i := GcVerify();
               case i of
                 204: begin      // Souradnice jsou spravne
@@ -744,7 +570,6 @@ begin
               end;
               if (i = -1) then GeoAbort();
             end;
-            //## Gord - stop
 
             {Nothing found}
             if (serviceNum = 0) then begin
@@ -783,9 +608,8 @@ begin
                         end;
                     end
                     else begin
-                        {$ifdef DEBUG_HELPER} LDHe('Error: You didn''t select anything!'); {$endif}
-
                         ShowMessage(_('Error: You didn''t select anything!'));
+                        {$ifdef DEBUG_HELPER} LDHe('Error: You didn''t select anything!'); {$endif}
                         GeoAbort;
                     end;
                 end;
@@ -796,10 +620,10 @@ begin
                 url := TrimUrl(serviceUrl[0]);
             end;
 
-            {$ifdef DEBUG_HELPER} LDHp('Checker'); {$endif}
+            {$ifdef DEBUG_HELPER} LDHp('Call Checker.ahk'); {$endif}
 
             {Make command for running AHK}
-            s := '"' + GEOGET_DATADIR + '\tools\AutoHotkey.exe" "' + GEOGET_SCRIPTDIR + '\Checker\Checker.ahk" ' + service + ' ' + coordinates + ' "' + url + '"';
+            s := '"' + GEOGET_DATADIR + '\tools\AutoHotkey.exe" "' + GEOGET_SCRIPTDIR + '\Checker\Checker.ahk" ' + RemoveSerialNum(service) + ' ' + coordinates + ' "' + url + '"';
             {$ifdef DEBUG_HELPER} LDH('Command: ' + s); {$endif}
 
             {If we can get result of the check}
@@ -809,10 +633,12 @@ begin
                         // AHK script ran without error, but not found if result was correct or not
 
                          {$ifdef DEBUG_HELPER} LDH('OK, neither correct or incorrect'); {$endif}
+                         
                          if (callggp <> '') then
                             GeoCallGGP(GEOGET_SCRIPTDIR + callggp);
                          if (callgge <> '') then
                             GeoExport(GEOGET_SCRIPTDIR + callgge, ggeoutput);
+                            
                         end;
                     1:  begin
                         // If it WAS correct add special comment to the Final waypoint
@@ -828,6 +654,7 @@ begin
                             end;
                             if (history) then
                                 LogHistory(coordinates, 'Correct');
+                                
                         end;
                     2:  begin
                         // If it WAS NOT correct add special comment to the Final waypoint
@@ -843,6 +670,7 @@ begin
                             end;
                             if (history) then
                                 LogHistory(coordinates, 'Incorrect');
+                                
                         end;
                     3:
                         begin
@@ -858,7 +686,6 @@ begin
         finally
             serviceName.Free;
             serviceUrl.Free;
-            serviceUrl2.Free;
         end;
     end
     {Wrong coordinates, maybe they are zero}
