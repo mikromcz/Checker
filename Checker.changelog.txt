@@ -1,3 +1,8 @@
+=== 0.0.1.6 (2014/04/28) ===
+  * další ošetøení parsování url
+  * pøidána malinka prodleva mezi posílanými pøíkazy
+  * oprava geocheck.org
+
 === 0.0.1.5 (2013/11/28) ===
   * pøidána podpora webu http://www.certitudes.org/
   * pøidána podpora geotjek.dk (obdoba geocheck.org)

@@ -4,7 +4,7 @@
   Www: http://geoget.ararat.cz/doku.php/user:skript:checker
   Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
   Author: mikrom, http://mikrom.cz
-  Version: 0.0.1.4
+  Version: 0.0.1.6
 }
 
 function PluginCaption: string;
@@ -25,6 +25,13 @@ end;
 function PluginFlags: string;
 begin
   Result:='';
+end;
+
+function TrimUrl(url:string): string;
+begin
+  url:=RegexReplace('\n.*',url,'',false); // nekdy je to na dva radky
+  url:=RegexReplace('#.*',url,'',false); // zabraneni dvojitym url pokud je v listingu vicekrat (www.neco.cz/odkazwww.neco.cz/odkaz)
+  Result:=url;
 end;
 
 procedure PluginWork;
@@ -66,37 +73,37 @@ begin
     {zjistit typ overovaci sluzby - geocheck.org, geochecker.com, evince.locusprime.net}
     if RegexFind('(https?://|www\.)(geocheck\.org|geotjek\.dk)\/geo_inputchkcoord([^"'']+)',GC.LongDescription) then begin
       url:=RegExSubstitute('(https?://|www\.)(geocheck\.org|geotjek\.dk)\/geo_inputchkcoord([^"'']+)',GC.LongDescription,'$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
-      url:=RegexReplace('#.*',url,'',false); // zabraneni dvojitym url pokud je v listingu vicekrat (www.neco.cz/odkazwww.neco.cz/odkaz)
+      url:=TrimUrl(url);
       service:='geocheck';
     end
     else if RegexFind('(https?://|www\.)geochecker\.com([^"'']+)',GC.LongDescription) then begin
       url:=RegExSubstitute('(https?://|www\.)geochecker\.com([^"'']+)',GC.LongDescription,'$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
-      url:=RegexReplace('#.*',url,'',false); // zabraneni dvojitym url pokud je v listingu vicekrat (www.neco.cz/odkazwww.neco.cz/odkaz)
+      url:=TrimUrl(url);
       service:='geochecker';
     end
     else if RegexFind('(https?://|www\.)evince\.locusprime\.net\/cgi-bin\/([^"'']+)',GC.LongDescription) then begin
       url:=RegExSubstitute('(https?://|www\.)evince\.locusprime\.net\/cgi-bin\/([^"'']+)',GC.LongDescription,'$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
-      url:=RegexReplace('#.*',url,'',false); // zabraneni dvojitym url pokud je v listingu vicekrat (www.neco.cz/odkazwww.neco.cz/odkaz)
+      url:=TrimUrl(url);
       service:='evince';
     end
     else if RegexFind('(https?://|www\.)(geo\.hermansky\.net|speedygt\.ic\.cz\/gps)\/index\.php\?co\=checker([^"'']+)',GC.LongDescription) then begin
       url:=RegExSubstitute('(https?://|www\.)(geo\.hermansky\.net|speedygt\.ic\.cz\/gps)\/index\.php\?co\=checker([^"'']+)',GC.LongDescription,'$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
-      url:=RegexReplace('#.*',url,'',false); // zabraneni dvojitym url pokud je v listingu vicekrat (www.neco.cz/odkazwww.neco.cz/odkaz)
+      url:=TrimUrl(url);
       service:='hermansky';
     end
     else if RegexFind('(https?://|www\.)geo\.komurka\.cz\/check\.php([^"'']+)',GC.LongDescription) then begin
       url:=RegExSubstitute('(https?://|www\.)geo\.komurka\.cz\/check\.php([^"'']+)',GC.LongDescription,'$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
-      url:=RegexReplace('#.*',url,'',false); // zabraneni dvojitym url pokud je v listingu vicekrat (www.neco.cz/odkazwww.neco.cz/odkaz)
+      url:=TrimUrl(url);
       service:='komurka';
     end
     else if RegexFind('(https?://|www\.)gccounter\.de\/gcchecker\.php([^"'']+)',GC.LongDescription) then begin
       url:=RegExSubstitute('(https?://|www\.)gccounter\.de\/gcchecker\.php([^"'']+)',GC.LongDescription,'$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
-      url:=RegexReplace('#.*',url,'',false); // zabraneni dvojitym url pokud je v listingu vicekrat (www.neco.cz/odkazwww.neco.cz/odkaz)
+      url:=TrimUrl(url);
       service:='gccounter';
     end
     else if RegexFind('(https?://|www\.)certitudes\.org\/certitude\?wp\=([^"'']+)',GC.LongDescription) then begin
       url:=RegExSubstitute('(https?://|www\.)certitudes\.org\/certitude\?wp\=([^"'']+)',GC.LongDescription,'$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
-      url:=RegexReplace('#.*',url,'',false); // zabraneni dvojitym url pokud je v listingu vicekrat (www.neco.cz/odkazwww.neco.cz/odkaz)
+      url:=TrimUrl(url);
       service:='certitudes';
     end
     else begin

@@ -2,13 +2,13 @@
 ; Www: http://geoget.ararat.cz/doku.php/user:skript:checker
 ; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ; Author: mikrom, http://mikrom.cz
-; Version: 0.0.1.5
+; Version: 0.0.1.6
 ;
 ; parameters  service     ns          dx          mx          sx          ew          dy          my          sy          url
 ; eg.         checker     N           50          15          123         E           015         54          123         http://checker.org/check?=a56sjg4678gdg
 ; $CmdLine[0] $CmdLine[1] $CmdLine[2] $CmdLine[3] $CmdLine[4] $CmdLine[5] $CmdLine[6] $CmdLine[7] $CmdLine[8] $CmdLine[9] $CmdLine[10]
 ;
-;Opt("SendKeyDelay", 50)
+Opt("SendKeyDelay", 50)
 ;Opt("WinTitleMatchMode", 2)
 
 If $CmdLine[0] <> 10 Then
@@ -23,7 +23,7 @@ Switch $CmdLine[1]
     ShellExecute($CmdLine[10])
     If WinWaitActive("[REGEXPTITLE:Geo(Chec|Tje)k]", "", 30) Then
       Sleep(1000)
-      Send("{TAB 37}")
+      Send("{TAB 39}") ;37, nebo 38
       If($CmdLine[2] = "N") Then
         Send("{TAB}")
       ElseIf($CmdLine[2] = "S") Then
