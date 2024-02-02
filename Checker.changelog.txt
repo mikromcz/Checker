@@ -1,6 +1,6 @@
-** 0.2.7.0 (2017/01/02) **
- * pøidána podpora www.gc-apps.com
- * oprava zapisování výsledku do poznámky waypointu. pokud je v INI napsano jen napø. correct= (bez hodnoty), tak se nezapíše
+** 0.2.7.1 (2017/01/08) **
+  * pøidána podpora gc-apps.com/geochecker (a trochu i gc-apps.com/multichecker)
+  * oprava zapisování výsledku do poznámky waypointu. pokud je v INI napsano jen napø. correct= (bez hodnoty), tak se nezapíše
 
 ** 0.2.6.2 (2016/12/28) **
   * optimalizace kódu

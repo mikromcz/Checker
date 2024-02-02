@@ -2,7 +2,7 @@
 ; Www: http://geoget.ararat.cz/doku.php/user:skript:checker
 ; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ; Author: mikrom, http://mikrom.cz
-; Version: 0.2.7.0
+; Version: 0.2.7.1
 ;
 ; Documentation: http://ahkscript.org/docs/AutoHotkey.htm
 ; FAQ: http://www.autohotkey.com/docs/FAQ.htm
@@ -705,7 +705,7 @@ Browser(ByRef wb) {
     ;If (answer = 1)
     ;  CheckAnwser(wb, "Smi)<img src=.?congrats.?>", "Smi)<img src=.?nope.?>")
 
-  } Else If (args[1] = "gcapps") { ; =============================================> GCAPPS (11)
+  } Else If (args[1] = "gcappsGeochecker") { ; =============================================> GC-APPS GEOCHECKER (11.1)
     ; URL: http://www.gc-apps.com/geochecker/show/b1a0a77fa830ddbb6aa4ed4c69057e79
     ; URL: http://www.gc-apps.com/index.php?option=com_geochecker&view=item&id=b1a0a77fa830ddbb6aa4ed4c69057e79
     ; Captcha: YES
@@ -742,6 +742,15 @@ Browser(ByRef wb) {
     ; NO:  <div class="alert alert-danger"> .. <img id="status-icon" border="0" src="/components/com_geochecker/assets/images/wrong.png" /> .. <div id="status-msg">Falsch!
     If (answer = 1)
       CheckAnwser(wb, "Smi)class=.?alert alert-success.?", "Smi)class=.?alert alert-danger.?")
+      
+  } Else If (args[1] = "gcappsMultichecker") { ; =============================================> GC-APPS MULTICHECKER (11.2)
+    ; URL: http://www.gc-apps.com/multichecker/show/2d2eca9367b250181c6379c46292be32
+    ; Captcha: ?
+    Gui, Show,, % "Checker - " . args[1] ; Change title
+
+    wb.Navigate(args[10]) ; Navigate to webpage
+    LoadWait(wb)          ; Wait for page load
+
   } Else { ; ======================================================================> SERVICE ERROR
     MsgBox 16, % textError, % textErrorService
     ExitApp, errorLvl

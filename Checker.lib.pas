@@ -4,7 +4,7 @@
   Www: http://geoget.ararat.cz/doku.php/user:skript:checker
   Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
   Author: mikrom, http://mikrom.cz
-  Version: 0.2.7.0
+  Version: 0.2.7.1
 
   ToDo:
   * This is maybe interesting: http://www.regular-expressions.info/duplicatelines.html
@@ -12,19 +12,19 @@
 
 const
   {Define search regex here, good test is here: https://regex101.com/ or http://regexr.com/}
-  geocheckRegex   = '(?i)https?:\/\/(www\.)?(geocheck\.org|geotjek\.dk)\/geo_inputchkcoord([^"''<\s]+)';
-  geocheckerRegex = '(?i)https?:\/\/(www\.)?geochecker\.com\/index\.php([^"''<\s]+)';
-  evinceRegex     = '(?i)https?:\/\/(www\.)?evince\.locusprime\.net\/cgi-bin\/([^"''<\s]+)';
-  hermanskyRegex  = '(?i)https?:\/\/(www\.)?(geo\.hermansky\.net|speedygt\.ic\.cz\/gps)\/index\.php\?co\=checker([^"''<\s]+)';
-  komurkaRegex    = '(?i)https?:\/\/(www\.)?geo\.komurka\.cz\/check\.php([^"''<\s]+)';
-  gccounterRegex  = '(?i)https?:\/\/(www\.)?gccounter\.(de|com)\/gcchecker\.php([^"''<\s]+)';
-  gccounter2Regex = '(?i)https?:\/\/(www\.)?gccounter\.(de|com)\/GCchecker\/Check([^"''<\s]+)';
-  certitudesRegex = '(?i)https?:\/\/(www\.)?certitudes\.org\/certitude(\.php)?\?wp\=([^"''<\s]+)';
-  gpscacheRegex   = '(?i)https?:\/\/(www\.)?geochecker\.gps-cache\.de\/check\.aspx\?id\=([^"''<\s]+)';
-  gccheckRegex    = '(?i)https?:\/\/(www\.)?gccheck\.com\/(GC[^"''<\s]+)';
-  challengeRegex  = '(?i)https?:\/\/(www\.)?project-gc\.com\/Challenges\/GC[A-Z0-9]+\/\d+[^"''<\s]+';
-  gcappsRegex     = '(?i)https?:\/\/(www\.)?gc-apps\.com\/geochecker\/show\/([^"''<\s]+)'; // '(?i)https?:\/\/(www\.)?gc-apps\.com\/(geochecker\/show\/)|(index\.php\?option=com_geochecker&view=item&id=)([^"''<\s]+)';
-
+  geocheckRegex    = '(?i)https?:\/\/(www\.)?(geocheck\.org|geotjek\.dk)\/geo_inputchkcoord([^"''<\s]+)';
+  geocheckerRegex  = '(?i)https?:\/\/(www\.)?geochecker\.com\/index\.php([^"''<\s]+)';
+  evinceRegex      = '(?i)https?:\/\/(www\.)?evince\.locusprime\.net\/cgi-bin\/([^"''<\s]+)';
+  hermanskyRegex   = '(?i)https?:\/\/(www\.)?(geo\.hermansky\.net|speedygt\.ic\.cz\/gps)\/index\.php\?co\=checker([^"''<\s]+)';
+  komurkaRegex     = '(?i)https?:\/\/(www\.)?geo\.komurka\.cz\/check\.php([^"''<\s]+)';
+  gccounterRegex   = '(?i)https?:\/\/(www\.)?gccounter\.(de|com)\/gcchecker\.php([^"''<\s]+)';
+  gccounter2Regex  = '(?i)https?:\/\/(www\.)?gccounter\.(de|com)\/GCchecker\/Check([^"''<\s]+)';
+  certitudesRegex  = '(?i)https?:\/\/(www\.)?certitudes\.org\/certitude(\.php)?\?wp\=([^"''<\s]+)';
+  gpscacheRegex    = '(?i)https?:\/\/(www\.)?geochecker\.gps-cache\.de\/check\.aspx\?id\=([^"''<\s]+)';
+  gccheckRegex     = '(?i)https?:\/\/(www\.)?gccheck\.com\/(GC[^"''<\s]+)';
+  challengeRegex   = '(?i)https?:\/\/(www\.)?project-gc\.com\/Challenges\/GC[A-Z0-9]+\/\d+[^"''<\s]+';
+  gcappsGeoRegex   = '(?i)https?:\/\/(www\.)?gc-apps\.com\/geochecker\/show\/([^"''<\s]+)'; // '(?i)https?:\/\/(www\.)?gc-apps\.com\/(geochecker\/show\/)|(index\.php\?option=com_geochecker&view=item&id=)([^"''<\s]+)';
+  gcappsMultiRegex = '(?i)https?:\/\/(www\.)?gc-apps\.com\/multichecker\/show\/([^"''<\s]+)';
 var
   debug, answer: Boolean;
   coords: String;
@@ -207,14 +207,23 @@ begin
       service := '"challenge|' + GEOGET_OWNER +'"'; //EncodeUrlElement(GEOGET_OWNER);
     end
     {
-    GC-APPS
+    GC-APPS GEOCHECKER
     url: http://www.gc-apps.com/geochecker/show/b1a0a77fa830ddbb6aa4ed4c69057e79
     url: http://www.gc-apps.com/index.php?option=com_geochecker&view=item&id=b1a0a77fa830ddbb6aa4ed4c69057e79
     captcha: yes
     }
-    else if RegexFind(gcappsRegex, description) then begin
-      url := RegExSubstitute(gcappsRegex, description, '$0#'); // Parse URL from listing (on purpose it ends with '#')
-      service := 'gcapps';
+    else if RegexFind(gcappsGeoRegex, description) then begin
+      url := RegExSubstitute(gcappsGeoRegex, description, '$0#'); // Parse URL from listing (on purpose it ends with '#')
+      service := 'gcappsGeochecker';
+    end
+    {
+    GC-APPS MULTICHECKER
+    url: http://beta.gc-apps.com/checker/try/6e520532c3aa8c150ab90a82bf68d874
+    captcha: ?
+    }
+    else if RegexFind(gcappsMultiRegex, description) then begin
+      url := RegExSubstitute(gcappsMultiRegex, description, '$0#'); // Parse URL from listing (on purpose it ends with '#')
+      service := 'gcappsMultichecker';
     end 
     {Standard behavior}
     else begin
