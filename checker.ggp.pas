@@ -2,7 +2,7 @@
   GeoGet 2
   General Plugin Script
 
-  Www: http://geoget.ararat.cz/doku.php/user:skript:checker
+  Www: https://www.geoget.cz/doku.php/user:skript:checker
   Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
   Icon: https://icons8.com/icon/18401/Thumb-Up
   Author: mikrom, https://www.mikrom.cz

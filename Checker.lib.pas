@@ -1,10 +1,10 @@
 {
   Library of Functions
 
-  Www: http://geoget.ararat.cz/doku.php/user:skript:checker
+  Www: https://www.geoget.cz/doku.php/user:skript:checker
   Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
   Author: mikrom, http://mikrom.cz
-  Version: 2.15.0
+  Version: 2.17.0
 
   ToDo:
   * This is maybe interesting: http://www.regular-expressions.info/duplicatelines.html
@@ -175,7 +175,7 @@ begin
         Inc(serviceNum);
       end;
       {
-      KOMURKA
+      KOMURKA - DEAD
       url: http://geo.komurka.cz/check.php?cache=GC2JCEQ
       captcha: yes
       }
@@ -390,6 +390,8 @@ begin
                if incorrect <> '' then UpdateWaypointComment(incorrect);
              end;
           3: if debug then ShowMessage(_('Error'));
+          else
+            ShowMessage(_('Error: This should not happen!' + CRLF + 'No or wrong exit code from Checker.ahk'));
         end;
       end
       else

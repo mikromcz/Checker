@@ -3,7 +3,7 @@
 ; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ; Icon: https://icons8.com/icon/18401/Thumb-Up
 ; Author: mikrom, https://www.mikrom.cz
-; Version: 2.16.0
+; Version: 2.17.0
 ;
 ; Documentation: http://ahkscript.org/docs/AutoHotkey.htm
 ; FAQ: http://www.autohotkey.com/docs/FAQ.htm
@@ -27,7 +27,7 @@ SetWorkingDir, %A_ScriptDir% ; Ensures a consistent starting directory.
 
 ; Global variables
 Global args := []    ; Commandline parameters array
-Global errorLvl := 0 ; For sure set default error level, (0 - without error (default), 1 - success, 2 - wrong)
+Global exitCode := 0 ; For sure set default error level, (0 - without error (default), 1 - success, 2 - wrong)
 Global debug := 0    ; INI: Debugging mode, change it in the INI!
 Global proxy := 0    ; INI: Use proxy if you are banned for many tries, change in the INI!
 Global answer := 0   ; INI: Check if verification was successful or not, change in the INI!
@@ -72,6 +72,7 @@ If (A_Language = "0405") { ; Czech
   Global textAnswerIncorrect := "Špatnì!"
   Global textEvince          := "Upozornìní: Web evince.locusprime.net je mrtev. Nelze nic vyplnit/ovìøit.`nKontaktuj autora keše a zmìní službu pro ovìøení."
   Global textDoxina          := "Upozornìní: Web doxina.filipruzicka.net je mrtev. Nelze nic vyplnit/ovìøit.`nKontaktuj autora keše a zmìní službu pro ovìøení."
+  Global textKomurka         := "Upozornìní: Web geo.komurka.cz je mrtev. Nelze nic vyplnit/ovìøit.`nKontaktuj autora keše a zmìní službu pro ovìøení."
 } Else { ; Other = English
   Global textError           := "Error"
   Global textErrorFill       := "Error: Can't fill coordinates!`n`nProbably wrong page loaded, like limit exceeded."
@@ -88,6 +89,7 @@ If (A_Language = "0405") { ; Czech
   Global textAnswerIncorrect := "Incorrect!"
   Global textEvince          := "Warning: Site evince.locusprime.net is dead. It is not possible to fill/check anything.`nContact author of the cache to change verification service."
   Global textDoxina          := "Warning: Site doxina.filipruzicka.net is dead. It is not possible to fill/check anything.`nContact author of the cache to change verification service."
+  Global textKomurka         := "Warning: Site geo.komurka.cz is dead. It is not possible to fill/check anything.`nContact author of the cache to change verification service."
 }
 
 ; Add CMD paremeters to (pseudo) array. It's not necessary, parameters are in variables %1%, %2%, .. but seems not to work in my case.
@@ -100,7 +102,7 @@ Loop, %0% {
 ; Parameter count check. There must be exactly 10 parameters!
 If (args.MaxIndex() != 10) {
   MsgBox 16, % textError, % textErrorParam . paramList
-  ExitApp, errorLvl
+  ExitApp, exitCode
 }
 
 ; Create GUI
@@ -320,7 +322,7 @@ CheckAnwser(ByRef wb, correct, incorrect) {
         If (beep = 1)
           SoundPlay, *-1 ;SoundBeep, 2000, 100
 
-        errorLvl := 1                                   ; Change errorlevel for geoget script
+        exitCode := 1                                   ; Change errorlevel for geoget script
       } Else If RegExMatch(wb.Document.body.innerHTML, incorrect) {
         If (debug = 1)
           MsgBox, % "Incorrect :("
@@ -332,7 +334,7 @@ CheckAnwser(ByRef wb, correct, incorrect) {
         If (beep = 1)
           SoundPlay, *16 ;SoundBeep, 1000, 100
 
-        errorLvl := 2                                   ; Change errorlevel for geoget script
+        exitCode := 2                                   ; Change errorlevel for geoget script
       } ;Else {                                         ; I think we don't even need it
         ;If (debug = 1)
         ;  MsgBox, % "error"
@@ -341,7 +343,7 @@ CheckAnwser(ByRef wb, correct, incorrect) {
         ;GuiControl, Font, labelanswer                  ; Apply color to labelanswer
         ;GuiControl,, labelanswer, % textError          ; Show the TEXT
 
-        ;errorLvl := 3
+        ;exitCode := 3
       ;}
 
       ; Workaround for login to project-gc.com
@@ -370,7 +372,7 @@ CheckAnwser(ByRef wb, correct, incorrect) {
           Browser(wb)
         }
       } ;=> ProjectGC
-    } Until (errorLvl != 0)                             ; Loop again and again until errorlevel is changed
+    } Until (exitCode != 0)                             ; Loop again and again until errorlevel is changed
   } Catch e {
     If (debug != 1)
       MsgBox 16, % textError, % textErrorException . e.extra
@@ -467,7 +469,7 @@ Browser(ByRef wb) {
     } Catch e {
       MsgBox 16, % textError, % textErrorFill
       If (debug != 1)
-        ExitApp, errorLvl
+        ExitApp, exitCode
     }
 
     ; Check result after page reload
@@ -572,7 +574,7 @@ Browser(ByRef wb) {
     } Catch e {
       If (debug != 1) {
         MsgBox 16, % textError, % textErrorFill
-        ExitApp, errorLvl
+        ExitApp, exitCode
       } Else
         MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
     }
@@ -603,7 +605,7 @@ Browser(ByRef wb) {
     ;} Catch e {
     ;  MsgBox 16, % textError, % textErrorFill
     ;  If (debug != 1)
-    ;    ExitApp, errorLvl
+    ;    ExitApp, exitCode
     ;}
 
     ; Check result after page reload
@@ -614,7 +616,7 @@ Browser(ByRef wb) {
 
     ; Since 2017 website looks dead
     MsgBox, 48, % textError, % textEvince
-    ExitApp, errorLvl
+    ExitApp, exitCode
 
   } Else If (args[1] = "hermansky") { ; ==========================================> HERMANSKY (4)
     ; URL: http://geo.hermansky.net/index.php?co=checker&code=22377facb3ee0fbbf6e5e2b7dee042ee8687a55cd
@@ -657,7 +659,7 @@ Browser(ByRef wb) {
     } Catch e {
       If (debug != 1) {
         MsgBox 16, % textError, % textErrorFill
-        ExitApp, errorLvl
+        ExitApp, exitCode
       } Else
         MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
     }
@@ -674,42 +676,46 @@ Browser(ByRef wb) {
   } Else If (args[1] = "komurka") { ; ============================================> KOMURKA (5)
     ; URL: http://geo.komurka.cz/check.php?cache=GC2JCEQ
     ; Captcha: YES
-    Gui, Show,, % "Checker - " . args[1] ; Change title
+    ;Gui, Show,, % "Checker - " . args[1] ; Change title
 
-    wb.Navigate(args[10]) ; Navigate to webpage
-    LoadWait(wb)          ; Wait for page load
+    ;wb.Navigate(args[10]) ; Navigate to webpage
+    ;LoadWait(wb)          ; Wait for page load
 
     ; Try to fill the webpage form
-    Try {
-      If (args[2] = "N")
-        wb.Document.All.select1.SelectedIndex := 0
-      If (args[2] = "S")
-        wb.Document.All.select1.SelectedIndex := 1
-      wb.Document.All.sirka1.Value := args[3]
-      wb.Document.All.sirka2.Value := args[4]
-      wb.Document.All.sirka3.Value := args[5]
-      If (args[6] = "E")
-        wb.Document.All.select2.SelectedIndex := 0
-      If (args[6] = "W")
-        wb.Document.All.select2.SelectedIndex := 1
-      wb.Document.All.delka1.Value := args[7]
-      wb.Document.All.delka2.Value := args[8]
-      wb.Document.All.delka3.Value := args[9]
-      wb.Document.All.code.Focus()
-    } Catch e {
-      If (debug != 1) {
-        MsgBox 16, % textError, % textErrorFill
-        ExitApp, errorLvl
-      } Else
-        MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
-    }
+    ;Try {
+    ;  If (args[2] = "N")
+    ;    wb.Document.All.select1.SelectedIndex := 0
+    ;  If (args[2] = "S")
+    ;    wb.Document.All.select1.SelectedIndex := 1
+    ;  wb.Document.All.sirka1.Value := args[3]
+    ;  wb.Document.All.sirka2.Value := args[4]
+    ;  wb.Document.All.sirka3.Value := args[5]
+    ;  If (args[6] = "E")
+    ;    wb.Document.All.select2.SelectedIndex := 0
+    ;  If (args[6] = "W")
+    ;    wb.Document.All.select2.SelectedIndex := 1
+    ;  wb.Document.All.delka1.Value := args[7]
+    ;  wb.Document.All.delka2.Value := args[8]
+    ;  wb.Document.All.delka3.Value := args[9]
+    ;  wb.Document.All.code.Focus()
+    ;} Catch e {
+    ;  If (debug != 1) {
+    ;    MsgBox 16, % textError, % textErrorFill
+    ;    ExitApp, exitCode
+    ;  } Else
+    ;    MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
+    ;}
 
     ; Check result after page reload
     ; YES: <img src="images/smile_green.jpg"> # <IMG src="images/smile_green.jpg">
     ; NO:  <img src="images/smile_red.jpg"> # <IMG src="images/smile_red.jpg">
-    If (answer = 1)
-      CheckAnwser(wb, "Smi)src=.?images\/smile_green\.jpg.?", "Smi)src=.?images\/smile_red\.jpg.?")
+    ;If (answer = 1)
+    ;  CheckAnwser(wb, "Smi)src=.?images\/smile_green\.jpg.?", "Smi)src=.?images\/smile_red\.jpg.?")
 
+	; Since 2017 website looks dead
+    MsgBox, 48, % textError, % textKomurka
+    ExitApp, exitCode
+	
   } Else If (args[1] = "gccounter") { ; ==========================================> GCCOUNTER (5)
     ; URL: http://gccounter.com/gcchecker.php?site=gcchecker_check&id=2076
     ; Captcha: NO
@@ -739,7 +745,7 @@ Browser(ByRef wb) {
     } Catch e {
       If (debug != 1) {
         MsgBox 16, % textError, % textErrorFill
-        ExitApp, errorLvl
+        ExitApp, exitCode
       } Else
         MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
     }
@@ -781,7 +787,7 @@ Browser(ByRef wb) {
     } Catch e {
       If (debug != 1) {
         MsgBox 16, % textError, % textErrorFill
-        ExitApp, errorLvl
+        ExitApp, exitCode
       } Else
         MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
     }
@@ -812,7 +818,7 @@ Browser(ByRef wb) {
     } Catch e {
       If (debug != 1) {
         MsgBox 16, % textError, % textErrorFill
-        ExitApp, errorLvl
+        ExitApp, exitCode
       } Else
         MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
     }
@@ -841,7 +847,7 @@ Browser(ByRef wb) {
     } Catch e {
       If (debug != 1) {
         MsgBox 16, % textError, % textErrorFill
-        ExitApp, errorLvl
+        ExitApp, exitCode
       } Else
         MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
     }
@@ -871,7 +877,7 @@ Browser(ByRef wb) {
     } Catch e {
       If (debug != 1) {
         MsgBox 16, % textError, % textErrorFill
-        ExitApp, errorLvl
+        ExitApp, exitCode
       } Else
         MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
     }
@@ -910,7 +916,7 @@ Browser(ByRef wb) {
     } Catch e {
       If (debug != 1) {
         MsgBox 16, % textError, % textErrorFill
-        ExitApp, errorLvl
+        ExitApp, exitCode
       } Else
         MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
     }
@@ -943,29 +949,30 @@ Browser(ByRef wb) {
 
     wb.Navigate(args[10]) ; Navigate to webpage
     LoadWait(wb)          ; Wait for page load
+	wb.Document.ParentWindow.ScrollTo(0,140) ; Scroll down because page has a huge picture in header
 
     ; Try to fill the webpage form
     Try {
       If (args[2] = "N")
-        wb.Document.All.checker_fields_latitude_0.SelectedIndex := 0
+        wb.Document.All.try_fields_latitude_0.SelectedIndex := 0
       If (args[2] = "S")
-        wb.Document.All.checker_fields_latitude_0.SelectedIndex := 1
-      wb.Document.All.checker_fields_latitude_1.Value := args[3]
-      wb.Document.All.checker_fields_latitude_2.Value := args[4]
-      wb.Document.All.checker_fields_latitude_3.Value := args[5]
+        wb.Document.All.try_fields_latitude_0.SelectedIndex := 1
+      wb.Document.All.try_fields_latitude_1.Value := args[3]
+      wb.Document.All.try_fields_latitude_2.Value := args[4]
+      wb.Document.All.try_fields_latitude_3.Value := args[5]
       If (args[6] = "W")
-        wb.Document.All.checker_fields_longitude_0.SelectedIndex := 0
+        wb.Document.All.try_fields_longitude_0.SelectedIndex := 0
       If (args[6] = "E")
-        wb.Document.All.checker_fields_longitude_0.SelectedIndex := 1
-      wb.Document.All.checker_fields_longitude_1.Value := args[7]
-      wb.Document.All.checker_fields_longitude_2.Value := args[8]
-      wb.Document.All.checker_fields_longitude_3.Value := args[9]
+        wb.Document.All.try_fields_longitude_0.SelectedIndex := 1
+      wb.Document.All.try_fields_longitude_1.Value := args[7]
+      wb.Document.All.try_fields_longitude_2.Value := args[8]
+      wb.Document.All.try_fields_longitude_3.Value := args[9]
 
-      wb.Document.All.show_captcha.Focus()
+      wb.Document.All.try_captcha.Focus()
     } Catch e {
       If (debug != 1) {
         MsgBox 16, % textError, % textErrorFill
-        ExitApp, errorLvl
+        ExitApp, exitCode
       } Else
         MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
     }
@@ -1013,7 +1020,7 @@ Browser(ByRef wb) {
     } Catch e {
       If (debug != 1) {
         MsgBox 16, % textError, % textErrorFill
-        ExitApp, errorLvl
+        ExitApp, exitCode
       } Else
         MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
     }
@@ -1047,7 +1054,7 @@ Browser(ByRef wb) {
     } Catch e {
       If (debug != 1) {
         MsgBox 16, % textError, % textErrorFill
-        ExitApp, errorLvl
+        ExitApp, exitCode
       } Else
         MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
     }
@@ -1086,7 +1093,7 @@ Browser(ByRef wb) {
     } Catch e {
       If (debug != 1) {
         MsgBox 16, % textError, % textErrorFill
-        ExitApp, errorLvl
+        ExitApp, exitCode
       } Else
         MsgBox 16, % textError, % textErrorFill . "`n`nwhat: " e.what "`nfile: " e.file . "`nline: " e.line "`nmessage: " e.message "`nextra: " e.extra
     }
@@ -1104,12 +1111,12 @@ Browser(ByRef wb) {
 
     ; Since 2017 website looks dead
     MsgBox, 48, % textError, % textDoxina
-    ExitApp, errorLvl
+    ExitApp, exitCode
 
   } Else { ; =====================================================================> SERVICE ERROR
     MsgBox 16, % textError, % textErrorService
     If (debug != 1)
-      ExitApp, errorLvl
+      ExitApp, exitCode
   }
 
 } ; => Browser()
@@ -1156,7 +1163,9 @@ GuiClose:
     FixIE(Prev)    ; Undo registry hack for latest rendering engine
   If certfix
     FixIEcert(Cert)
-  ExitApp, errorLvl
+  If (debug = 1)
+    MsgBox 16, % textError, % "Exit code: " . exitCode
+  ExitApp, exitCode
 Return
 
 ; Run when ESC is pressed with GUI active
@@ -1166,5 +1175,7 @@ GuiEscape:
     FixIE(Prev)    ; Undo registry hack for latest rendering engine
   If certfix
     FixIEcert(Cert)
-  ExitApp, errorLvl
+  If (debug = 1)
+    MsgBox 16, % textError, % "Exit code: " . exitCode
+  ExitApp, exitCode
 Return
