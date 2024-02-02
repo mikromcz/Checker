@@ -4,7 +4,7 @@
   Www: http://geoget.ararat.cz/doku.php/user:skript:checker
   Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
   Author: mikrom, http://mikrom.cz
-  Version: 2.12.0
+  Version: 2.12.1
 
   ToDo:
   * This is maybe interesting: http://www.regular-expressions.info/duplicatelines.html
@@ -291,8 +291,8 @@ begin
         servicename.Add('gcm');
         Inc(servNum);
       end;
-      {Standard behavior}
-      if servicename[0]='' then begin
+      {Nothing found}
+      if servNum = 0 then begin
         ShowMessage(_('Error: No coordinate checker URL found!'));
         if debug then StringToFile(description, GEOGET_SCRIPTDIR + '\Checker\description.html');
         GeoAbort;
