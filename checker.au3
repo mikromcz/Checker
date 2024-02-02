@@ -3,7 +3,7 @@
 ;; Www: http://geoget.ararat.cz/doku.php/user:skript:checker
 ;; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ;; Author: mikrom, http://mikrom.cz
-;; Version: 0.1.0.1
+;; Version: 0.1.1.1
 ;;
 ;; parameters  service     ns          dx          mx          sx          ew          dy          my          sy          url
 ;; eg.         checker     N           50          15          123         E           015         54          123         http://checker.org/check?=a56sjg4678gdg
@@ -35,8 +35,14 @@ Browser()
 Func Browser()
   $oIE = _IECreateEmbedded()
   GUICreate("Checker Browser", 1000, 600, (@DesktopWidth - 1000) / 2, (@DesktopHeight - 600) / 2, $WS_OVERLAPPEDWINDOW + $WS_CLIPSIBLINGS + $WS_CLIPCHILDREN)
-  GUICtrlCreateObj($oIE, 0, 0, 1000, 600)                                       ;; Creates an ActiveX control in the GUI.
-  $GUI_Error_Message = GUICtrlCreateLabel("", 100, 500, 500, 30)
+  ;GUICtrlCreateObj($oIE, 0, 0, 1000, 600)                                       ;; Creates an ActiveX control in the GUI.
+
+  GUICtrlCreateObj($oIE, 0, 0, 1000, 580)                                       ;; Creates an ActiveX control in the GUI.
+
+  $donate = GUICtrlCreateLabel("Pøispìjte na vývoj Checkeru", 860, 583)         ;; Create label
+  GUICtrlSetCursor($donate, 0)                                                  ;; Change mouse cursor to hand on hover
+  GUICtrlSetColor($donate, 0x0000FF)                                            ;; Draw tex with blue color
+
   GUISetState(@SW_SHOW)                                                         ;; Changes the state of a GUI window. Show GUI
 
   Switch $CmdLine[1]
@@ -121,7 +127,7 @@ Func Browser()
       $oForm = _IEFormGetObjByName($oIE, "form1")                                    ;; Form name
       _IEFormElementOptionSelect(_IEGetObjByName($oForm, "select1"), $CmdLine[2])    ;; select1
       _IEFormElementSetValue(_IEGetObjByName($oForm, "sirka1"), $CmdLine[3])         ;; sirka1
-      If StringLen($CmdLine[4]) <> 2 Then                                            ;; musi byt dvouciferne
+      If StringLen($CmdLine[4]) <> 2 Then                                            ;; must be two digit
         _IEFormElementSetValue(_IEGetObjByName($oForm, "sirka2"), "0" & $CmdLine[4]) ;; sirka2 (if one digit add leading zero)
       Else
         _IEFormElementSetValue(_IEGetObjByName($oForm, "sirka2"), $CmdLine[4])       ;; sirka2 (if two digit let it be)
@@ -129,10 +135,10 @@ Func Browser()
       _IEFormElementSetValue(_IEGetObjByName($oForm, "sirka3"), $CmdLine[5])         ;; sirka3
       _IEFormElementOptionSelect(_IEGetObjByName($oForm, "select2"), $CmdLine[6])    ;; select2
       _IEFormElementSetValue(_IEGetObjByName($oForm, "delka1"), $CmdLine[7])         ;; delka1
-      If StringLen($CmdLine[4]) <> 2 Then                                            ;; musi byt dvouciferne
-        _IEFormElementSetValue(_IEGetObjByName($oForm, "delka2"), "0" & $CmdLine[4]) ;; delka2 (if one digit add leading zero)
+      If StringLen($CmdLine[8]) <> 2 Then                                            ;; must be two digit
+        _IEFormElementSetValue(_IEGetObjByName($oForm, "delka2"), "0" & $CmdLine[8]) ;; delka2 (if one digit add leading zero)
       Else
-        _IEFormElementSetValue(_IEGetObjByName($oForm, "delka2"), $CmdLine[4])       ;; delka2 (if two digit let it be)
+        _IEFormElementSetValue(_IEGetObjByName($oForm, "delka2"), $CmdLine[8])       ;; delka2 (if two digit let it be)
       EndIf
       _IEFormElementSetValue(_IEGetObjByName($oForm, "delka3"), $CmdLine[9])         ;; delka3
       _IEAction(_IEFormElementGetObjByName($oForm, "code"), "focus")                 ;; Captcha field - set focus
@@ -183,6 +189,27 @@ Func Browser()
       Next
       $oIE.document.parentwindow.scroll(0, 100)                                 ;; Scroll a little bit down :)
 
+    ;; ==========================================================================> FINAR
+    ;; url: http://gc.elanot.cz/index.php/data-final.html
+    ;; captcha: no
+    Case "finar"
+      _IENavigate($oIE, $CmdLine[10])                                           ;; Open url
+      $oForm = _IEFormGetObjByName($oIE, "fabrikList")                          ;; Form name
+      _IEAction(_IEFormElementGetObjByName($oForm, "fabrik_list_filter_all_1_com_fabrik_1"), "focus") ;; Set focus
+      If StringLen($CmdLine[4]) <> 2 Then                                       ;; must be two digit
+        $cmd4 = "0" & $CmdLine[4]                                               ;; add leading zero if one digit
+      Else
+        $cmd4 = $CmdLine[4]
+      EndIf
+      If StringLen($CmdLine[8]) <> 2 Then                                       ;; must be two digit
+        $cmd8 = "0" & $CmdLine[8]                                               ;; add leading zero if one digit
+      Else
+        $cmd8 = $CmdLine[8]
+      EndIf
+      _IEFormElementSetValue(_IEGetObjByName($oIE, "fabrik_list_filter_all_1_com_fabrik_1"), $CmdLine[2] & " " & $CmdLine[3] & "° " & $cmd4 & "." & $CmdLine[5] & " " & $CmdLine[6] & " " & $CmdLine[7] & "° " & $cmd8 & "." & $CmdLine[9]) ; coordinates in gc.com format
+      _IEAction($oIE, "stop")                                                   ;; Cancels any pending navigation or download operation and stops any dynamic page elements, such as background sounds and animations.
+      Sleep(1000)                                                               ;; Wait a while
+      _IEAction(_IEFormElementGetObjByName($oForm, "filter"), "click")          ;; Click on it!
     Case Else                                                                   ;; Show some error in case wrong service called
       MsgBox(0, "Error", "Error: Invalid service selected!" & @CRLF & "Use only: geocheck, geochecker, evince, hermansky, komurka, gccounter, certitudes!")
       Exit
@@ -191,9 +218,13 @@ Func Browser()
   ;; Waiting for user to close the window
   While 1
     Local $msg = GUIGetMsg()
-    If $msg = $GUI_EVENT_CLOSE Then
-       ExitLoop
-    EndIf
+    Switch $msg
+      Case $GUI_EVENT_CLOSE
+        Exit
+      Case $donate
+        ShellExecute("http://goo.gl/dCKefD") ;_IENavigate($oIE, "http://paypal.com")
+        Exit
+    EndSwitch
   WEnd
 
   GUIDelete()

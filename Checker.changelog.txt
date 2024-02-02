@@ -1,45 +1,50 @@
-=== 0.1.0.2 (2014/05/04) ===
+** 0.1.1.1 (2014/10/07) **
+  * Pøidána podpora webu finar.cz (je to sice databáze finálek, ale umí fungovat i jako ovìøení - zkontroluje Vaše finální souøadnice proti databázi, a pokud odpovídají nìjaké keši, ukáže se název té keše)
+  * Oprava chyby s doplòováním nuly k souøadnicím u jednoho webu
+  * Pøidána lokalizace do èeštiny
+
+** 0.1.0.2 (2014/05/04) **
   * pøidán plugin GGC, takže lze spustit z okna listingu
   * benevolentnìjší chování - pokud je vybrán bod ovìøují se jeho korigované souøadnice, pokud waypoint tak souø. waypointu. žádná vazba na "Final"
 
-=== 0.1.0.1 (2014/05/01) ===
+** 0.1.0.1 (2014/05/01) **
   * pøidáno posunutí stránky s výsledkem pokud nebylo na první pohled vidìt úspìšné ovìøení
   * oprava chyb z verze 0.1.0.0
   * ESC zavøe okno
   * oprava nefunkènosti kopírovat/vložit mimo browser (chyba AutoHotkey. poslední funkèní verze 3.3.8.1)
   * prohlížeš spuštìn jako RunExecNoWait, takže neblokuje práci s GeoGetem
 
-=== 0.1.0.0 (2014/05/01) ===
+** 0.1.0.0 (2014/05/01) **
   * kompletnì pøepsáno, otevírá se ve vlastním prohlížeèi
   * oprava vkládání souøadnic na geo.komurka.cz. web neakceptuje minuty bez úvodní nuly pokud se jedná o jednociferné èíslo
   * úprava parsování z geochecker.com
   * pøidáno gccounter.com (nejen gccounter.de)
 
-=== 0.0.1.7 (2014/04/28) ===
+** 0.0.1.7 (2014/04/28) **
   * dodìlána podpora webu certitudes.org (bez pøihlášení)
 
-=== 0.0.1.6 (2014/04/28) ===
+** 0.0.1.6 (2014/04/28) **
   * další ošetøení parsování url
   * pøidána malinká prodleva mezi posílanými pøíkazy
   * oprava geocheck.org
 
-=== 0.0.1.5 (2013/11/28) ===
+** 0.0.1.5 (2013/11/28) **
   * pøidána podpora webu http://www.certitudes.org/
   * pøidána podpora geotjek.dk (obdoba geocheck.org)
   * png ikonka
   * podpora mezer v ceste k souboru
 
-=== 0.0.1.4 (2013/05/07) ===
+** 0.0.1.4 (2013/05/07) **
   * pøidán changelog
   * úprava detekce titulku okna
 
-=== 0.0.1.3 (2013/05/02) ===
+** 0.0.1.3 (2013/05/02) **
   * zvýšen timeout z 15 na 30 sekund
   * zrušena informaèní hláška o použití korigovaných souøadnic
 
-=== 0.0.1.2 (2013/05/02) ===
+** 0.0.1.2 (2013/05/02) **
    * První veøejná verze
    * pøidána podpora GCCounter.de
 
-=== 0.0.1.1 (2013/04/30) ===
+** 0.0.1.1 (2013/04/30) **
   * GIP verze

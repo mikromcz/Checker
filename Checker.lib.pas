@@ -4,7 +4,9 @@
   Www: http://geoget.ararat.cz/doku.php/user:skript:checker
   Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
   Author: mikrom, http://mikrom.cz
-  Version: 0.1.0.2
+  Version: 0.1.0.3
+
+  tohle by mohlo bejt zajimavy: http://www.regular-expressions.info/duplicatelines.html
 }
 
 function TrimUrl(url: string): string;
@@ -14,31 +16,24 @@ begin
   result := url;
 end;
 
-Procedure Checker;
+procedure Checker(runFrom: string);
 var
   s, url, ns, dx, mx, sx, ew, dy, my, sy, service: string;
   n: Integer;
 begin
-  if GC.IsSelected then begin // for cache
-    s := FormatCoordNum(GC.CorrectedLatNum, GC.CorrectedLonNum)
-    //if GC.HaveFinal then s := FormatCoordNum(GC.CorrectedLatNum, GC.CorrectedLonNum)
-    //else begin
-    //  ShowMessage(_('Warning: No final waypoint found!'));
-    //  s := '';
-    //end;
-  end
-  else begin // for waypoint
-    for n := 0 to GC.Waypoints.Count - 1 do begin
-      if GC.Waypoints[n].IsSelected then begin
-        s := FormatCoordNum(GC.Waypoints[n].LatNum, GC.Waypoints[n].LonNum)
-        //if GC.Waypoints[n].IsFinal then s := FormatCoordNum(GC.Waypoints[n].LatNum, GC.Waypoints[n].LonNum)
-        //else ShowMessage(_('Error: Is not final!'));
-      end;
-    end;
+  case runFrom of
+    'ggp': if GC.IsSelected then
+             s := FormatCoordNum(GC.CorrectedLatNum, GC.CorrectedLonNum) // for cache
+           else begin // for waypoint
+             for n := 0 to GC.Waypoints.Count - 1 do begin
+               if GC.Waypoints[n].IsSelected then s := FormatCoordNum(GC.Waypoints[n].LatNum, GC.Waypoints[n].LonNum);
+             end;
+           end;
+    'ggc': s := FormatCoordNum(GC.CorrectedLatNum, GC.CorrectedLonNum);
   end;
 
   if s <> '' then begin
-    //s := 'N50°30.123' E015°29.456''';
+    //s := N50°30.123' E015°29.456';
     ns := RegExSubstitute('(N|S)(\d+)°(\d+)\.(\d+)''\s(E|W)(\d+)°(\d+)\.(\d+)''', s, '$1'); // N
     dx := RegExSubstitute('(N|S)(\d+)°(\d+)\.(\d+)''\s(E|W)(\d+)°(\d+)\.(\d+)''', s, '$2'); // 50
     mx := RegExSubstitute('(N|S)(\d+)°(\d+)\.(\d+)''\s(E|W)(\d+)°(\d+)\.(\d+)''', s, '$3'); // 30
@@ -113,8 +108,20 @@ begin
       }
     end
     else begin
-      ShowMessage('error: ani geocheck.org, ani geochecker.com, ani evince, ani hermansky!');
-      GeoAbort;
+      if MessBox(_('No coordinate checker site found, try look at finar.cz?' + CRLF + 'If this final location is in their database, it will show cache name.'), _('Nothing found'), 1) = 1 then begin
+        url := 'http://gc.elanot.cz/index.php/data-final.html';
+        service := 'finar';
+        {
+        url: http://gc.elanot.cz/index.php/data-final.html?fabrik_list_filter_all_1_com_fabrik_1=N+49%C2%B0+06.864+E+017%C2%B0+46.694&limit1=10&limitstart1=0&option=com_fabrik&orderdir=&orderby=&view=list&listid=1&listref=1_com_fabrik_1&Itemid=112&fabrik_referrer=%2Findex.php%2Fdata-final.html%3Fresetfilters%3D0&735d56ae937921f2bb7c794d8ebfee41=1&format=html&packageId=0&task=list.filter&fabrik_listplugin_name=&fabrik_listplugin_renderOrder=&fabrik_listplugin_options=&incfilters=1
+        captcha: ne
+        }
+      end
+      else
+        GeoAbort;
+    //end
+    //else begin
+      //ShowMessage('error: ani geocheck.org, ani geochecker.com, ani evince, ani hermansky!');
+      //GeoAbort;
     end;
 
     //ShowMessage(GEOGET_SCRIPTDIR + '\checker\checker.exe ' + service + ' ' + ns + ' ' + dx + ' ' + mx + ' ' + sx + ' ' + ew + ' ' + dy + ' ' + my + ' ' + sy + ' ' + url);

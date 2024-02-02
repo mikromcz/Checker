@@ -4,7 +4,7 @@
   Www: http://geoget.ararat.cz/doku.php/user:skript:checker
   Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
   Author: mikrom, http://mikrom.cz
-  Version: 0.1.0.2
+  Version: 0.1.0.3
 }
 
 {$INCLUDE Checker.lib.pas}
@@ -12,7 +12,7 @@
 {Name of plugin}
 function PluginCaption: string;
 begin
-  result := ' ';
+  result := 'Checker';
 end;
 
 {What will be displayed as hint?}
@@ -30,5 +30,5 @@ end;
 {Enter plugin code here}
 procedure PluginWork;
 begin
-  Checker;
+  Checker('ggc');
 end;
