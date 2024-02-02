@@ -6,12 +6,12 @@
 
 function PluginCaption: string;
 begin
-  Result:='checker';
+  Result:='Checker';
 end;
 
 function PluginHint: string;
 begin
-  Result:='open and fill checker page (geocheck.org, geochecker.com, evince.locusprime.net)';
+  Result:=_('Open and fill checker page (geocheck.org, geochecker.com, evince.locusprime.net, etc.)');
 end;
 
 function PluginIcon: string;
@@ -29,22 +29,22 @@ var
   s,url,ns,dx,mx,sx,ew,dy,my,sy,service:String;
   n:Integer;
 begin
-  if GC.IsSelected then begin // pro kes
-    ShowMessage('warning: corrected coordinates used!');
+  if GC.IsSelected then begin // for cache
+    ShowMessage('Warning: Corrected coordinates used!');
     s:=FormatCoordNum(GC.CorrectedLatNum,GC.CorrectedLonNum);
   end
-  else begin // pro waypoint
+  else begin // for waypoint
     for n := 0 to GC.Waypoints.Count - 1 do begin
       if GC.Waypoints[n].IsSelected then begin
         if GC.Waypoints[n].IsFinal then s:=FormatCoordNum(GC.Waypoints[n].LatNum,GC.Waypoints[n].LonNum)
-        else ShowMessage('error: is not final!');
+        else ShowMessage('Error: Is not final!');
       end;
     end;
   end;
 
   if s<>'' then begin
     {DX-stupne, MX-minuty, SX-vteriny, X & Y = Lat a Lon}
-    // s:='N50°30.625' E015°29.620''';
+    //s:='N50°30.625' E015°29.620''';
     ns:=RegExSubstitute('(N|S)(\d+)°(\d+)\.(\d+)''\s(E|W)(\d+)°(\d+)\.(\d+)''',s,'$1'); // N
     dx:=RegExSubstitute('(N|S)(\d+)°(\d+)\.(\d+)''\s(E|W)(\d+)°(\d+)\.(\d+)''',s,'$2'); // 50
     mx:=RegExSubstitute('(N|S)(\d+)°(\d+)\.(\d+)''\s(E|W)(\d+)°(\d+)\.(\d+)''',s,'$3'); // 30
@@ -55,22 +55,40 @@ begin
     sy:=RegExSubstitute('(N|S)(\d+)°(\d+)\.(\d+)''\s(E|W)(\d+)°(\d+)\.(\d+)''',s,'$8'); // 620
 
     {zjistit typ overovaci sluzby - geocheck.org, geochecker.com, evince.locusprime.net}
-    if RegexFind('(https?://|www\.)geocheck.org/geo_inputchkcoord([^"]+)',GC.LongDescription) then begin
-      url:=RegExSubstitute('(https?://|www\.)geocheck.org/geo_inputchkcoord([^"]+)',GC.LongDescription,'$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
+    if RegexFind('(https?://|www\.)geocheck\.org\/geo_inputchkcoord([^"'']+)',GC.LongDescription) then begin
+      url:=RegExSubstitute('(https?://|www\.)geocheck\.org\/geo_inputchkcoord([^"'']+)',GC.LongDescription,'$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
       url:=RegexReplace('#.*',url,'',false); // zabraneni dvojitym url pokud je v listingu vicekrat (www.neco.cz/odkazwww.neco.cz/odkaz)
       service:='geocheck';
     end
-    else if RegexFind('(https?://|www\.)geochecker.com([^"]+)',GC.LongDescription) then begin
-      url:=RegExSubstitute('(https?://|www\.)geochecker.com([^"]+)',GC.LongDescription,'$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
+    else if RegexFind('(https?://|www\.)geochecker\.com([^"'']+)',GC.LongDescription) then begin
+      url:=RegExSubstitute('(https?://|www\.)geochecker\.com([^"'']+)',GC.LongDescription,'$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
       url:=RegexReplace('#.*',url,'',false); // zabraneni dvojitym url pokud je v listingu vicekrat (www.neco.cz/odkazwww.neco.cz/odkaz)
       service:='geochecker';
     end
-    else if RegexFind('(https?://|www\.)evince.locusprime.net/cgi-bin/([^"]+)',GC.LongDescription) then begin
-      url:=RegExSubstitute('(https?://|www\.)evince.locusprime.net/cgi-bin/([^"]+)',GC.LongDescription,'$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
+    else if RegexFind('(https?://|www\.)evince\.locusprime\.net\/cgi-bin\/([^"'']+)',GC.LongDescription) then begin
+      url:=RegExSubstitute('(https?://|www\.)evince\.locusprime\.net\/cgi-bin\/([^"'']+)',GC.LongDescription,'$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
       url:=RegexReplace('#.*',url,'',false); // zabraneni dvojitym url pokud je v listingu vicekrat (www.neco.cz/odkazwww.neco.cz/odkaz)
       service:='evince';
     end
-    else ShowMessage('error: ani geocheck.org, ani geochecker.com, ani evince!');
+    else if RegexFind('(https?://|www\.)(geo\.hermansky\.net|speedygt\.ic\.cz\/gps)\/index\.php\?co\=checker([^"'']+)',GC.LongDescription) then begin
+      url:=RegExSubstitute('(https?://|www\.)(geo\.hermansky\.net|speedygt\.ic\.cz\/gps)\/index\.php\?co\=checker([^"'']+)',GC.LongDescription,'$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
+      url:=RegexReplace('#.*',url,'',false); // zabraneni dvojitym url pokud je v listingu vicekrat (www.neco.cz/odkazwww.neco.cz/odkaz)
+      service:='hermansky';
+    end
+    else if RegexFind('(https?://|www\.)geo\.komurka\.cz\/check\.php([^"'']+)',GC.LongDescription) then begin
+      url:=RegExSubstitute('(https?://|www\.)geo\.komurka\.cz\/check\.php([^"'']+)',GC.LongDescription,'$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
+      url:=RegexReplace('#.*',url,'',false); // zabraneni dvojitym url pokud je v listingu vicekrat (www.neco.cz/odkazwww.neco.cz/odkaz)
+      service:='komurka';
+    end
+    else if RegexFind('(https?://|www\.)gccounter\.de\/gcchecker\.php([^"'']+)',GC.LongDescription) then begin
+      url:=RegExSubstitute('(https?://|www\.)gccounter\.de\/gcchecker\.php([^"'']+)',GC.LongDescription,'$0#'); // parsnout url z listingu, GC.LongDescription (konci '#')
+      url:=RegexReplace('#.*',url,'',false); // zabraneni dvojitym url pokud je v listingu vicekrat (www.neco.cz/odkazwww.neco.cz/odkaz)
+      service:='gccounter';
+    end
+    else begin
+      ShowMessage('error: ani geocheck.org, ani geochecker.com, ani evince, ani hermansky!');
+      GeoAbort;
+    end;
 
     //ShowMessage(GEOGET_SCRIPTDIR+'\checker\checker.exe '+service+' '+ns+' '+dx+' '+mx+' '+sx+' '+ew+' '+dy+' '+my+' '+sy+' '+url);
     RunExec(GEOGET_SCRIPTDIR+'\checker\AutoIt3.exe '+GEOGET_SCRIPTDIR+'\checker\checker.au3 '+service+' '+ns+' '+dx+' '+mx+' '+sx+' '+ew+' '+dy+' '+my+' '+sy+' '+url);
