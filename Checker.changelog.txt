@@ -1,3 +1,6 @@
+** 4.0.0 (202508xx) **
+  * kompletnì pøepsáno z AutoHotkey1 do AutoHotkey2 s podporou WebView2
+
 ** 3.1.1 (2022/08/08) **
   * pøidána detekce mrtvého ovìøovaèe "evince.locusprime.invalid" (bylo jen evince.locusprime.net)
   * pokud je u keše více než jedno ovìøení, je možno zvolit jaké chceme (U GC9Q4Y3 jsou tøi geocheckery, u GC6DJTY deset, u GC213AF dvacet), nápad gord
@@ -80,7 +83,7 @@
   * Definitivnì umøel web speedygt.ic.cz/gps, ale zda se že je vše na geo.hermansky.net, takže dojde k upravení odkazu
   * oprava parsování na gc-apps.com
   * doplnìna možnost kontroly ovìøení pro geochecker.gps-cache.de
-  * oprava geochecker.gps-cache.de pokud se má místo souøadnic vyplnit odpovìï  
+  * oprava geochecker.gps-cache.de pokud se má místo souøadnic vyplnit odpovìï
   * geocache.fi se naèítá v angliètinì
   * oprava špatné detekce ovìøení u geocache.fi (napø. u GC14G37)
   * oprava challenge keší (rozdílné chování podle toho zda odkaz konèí jen GC kódem, nebo je za ním ještì lomítko a èíslo)
@@ -94,12 +97,12 @@
   * gccheck.com má problémy s certifikátem pro HTTPS, s tím nic neudìlám
   * doplnìní cz pøekladu
   * aktualizace AutoHotkey na nejnovìjší verzi 1.1.25.01
-  
+
 ** 2.11.1 (2017/02/16) **
   * pøidána podpora https://gc.gcm.cz/validator/
   * oprava parsování geocache.fi
   * další opravy a vylepšení
-  
+
 ** 2.10.0 (2017/02/03) **
   * pøidána podpora geowii.miga.lv
   * drobné opravy a úpravy debug módu
@@ -120,7 +123,7 @@
   * pøidáno nastavení iefix v INI, pro vynucení použití nejnovìjšího vykreslovacího jádra (místo výchozího IE7)
   * aktualizace AHK na nejnovìjší verzi 1.1.24.4
   * nová chybová hláška pøi chybì vyplòování souøadnic
-  
+
 ** 0.2.5.3 (2016/06/12) **
   * pøidáno ovìøení na gccheck.com
   * pøidána nìjaká druhá verze gccounter.de

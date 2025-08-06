@@ -4,7 +4,7 @@
     Www: https://www.geoget.cz/doku.php/user:skript:checker
     Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
     Author: mikrom, http://mikrom.cz
-    Version: 3.1.1
+    Version: 4.0.0
 
     ToDo:
     * This might be interesting: http://www.regular-expressions.info/duplicatelines.html
@@ -122,12 +122,12 @@ function TrimUrl(url: String): String;
 begin
     {$ifdef DEBUG_HELPER} LDHp('TrimUrl'); {$endif}
     {$ifdef DEBUG_HELPER} LDH('in:  ' + url); {$endif}
-    
+
     url := RegexReplace('\n.*', url, '', False); // Sometimes it is on two rows
     url := RegexReplace('#.*', url, '', False); // Preventing doubled urls (www.neco.cz/odkazwww.neco.cz/odkaz)
-    
+
     {$ifdef DEBUG_HELPER} LDH('out: ' + url); {$endif}
-    
+
     result := url;
 end;
 
@@ -200,9 +200,9 @@ var
     list: TStringList;
 begin
     if (s <> '') then begin
-    
+
         {$ifdef DEBUG_HELPER} LDHp('AddToCheckersList'); {$endif}
-        
+
         list := TStringList.Create;
         try
             list.Delimiter := #10;
@@ -239,9 +239,9 @@ function RemoveSerialNum(s: String): String;
 begin
     {$ifdef DEBUG_HELPER} LDHp('RemoveSerialNum'); {$endif}
     {$ifdef DEBUG_HELPER} LDH('In:  ' + s); {$endif}
-    
+
     Result := RegexReplace('\s\(\d+\)', s, '', true);
-    
+
     {$ifdef DEBUG_HELPER} LDH('Out: ' + Result); {$endif}
 end;
 
@@ -330,7 +330,7 @@ begin
             captcha: no
             }
             s := RegexExtract(hermanskyRegex, description);
-            s := ReplaceString(s, 'speedygt.ic.cz/gps', 'geo.hermansky.net');
+            //s := ReplaceString(s, 'speedygt.ic.cz/gps', 'geo.hermansky.net'); // Done in Checker.ahk, 20250806
             AddToCheckersList(s, 'hermansky');
 
             {
@@ -376,7 +376,7 @@ begin
                 Inc(serviceNum);
                 {$ifdef DEBUG_HELPER} LDH('Service: certitudes'); {$endif}
             end;
-            
+
             {
             GPS-CACHE
             url: http://geochecker.gps-cache.de/check.aspx?id=7c52d196-b9d2-4b23-ad99-5d6e1bece187
@@ -406,7 +406,7 @@ begin
                 Inc(serviceNum);
                 {$ifdef DEBUG_HELPER} LDH('Service: challenge'); {$endif}
             end;
-            
+
             {
             CHALLENGE2
             url: https://project-gc.com/Challenges/GC27Z84 - staèí poslat s parametry (https://project-gc.com/Challenges/GC27Z84?profile_name=mikrom&submit=Filter)
@@ -421,7 +421,7 @@ begin
                 Inc(serviceNum);
                 {$ifdef DEBUG_HELPER} LDH('Service: challenge2'); {$endif}
             end;
-            
+
             {
             GC-APPS GEOCHECKER
             url: http://www.gc-apps.com/geochecker/show/b1a0a77fa830ddbb6aa4ed4c69057e79
@@ -461,7 +461,7 @@ begin
             captcha: yes
             }
             s := RegexExtract(gcmRegex, description);
-            s := ReplaceString(s, 'gc.gcm.cz/validator', 'validator.gcm.cz');
+            //s := ReplaceString(s, 'gc.gcm.cz/validator', 'validator.gcm.cz'); // Checker.ahk does the conversion, 20250806
             AddToCheckersList(s, 'gcm');
 
             {
@@ -486,7 +486,7 @@ begin
             captcha: NO
             }
             s := RegexExtract(gctoolboxRegex, description);
-            s := ReplaceString(s, 'lang=ger', 'lang=eng'); // Force ENGLISH
+            //s := ReplaceString(s, 'lang=ger', 'lang=eng'); // Force ENGLISH
             AddToCheckersList(s, 'gctoolbox');
 
             {
@@ -508,7 +508,7 @@ begin
                 Inc(serviceNum);
                 {$ifdef DEBUG_HELPER} LDH('Service: nanochecker'); {$endif}
             end;
-            
+
             {
             GZ CHECKER
             url: http://infin.ity.me.uk/GZ.php?MC=RR074
@@ -623,7 +623,7 @@ begin
             {$ifdef DEBUG_HELPER} LDHp('Call Checker.ahk'); {$endif}
 
             {Make command for running AHK}
-            s := '"' + GEOGET_DATADIR + '\tools\AutoHotkey.exe" "' + GEOGET_SCRIPTDIR + '\Checker\Checker.ahk" ' + RemoveSerialNum(service) + ' ' + coordinates + ' "' + url + '"';
+            s := '"' + GEOGET_SCRIPTDIR + '\Checker\AutoHotkey64.exe" "' + GEOGET_SCRIPTDIR + '\Checker\Checker.ahk" ' + RemoveSerialNum(service) + ' ' + coordinates + ' "' + url + '"';
             {$ifdef DEBUG_HELPER} LDH('Command: ' + s); {$endif}
 
             {If we can get result of the check}
@@ -633,12 +633,12 @@ begin
                         // AHK script ran without error, but not found if result was correct or not
 
                          {$ifdef DEBUG_HELPER} LDH('OK, neither correct or incorrect'); {$endif}
-                         
+
                          if (callggp <> '') then
                             GeoCallGGP(GEOGET_SCRIPTDIR + callggp);
                          if (callgge <> '') then
                             GeoExport(GEOGET_SCRIPTDIR + callgge, ggeoutput);
-                            
+
                         end;
                     1:  begin
                         // If it WAS correct add special comment to the Final waypoint
@@ -654,7 +654,7 @@ begin
                             end;
                             if (history) then
                                 LogHistory(coordinates, 'Correct');
-                                
+
                         end;
                     2:  begin
                         // If it WAS NOT correct add special comment to the Final waypoint
@@ -670,13 +670,12 @@ begin
                             end;
                             if (history) then
                                 LogHistory(coordinates, 'Incorrect');
-                                
+
                         end;
                     3:
                         begin
-                            {$ifdef DEBUG_HELPER} LDHe('Error: This should not happen!' + CRLF + 'No or wrong exit code from Checker.ahk'); {$endif}
-
-                            ShowMessage(_('Error: This should not happen!' + CRLF + 'No or wrong exit code from Checker.ahk'));
+                            {$ifdef DEBUG_HELPER} LDHe('Dead service!'); {$endif}
+                            ShowMessage(_('Mrtvá služba!'));
                         end;
                 end;
             end
