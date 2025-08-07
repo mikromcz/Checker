@@ -3,6 +3,7 @@
 #Include Translation.ahk
 
 ; Alive services
+#Include Services\Challenge.ahk
 #Include Services\Certitudes.ahk
 #Include Services\Gzchecker.ahk
 #Include Services\GcappsGeochecker.ahk
@@ -37,6 +38,7 @@ class ServiceRegistry {
             ServiceRegistry.services := Map()
 
             ; Register all available services
+            ServiceRegistry.registerService("challenge", ChallengeService)
             ServiceRegistry.registerService("certitudes", CertitudesService)
             ServiceRegistry.registerService("gcappsgeochecker", GcappsGeocheckerService)
             ServiceRegistry.registerService("gcappsmultichecker", GcappsMulticheckerService)

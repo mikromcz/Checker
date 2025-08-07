@@ -3,7 +3,7 @@
 ; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
 ; Icon: https://icons8.com/icon/18401/Thumb-Up
 ; Author: mikrom, https://www.mikrom.cz
-; Version: 4.0.0
+; Version: 4.0.1
 
 #Requires AutoHotkey v2.0
 #NoTrayIcon
@@ -40,6 +40,7 @@ class CheckerApp {
         this.finalExitCode := 0
         this.coordinatesFilled := false
         this.clipboardCopied := false
+        this.version := this.getVersionFromScript()
 
         ; Settings with defaults
         this.settings := {
@@ -47,8 +48,7 @@ class CheckerApp {
             debug: 0,       ; Debug mode
             beep: 0,        ; Acoustic feedback
             copymsg: 1,     ; Copy owner's message to clipboard
-            timeout: 10,     ; Page load timeout in seconds
-            pgclogin: 0     ; Try to login to project-gc.com
+            timeout: 10     ; Page load timeout in seconds
         }
         this.iniFile := "Checker.ini"
     }
@@ -147,11 +147,10 @@ class CheckerApp {
         try {
             if (FileExist(this.iniFile)) {
                 this.settings.answer := IniRead(this.iniFile, "Checker", "answer", 1)
-                this.settings.debug := IniRead(this.iniFile, "Checker", "debug", 0)
-                this.settings.beep := IniRead(this.iniFile, "Checker", "beep", 0)
                 this.settings.copymsg := IniRead(this.iniFile, "Checker", "copymsg", 1)
                 this.settings.timeout := IniRead(this.iniFile, "Checker", "timeout", "")
-                this.settings.pgclogin := IniRead(this.iniFile, "Checker", "pgclogin", 0)
+                this.settings.debug := IniRead(this.iniFile, "Checker", "debug", 0)
+                this.settings.beep := IniRead(this.iniFile, "Checker", "beep", 0)
             }
         } catch as e {
             ; Use defaults if loading fails
@@ -162,11 +161,10 @@ class CheckerApp {
         ; Save settings to INI file
         try {
             IniWrite(this.settings.answer, this.iniFile, "Checker", "answer")
-            IniWrite(this.settings.debug, this.iniFile, "Checker", "debug")
-            IniWrite(this.settings.beep, this.iniFile, "Checker", "beep")
             IniWrite(this.settings.copymsg, this.iniFile, "Checker", "copymsg")
             IniWrite(this.settings.timeout, this.iniFile, "Checker", "timeout")
-            IniWrite(this.settings.pgclogin, this.iniFile, "Checker", "pgclogin")
+            IniWrite(this.settings.debug, this.iniFile, "Checker", "debug")
+            IniWrite(this.settings.beep, this.iniFile, "Checker", "beep")
         } catch as e {
             MsgBox("Failed to save settings: " . e.message, "Error", "OK Icon!")
         }
@@ -178,58 +176,48 @@ class CheckerApp {
         prefGui.MarginX := 15
         prefGui.MarginY := 15
 
-        ; Answer checkbox
-        prefGui.AddText("x15 y15", Translation.get("result_checking"))
-        answerCb := prefGui.AddCheckbox("x30 y35 w300 Checked" . this.settings.answer,
+        ; Check result checkbox
+        answerCb := prefGui.AddCheckbox("x15 y15 w300 Checked" . this.settings.answer,
             Translation.get("result_checking_desc"))
 
-        ; Debug checkbox
-        prefGui.AddText("x15 y65", Translation.get("debug_mode"))
-        debugCb := prefGui.AddCheckbox("x30 y85 w300 Checked" . this.settings.debug,
-            Translation.get("debug_mode_desc"))
-
-        ; Beep checkbox
-        prefGui.AddText("x15 y115", Translation.get("audio_feedback"))
-        beepCb := prefGui.AddCheckbox("x30 y135 w300 Checked" . this.settings.beep,
-            Translation.get("audio_feedback_desc"))
-
         ; Copy message checkbox
-        prefGui.AddText("x15 y165", Translation.get("clipboard"))
-        copymsgCb := prefGui.AddCheckbox("x30 y185 w300 Checked" . this.settings.copymsg,
+        copymsgCb := prefGui.AddCheckbox("x15 y45 w300 Checked" . this.settings.copymsg,
             Translation.get("clipboard_desc"))
 
-        ; Timeout field
-        prefGui.AddText("x15 y215", Translation.get("timeout"))
-        timeoutEdit := prefGui.AddEdit("x30 y235 w100", this.settings.timeout)
-        prefGui.AddText("x140 y238", Translation.get("timeout_desc"))
+        ; Timeout field (inline)
+        prefGui.AddText("x15 y78", Translation.get("timeout"))
+        timeoutEdit := prefGui.AddEdit("x160 y75 w30", this.settings.timeout)
+        prefGui.AddText("x195 y78", Translation.get("timeout_desc"))
 
-        ; Project-GC login checkbox
-        prefGui.AddText("x15 y265", Translation.get("pgc_integration"))
-        pgcloginCb := prefGui.AddCheckbox("x30 y285 w300 Checked" . this.settings.pgclogin,
-            Translation.get("pgc_integration_desc"))
+        ; Debug checkbox
+        debugCb := prefGui.AddCheckbox("x15 y105 w300 Checked" . this.settings.debug,
+            Translation.get("debug_mode_desc"))
+
+        ; Play sound checkbox (disabled - not implemented)
+        beepCb := prefGui.AddCheckbox("x15 y135 w300 Checked" . this.settings.beep . " +Disabled",
+            Translation.get("audio_feedback_desc"))
+
 
         ; Buttons
-        okBtn := prefGui.AddButton("x120 y325 w75 h25", Translation.get("ok"))
-        cancelBtn := prefGui.AddButton("x205 y325 w75 h25", Translation.get("cancel"))
+        okBtn := prefGui.AddButton("x85 y170 w75 h25", Translation.get("ok"))
+        cancelBtn := prefGui.AddButton("x170 y170 w75 h25", Translation.get("cancel"))
 
         ; Button events
-        okBtn.OnEvent("Click", (*) => this.savePreferences(answerCb, debugCb, beepCb, copymsgCb, timeoutEdit,
-            pgcloginCb, prefGui))
+        okBtn.OnEvent("Click", (*) => this.savePreferences(answerCb, debugCb, beepCb, copymsgCb, timeoutEdit, prefGui))
         cancelBtn.OnEvent("Click", (*) => prefGui.Destroy())
         prefGui.OnEvent("Escape", (*) => prefGui.Destroy())
 
         ; Show dialog
-        prefGui.Show("w350 h370")
+        prefGui.Show("w330 h210")
     }
 
-    savePreferences(answerCb, debugCb, beepCb, copymsgCb, timeoutEdit, pgcloginCb, prefGui) {
+    savePreferences(answerCb, debugCb, beepCb, copymsgCb, timeoutEdit, prefGui) {
         ; Save settings from dialog controls
         this.settings.answer := answerCb.Value
         this.settings.debug := debugCb.Value
         this.settings.beep := beepCb.Value
         this.settings.copymsg := copymsgCb.Value
         this.settings.timeout := timeoutEdit.Text
-        this.settings.pgclogin := pgcloginCb.Value
 
         this.saveSettings()
         prefGui.Destroy()
@@ -237,7 +225,7 @@ class CheckerApp {
 
     showAbout() {
         aboutText := Translation.get("app_title") . "`n"
-        aboutText .= Translation.get("about_version") . "`n`n"
+        aboutText .= "Version " . this.version . " (AutoHotkey v2 + WebView2)" . "`n`n"
 
         ; Format parameters section with better alignment and readability
         aboutText .= Translation.get("current_parameters") . "`n"
@@ -653,6 +641,24 @@ class CheckerApp {
             } catch {
                 ; Ignore color change errors
             }
+        }
+    }
+
+    getVersionFromScript() {
+        try {
+            ; Read the script file to extract version from header comment
+            scriptContent := FileRead(A_ScriptFullPath)
+
+            ; Look for the version line in the header comments
+            if (RegExMatch(scriptContent, "im)^;\s*Version:\s*([\d\.]+)", &match)) {
+                return match[1]
+            }
+
+            ; Fallback if version not found in expected format
+            return "4.0.0"
+        } catch {
+            ; Fallback version if file reading fails
+            return "4.0.0"
         }
     }
 }

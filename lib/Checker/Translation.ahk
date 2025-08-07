@@ -41,16 +41,13 @@ class Translation {
             Translation.strings["audio_feedback_desc"] := isCzech ? "Přehrát zvuk pro správné/nesprávné ověření" : "Play sound for correct/incorrect verification"
             Translation.strings["clipboard"] := isCzech ? "Schránka:" : "Clipboard:"
             Translation.strings["clipboard_desc"] := isCzech ? "Kopírovat zprávu autora do schránky" : "Copy owner's message to clipboard"
-            Translation.strings["timeout"] := isCzech ? "Časový limit načítání stránky (sekundy):" : "Page Load Timeout (seconds):"
+            Translation.strings["timeout"] := isCzech ? "Časový limit načítání stránky (sekundy):" : "Page load timeout (seconds):"
             Translation.strings["timeout_desc"] := isCzech ? "(prázdné = bez limitu)" : "(empty = no timeout)"
-            Translation.strings["pgc_integration"] := isCzech ? "Integrace Project-GC:" : "Project-GC Integration:"
-            Translation.strings["pgc_integration_desc"] := isCzech ? "Zkusit se přihlásit na project-gc.com pro challenge keše" : "Try to login to project-gc.com for challenge caches"
             Translation.strings["ok"] := isCzech ? "&OK" : "&OK"
             Translation.strings["cancel"] := isCzech ? "&Zrušit" : "&Cancel"
 
             ; About dialog
             Translation.strings["about_title"] := isCzech ? "O aplikaci Checker" : "About Checker"
-            Translation.strings["about_version"] := isCzech ? "Verze 4.0.0 (AutoHotkey v2 + WebView2)" : "Version 4.0.0 (AutoHotkey v2 + WebView2)"
             Translation.strings["current_parameters"] := isCzech ? "Aktuální parametry:" : "Current Parameters:"
             Translation.strings["service"] := isCzech ? "Služba" : "Service"
             Translation.strings["latitude"] := isCzech ? "Zeměpisná šířka" : "Latitude"

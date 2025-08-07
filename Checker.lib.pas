@@ -401,7 +401,8 @@ begin
             }
             s := RegexExtract(challengeRegex, description);
             if (s <> '') then begin
-                serviceName.Add('"challenge|' + GEOGET_OWNER +'"'); //EncodeUrlElement(GEOGET_OWNER);
+                //serviceName.Add('"challenge|' + GEOGET_OWNER +'"'); //EncodeUrlElement(GEOGET_OWNER);
+                serviceName.Add('challenge');
                 serviceUrl.Add(s);
                 Inc(serviceNum);
                 {$ifdef DEBUG_HELPER} LDH('Service: challenge'); {$endif}
@@ -415,11 +416,12 @@ begin
             }
             s := RegexExtract(challenge2Regex, description);
             if (s <> '') then begin
-                serviceName.Add('"challenge2|' + GEOGET_OWNER +'"'); //EncodeUrlElement(GEOGET_OWNER);
+                //serviceName.Add('"challenge2|' + GEOGET_OWNER +'"'); //EncodeUrlElement(GEOGET_OWNER);
+                serviceName.Add('challenge');
                 s := SeparateLeft(s, '"'); // Regex returns URL ending with "
                 serviceUrl.Add(s);
                 Inc(serviceNum);
-                {$ifdef DEBUG_HELPER} LDH('Service: challenge2'); {$endif}
+                {$ifdef DEBUG_HELPER} LDH('Service: challenge(2)'); {$endif}
             end;
 
             {
