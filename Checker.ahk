@@ -20,6 +20,9 @@ class CheckerApp {
         app.parseCommandLine()
         app.createGUI()
         app.gui.Show()
+        
+        ; Force the window size after showing (to override any automatic sizing)
+        SetTimer(() => app.gui.Move(,, app.settings.windowWidth, app.settings.windowHeight), -200)
     }
 
     __New() {
@@ -48,7 +51,9 @@ class CheckerApp {
             debug: 0,       ; Debug mode
             beep: 0,        ; Acoustic feedback
             copymsg: 1,     ; Copy owner's message to clipboard
-            timeout: 10     ; Page load timeout in seconds
+            timeout: 10,    ; Page load timeout in seconds
+            windowWidth: 1000,  ; Window width
+            windowHeight: 600   ; Window height
         }
         this.iniFile := "Checker.ini"
     }
@@ -78,13 +83,14 @@ class CheckerApp {
     }
 
     createGUI() {
-        ; Calculate centered position
-        centerX := (A_ScreenWidth - 1000) // 2
-        centerY := (A_ScreenHeight - 600) // 2
+        ; Calculate centered position based on saved window size
+        centerX := (A_ScreenWidth - this.settings.windowWidth) // 2
+        centerY := (A_ScreenHeight - this.settings.windowHeight) // 2
 
         ; Create main GUI window
-        this.gui := Gui("+Resize", Translation.get("app_title"))
+        this.gui := Gui("+Resize +MinSize1000x600", Translation.get("app_title"))
         this.gui.OnEvent("Close", (*) => this.exitApp())
+        this.gui.OnEvent("Size", (*) => this.onWindowResize())
 
         this.gui.MarginX := 0
         this.gui.MarginY := 0
@@ -93,19 +99,24 @@ class CheckerApp {
         this.createMenuBar()
 
         ; Create WebView2 container area (starts from y0 since menu bar is native)
-        this.webViewContainer := this.gui.AddText("x0 y0 w1000 h580 +Border")
+        containerHeight := this.settings.windowHeight - 20  ; Leave 20px for status bar
+        this.webViewContainer := this.gui.AddText("x0 y0 w" . this.settings.windowWidth . " h" . containerHeight . " +Border")
 
         ; Create status bar at bottom
         this.createStatusBar()
 
-        ; Set GUI position and size
-        this.gui.Move(centerX, centerY, 1000, 600)
+        ; Set initial GUI position and size
+        this.gui.Move(centerX, centerY, this.settings.windowWidth, this.settings.windowHeight)
 
         ; Initialize WebView2
         this.initializeWebView()
 
         ; Set up hotkeys
         this.setupHotkeys()
+        
+        ; Store the desired size for later restoration
+        this.targetWidth := this.settings.windowWidth
+        this.targetHeight := this.settings.windowHeight
     }
 
     createMenuBar() {
@@ -132,14 +143,18 @@ class CheckerApp {
 
     createStatusBar() {
         ; Create status bar area (thinner - reduced height from 30 to 20)
-        this.statusBar := this.gui.AddText("x0 y580 w1000 h20 +0x1000")  ; SS_SUNKEN
+        statusY := this.settings.windowHeight - 20
+        statusTextY := statusY + 2
+        this.statusBar := this.gui.AddText("x0 y" . statusY . " w" . this.settings.windowWidth . " h20 +0x1000")  ; SS_SUNKEN
         this.statusBar.BackColor := "0xF0F0F0"
 
         ; Left status text for loading/page messages (much wider for debug messages)
-        this.statusTextLeft := this.gui.AddText("x10 y582 w880 h16", Translation.get("ready"))
+        leftTextWidth := this.settings.windowWidth - 120
+        this.statusTextLeft := this.gui.AddText("x10 y" . statusTextY . " w" . leftTextWidth . " h16", Translation.get("ready"))
 
         ; Right status text for checking/results (adjusted position and width)
-        this.statusTextRight := this.gui.AddText("x900 y582 w90 h16 +Right", "")
+        rightTextX := this.settings.windowWidth - 100
+        this.statusTextRight := this.gui.AddText("x" . rightTextX . " y" . statusTextY . " w90 h16 +Right", "")
     }
 
     loadSettings() {
@@ -151,6 +166,21 @@ class CheckerApp {
                 this.settings.timeout := IniRead(this.iniFile, "Checker", "timeout", "")
                 this.settings.debug := IniRead(this.iniFile, "Checker", "debug", 0)
                 this.settings.beep := IniRead(this.iniFile, "Checker", "beep", 0)
+                this.settings.windowWidth := Integer(IniRead(this.iniFile, "Checker", "windowWidth", 1000))
+                this.settings.windowHeight := Integer(IniRead(this.iniFile, "Checker", "windowHeight", 600))
+                
+                ; Debug: Show loaded values
+                ; MsgBox("Loaded from INI: " . this.settings.windowWidth . "x" . this.settings.windowHeight)
+                
+                ; Validate window size (minimum 1000x600, maximum screen size)
+                if (this.settings.windowWidth < 1000)
+                    this.settings.windowWidth := 1000
+                if (this.settings.windowHeight < 600)
+                    this.settings.windowHeight := 600
+                if (this.settings.windowWidth > A_ScreenWidth)
+                    this.settings.windowWidth := A_ScreenWidth
+                if (this.settings.windowHeight > A_ScreenHeight)
+                    this.settings.windowHeight := A_ScreenHeight
             }
         } catch as e {
             ; Use defaults if loading fails
@@ -165,6 +195,8 @@ class CheckerApp {
             IniWrite(this.settings.timeout, this.iniFile, "Checker", "timeout")
             IniWrite(this.settings.debug, this.iniFile, "Checker", "debug")
             IniWrite(this.settings.beep, this.iniFile, "Checker", "beep")
+            IniWrite(this.settings.windowWidth, this.iniFile, "Checker", "windowWidth")
+            IniWrite(this.settings.windowHeight, this.iniFile, "Checker", "windowHeight")
         } catch as e {
             MsgBox("Failed to save settings: " . e.message, "Error", "OK Icon!")
         }
@@ -599,6 +631,9 @@ class CheckerApp {
 
     exitApp(exitCode := "") {
         try {
+            ; Save current window size before exiting
+            this.saveSettings()
+            
             ; Stop any running timers
             this.stopResultChecking()
 
@@ -659,6 +694,79 @@ class CheckerApp {
         } catch {
             ; Fallback version if file reading fails
             return "4.0.0"
+        }
+    }
+
+    onWindowResize() {
+        try {
+            ; Get current GUI window size (not client size)
+            this.gui.GetPos(, , &width, &height)
+            
+            ; Save window size to settings (ensure integers)
+            this.settings.windowWidth := Integer(width)
+            this.settings.windowHeight := Integer(height)
+            
+            ; Also get client size for resizing controls
+            this.gui.GetClientPos(, , &clientWidth, &clientHeight)
+            
+            ; Resize WebView container (leave 20px at bottom for status bar)
+            if (this.webViewContainer) {
+                this.webViewContainer.Move(0, 0, clientWidth, clientHeight - 20)
+            }
+            
+            ; Resize status bar to full width at bottom
+            if (this.statusBar) {
+                this.statusBar.Move(0, clientHeight - 20, clientWidth, 20)
+            }
+            
+            ; Resize status text controls
+            if (this.statusTextLeft) {
+                this.statusTextLeft.Move(10, clientHeight - 18, clientWidth - 110, 16)
+            }
+            
+            if (this.statusTextRight) {
+                this.statusTextRight.Move(clientWidth - 100, clientHeight - 18, 90, 16)
+            }
+            
+            ; Resize WebView2 if it exists
+            if (this.webViewController) {
+                try {
+                    ; Use the client size we already calculated
+                    w := clientWidth
+                    h := clientHeight - 20
+                    
+                    ; Create a RECT structure for WebView2 bounds
+                    rect := Buffer(16, 0)
+                    NumPut("Int", 0, rect, 0)    ; left = 0 (relative to container)
+                    NumPut("Int", 0, rect, 4)    ; top = 0 (relative to container)
+                    NumPut("Int", w, rect, 8)    ; right = width
+                    NumPut("Int", h, rect, 12)   ; bottom = height
+                    
+                    ; Try different methods to update WebView2 bounds
+                    try {
+                        ; Method 1: Direct bounds setting
+                        this.webViewController.Bounds := rect
+                    } catch {
+                        try {
+                            ; Method 2: Using put_Bounds if available
+                            if (this.webViewController.HasMethod("put_Bounds")) {
+                                this.webViewController.put_Bounds(rect)
+                            }
+                        } catch {
+                            try {
+                                ; Method 3: Notify parent window position changed
+                                this.webViewController.NotifyParentWindowPositionChanged()
+                            } catch {
+                                ; All methods failed, ignore
+                            }
+                        }
+                    }
+                } catch {
+                    ; Ignore all WebView2 resize errors
+                }
+            }
+        } catch as e {
+            ; Ignore resize errors to prevent crashes
         }
     }
 }
