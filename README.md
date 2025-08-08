@@ -51,14 +51,14 @@ Checker.ahk challenge N 49 42 660 E 018 23 165 "http://project-gc.com/Challenges
 - **puzzlechecker** - puzzlechecker.com *(dvojí režim, schránka)*
 
 ### Nefunkční služby (8)
-- **doxina** *(mrtvé od 2017)*
-- **evince** *(mrtvé od 2017)*
-- **gccc** *(mrtvé)*
-- **gccounter** *(mrtvé od 2020-09)*
-- **gccounter2** *(mrtvé od 2018-10)*
-- **gctoolbox** *(mrtvé)*
-- **geowii** *(mrtvé)*
-- **komurka** *(mrtvé od 2017)*
+- **doxina** *(mrtvé od 2016-10)*
+- **evince** *(mrtvé od 2016-03)*
+- **gccc** *(mrtvé od 2018-05)*
+- **gccounter** *(mrtvé od 2018-08)*
+- **gccounter2** *(mrtvé od 2018-08)*
+- **gctoolbox** *(mrtvé od 2018-05)*
+- **geowii** *(mrtvé od 2023-09)*
+- **komurka** *(mrtvé od 2018-03)*
 
 ## Exit kódy
 

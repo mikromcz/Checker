@@ -561,6 +561,7 @@ begin
                 405,            // Nelze overit, keska nema overovatko
                 406,            // BM clen nemuze overit PMO kesku
                 407,            // Uzivatel nepovoluje sdilet informace (to asi pri overovani nemuze nastat)
+                408,            // ??? (pri overeni archivnich kesi)
                 429: i := 0;    // Prekrocen pocet opakovani (10 pokusu/10 minut)
                 else ShowMessage(_('Error: Unexpected return value: ') + IntToStr(i)); // "ERR: neocekavana navratova hodnota"
               end;
