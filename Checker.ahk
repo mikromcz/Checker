@@ -20,9 +20,6 @@ class CheckerApp {
         app.parseCommandLine()
         app.createGUI()
         app.gui.Show()
-        
-        ; Force the window size after showing (to override any automatic sizing)
-        SetTimer(() => app.gui.Move(,, app.settings.windowWidth, app.settings.windowHeight), -200)
     }
 
     __New() {
@@ -66,7 +63,10 @@ class CheckerApp {
     }
 
     parseCommandLine() {
-        if (A_Args.Length >= 9) {
+        this.hasValidParameters := false
+        this.parameterError := ""
+
+        if (A_Args.Length >= 10) {
             this.service := A_Args[1]
             this.lat := A_Args[2]
             this.latdeg := A_Args[3]
@@ -76,16 +76,81 @@ class CheckerApp {
             this.londeg := A_Args[7]
             this.lonmin := A_Args[8]
             this.londec := A_Args[9]
-            if (A_Args.Length >= 10) {
-                this.url := A_Args[10]
+            this.url := A_Args[10]
+
+            ; Validate parameter types and values
+            if (!this.validateParameters()) {
+                this.hasValidParameters := false
+                this.finalExitCode := 4  ; Set exit code for invalid parameters
+                return
             }
+
+            this.hasValidParameters := true
+        } else {
+            this.parameterError := "Insufficient parameters provided (" . A_Args.Length . " received, 10 required)"
+            this.finalExitCode := 4  ; Set exit code for invalid parameters
         }
     }
 
+    validateParameters() {
+        ; Validate coordinate directions
+        if (this.lat != "N" && this.lat != "S") {
+            this.parameterError := "Invalid latitude direction '" . this.lat . "' (must be N or S)"
+            return false
+        }
+
+        if (this.lon != "E" && this.lon != "W") {
+            this.parameterError := "Invalid longitude direction '" . this.lon . "' (must be E or W)"
+            return false
+        }
+
+        ; Validate that coordinate numbers are numeric
+        if (!IsNumber(this.latdeg) || !IsNumber(this.latmin) || !IsNumber(this.latdec)) {
+            this.parameterError := "Invalid latitude coordinates (latdeg='" . this.latdeg . "', latmin='" . this.latmin . "', latdec='" . this.latdec . "') - must be numbers"
+            return false
+        }
+
+        if (!IsNumber(this.londeg) || !IsNumber(this.lonmin) || !IsNumber(this.londec)) {
+            this.parameterError := "Invalid longitude coordinates (londeg='" . this.londeg . "', lonmin='" . this.lonmin . "', londec='" . this.londec . "') - must be numbers"
+            return false
+        }
+
+        ; Validate coordinate ranges
+        latDeg := Integer(this.latdeg)
+        lonDeg := Integer(this.londeg)
+        latMin := Integer(this.latmin)
+        lonMin := Integer(this.lonmin)
+
+        if (latDeg < 0 || latDeg > 90) {
+            this.parameterError := "Invalid latitude degrees '" . this.latdeg . "' (must be 0-90)"
+            return false
+        }
+
+        if (lonDeg < 0 || lonDeg > 180) {
+            this.parameterError := "Invalid longitude degrees '" . this.londeg . "' (must be 0-180)"
+            return false
+        }
+
+        if (latMin < 0 || latMin >= 60) {
+            this.parameterError := "Invalid latitude minutes '" . this.latmin . "' (must be 0-59)"
+            return false
+        }
+
+        if (lonMin < 0 || lonMin >= 60) {
+            this.parameterError := "Invalid longitude minutes '" . this.lonmin . "' (must be 0-59)"
+            return false
+        }
+
+        return true
+    }
+
     createGUI() {
-        ; Calculate centered position based on saved window size
-        centerX := (A_ScreenWidth - this.settings.windowWidth) // 2
-        centerY := (A_ScreenHeight - this.settings.windowHeight) // 2
+        ; Calculate centered position based on saved client size
+        ; Add approximate window decoration size for positioning
+        approxWindowWidth := this.settings.windowWidth + 16   ; Add border width
+        approxWindowHeight := this.settings.windowHeight + 59  ; Add title bar + border height
+        centerX := (A_ScreenWidth - approxWindowWidth) // 2
+        centerY := (A_ScreenHeight - approxWindowHeight) // 2
 
         ; Create main GUI window
         this.gui := Gui("+Resize +MinSize1000x600", Translation.get("app_title"))
@@ -105,18 +170,17 @@ class CheckerApp {
         ; Create status bar at bottom
         this.createStatusBar()
 
-        ; Set initial GUI position and size
-        this.gui.Move(centerX, centerY, this.settings.windowWidth, this.settings.windowHeight)
+        ; Set initial GUI client size (not window size) - this prevents size drift
+        this.gui.Move(centerX, centerY)
+        ; Use SetClientSize to set the exact client dimensions we want
+        DllCall("SetWindowPos", "Ptr", this.gui.Hwnd, "Ptr", 0, "Int", centerX, "Int", centerY,
+                "Int", this.settings.windowWidth + 16, "Int", this.settings.windowHeight + 59, "UInt", 0x0004)
 
         ; Initialize WebView2
         this.initializeWebView()
 
         ; Set up hotkeys
         this.setupHotkeys()
-        
-        ; Store the desired size for later restoration
-        this.targetWidth := this.settings.windowWidth
-        this.targetHeight := this.settings.windowHeight
     }
 
     createMenuBar() {
@@ -168,10 +232,10 @@ class CheckerApp {
                 this.settings.beep := IniRead(this.iniFile, "Checker", "beep", 0)
                 this.settings.windowWidth := Integer(IniRead(this.iniFile, "Checker", "windowWidth", 1000))
                 this.settings.windowHeight := Integer(IniRead(this.iniFile, "Checker", "windowHeight", 600))
-                
+
                 ; Debug: Show loaded values
                 ; MsgBox("Loaded from INI: " . this.settings.windowWidth . "x" . this.settings.windowHeight)
-                
+
                 ; Validate window size (minimum 1000x600, maximum screen size)
                 if (this.settings.windowWidth < 1000)
                     this.settings.windowWidth := 1000
@@ -354,9 +418,8 @@ class CheckerApp {
             SetTimer(() => this.checkLoadingTimeout(), timeoutMs)
         } else {
             this.updateStatus(Translation.get("ready") . " - " . Translation.get("no_url_provided"))
-            ; Load a simple test page to verify WebView2 is working
-            this.webView.NavigateToString(
-                "<html><body><h1>WebView2 is working!</h1><p>No URL provided in parameters.</p></body></html>")
+            ; Load usage information page
+            this.webView.NavigateToString(this.generateUsagePage())
         }
     }
 
@@ -517,7 +580,7 @@ class CheckerApp {
             resultStr := String(result)
             if (InStr(resultStr, "RESULT:SUCCESS")) {
                 this.stopResultChecking()
-                this.updateStatusRightWithColor(Translation.get("correct"), "0x00FF00") ; Green
+                this.updateStatusRightWithColor(Translation.get("correct"), "0x008000") ; Dark green
                 this.finalExitCode := 1 ; Set exit code for success
 
                 ; Copy owner's message to clipboard if enabled and service supports it
@@ -633,7 +696,7 @@ class CheckerApp {
         try {
             ; Save current window size before exiting
             this.saveSettings()
-            
+
             ; Stop any running timers
             this.stopResultChecking()
 
@@ -670,11 +733,12 @@ class CheckerApp {
     updateStatusRightWithColor(text, color) {
         if (this.statusTextRight) {
             this.statusTextRight.Text := text
-            ; Change text color
+            ; Change text color and make bold
             try {
                 this.statusTextRight.Opt("+c" . color)
+                this.statusTextRight.SetFont("Bold")
             } catch {
-                ; Ignore color change errors
+                ; Ignore color/font change errors
             }
         }
     }
@@ -697,51 +761,123 @@ class CheckerApp {
         }
     }
 
+    generateUsagePage() {
+        ; Generate HTML page with usage information and received parameters
+        html := "<html><head><title>Checker - Usage Information</title>"
+        html .= "<style>body{font-family:Arial,sans-serif;margin:20px;background:#f5f5f5;}"
+        html .= "h1{color:#2d7d32;border-bottom:2px solid #2d7d32;padding-bottom:10px;}"
+        html .= "h2{color:#4a4a4a;margin-top:25px;}"
+        html .= ".description{background:#fff;padding:15px;border-radius:5px;box-shadow:0 2px 5px rgba(0,0,0,0.1);}"
+        html .= ".usage{background:#e8f5e8;padding:15px;border-radius:5px;border-left:4px solid #2d7d32;margin:15px 0;}"
+        html .= ".example{background:#f0f0f0;padding:10px;border-radius:3px;font-family:monospace;margin:10px 0;font-size:12px;}"
+        html .= ".received{background:#ffe6e6;padding:15px;border-radius:5px;border-left:4px solid #cc0000;}"
+        html .= ".error{color:#cc0000;font-weight:bold;}</style></head><body>"
+
+        html .= "<h1>Checker</h1>"
+        html .= "<div class='description'>A coordinate verification tool for geocaching services, built with AutoHotkey v2 and WebView2.</div>"
+
+        if (!this.hasValidParameters) {
+            ; Show specific error message if we have one
+            if (this.parameterError != "") {
+                html .= "<h2><span class='error'>Error: " . this.parameterError . "</span></h2>"
+            } else {
+                html .= "<h2><span class='error'>Error: Invalid Parameters</span></h2>"
+            }
+
+            html .= "<div class='usage'>"
+            html .= "<p><strong>Checker needs to be called with 10 parameters:</strong></p>"
+            html .= "<div class='example'>Checker.ahk service lat latdeg latmin latdec lon londeg lonmin londec url</div>"
+            html .= "<p><strong>Examples:</strong></p>"
+            html .= "<div class='example'>Checker.ahk gcm N 50 21 222 E 013 33 666 `"https://validator.gcm.cz/index.php?uuid=cad21d5c-9f00-4815-bd4c-431e3771fae4`"</div>"
+            html .= "<div class='example'>Checker.ahk geocheck S 49 44 401 W 165 55 157 `"http://geocheck.org/geo_inputchkcoord.php?gid=6180167e5770830-5041-4959-aac1-c154a3d8a122`"</div>"
+            html .= "</div>"
+
+            html .= "<h2>Parameters Received (" . A_Args.Length . " total):</h2>"
+            html .= "<div class='received'>"
+            if (A_Args.Length == 0) {
+                html .= "<p><em>No parameters provided</em></p>"
+            } else {
+                Loop A_Args.Length {
+                    switch A_Index {
+                        case 1: paramName := "service"
+                        case 2: paramName := "lat"
+                        case 3: paramName := "latdeg"
+                        case 4: paramName := "latmin"
+                        case 5: paramName := "latdec"
+                        case 6: paramName := "lon"
+                        case 7: paramName := "londeg"
+                        case 8: paramName := "lonmin"
+                        case 9: paramName := "londec"
+                        case 10: paramName := "url"
+                        default: paramName := "extra"
+                    }
+
+                    html .= "<p><strong>Parameter " . A_Index . " (" . paramName . "):</strong> " . A_Args[A_Index] . "</p>"
+                }
+            }
+            html .= "</div>"
+        } else {
+            html .= "<h2>Parameters loaded successfully</h2>"
+            html .= "<div class='usage'>"
+            html .= "<p><strong>Service:</strong> " . this.service . "</p>"
+            if (this.hasValidCoordinates()) {
+                html .= "<p><strong>Coordinates:</strong> " . this.lat . " " . this.latdeg . "° " . this.latmin . "." . this.latdec . "' / "
+                html .= this.lon . " " . Format("{:03d}", Integer(this.londeg)) . "° " . this.lonmin . "." . this.londec . "'</p>"
+            }
+            if (this.url != "") {
+                html .= "<p><strong>URL:</strong> " . this.url . "</p>"
+            } else {
+                html .= "<p><strong>URL:</strong> <em>Not provided</em></p>"
+            }
+            html .= "</div>"
+        }
+
+        html .= "</body></html>"
+        return html
+    }
+
     onWindowResize() {
         try {
-            ; Get current GUI window size (not client size)
-            this.gui.GetPos(, , &width, &height)
-            
-            ; Save window size to settings (ensure integers)
-            this.settings.windowWidth := Integer(width)
-            this.settings.windowHeight := Integer(height)
-            
-            ; Also get client size for resizing controls
+            ; Get current GUI client size for saving to INI
             this.gui.GetClientPos(, , &clientWidth, &clientHeight)
-            
+
+            ; Save client size to settings (ensure integers) - this prevents growth from window decorations
+            this.settings.windowWidth := Integer(clientWidth)
+            this.settings.windowHeight := Integer(clientHeight)
+
             ; Resize WebView container (leave 20px at bottom for status bar)
             if (this.webViewContainer) {
                 this.webViewContainer.Move(0, 0, clientWidth, clientHeight - 20)
             }
-            
+
             ; Resize status bar to full width at bottom
             if (this.statusBar) {
                 this.statusBar.Move(0, clientHeight - 20, clientWidth, 20)
             }
-            
+
             ; Resize status text controls
             if (this.statusTextLeft) {
                 this.statusTextLeft.Move(10, clientHeight - 18, clientWidth - 110, 16)
             }
-            
+
             if (this.statusTextRight) {
                 this.statusTextRight.Move(clientWidth - 100, clientHeight - 18, 90, 16)
             }
-            
+
             ; Resize WebView2 if it exists
             if (this.webViewController) {
                 try {
                     ; Use the client size we already calculated
                     w := clientWidth
                     h := clientHeight - 20
-                    
+
                     ; Create a RECT structure for WebView2 bounds
                     rect := Buffer(16, 0)
                     NumPut("Int", 0, rect, 0)    ; left = 0 (relative to container)
                     NumPut("Int", 0, rect, 4)    ; top = 0 (relative to container)
                     NumPut("Int", w, rect, 8)    ; right = width
                     NumPut("Int", h, rect, 12)   ; bottom = height
-                    
+
                     ; Try different methods to update WebView2 bounds
                     try {
                         ; Method 1: Direct bounds setting

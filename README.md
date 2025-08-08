@@ -10,10 +10,12 @@ Tato verze byla **kompletně přepsána** z AutoHotkey v1 používající Intern
 - ✅ **AutoHotkey v2** - moderní verze AutoHotkey
 - ✅ **WebView2** - nahrazuje zastaralý Internet Explorer
 - ✅ **Modulární architektura** - služby v samostatných souborech
+- ✅ **Pokročilá validace parametrů** - inteligentní kontrola souřadnic s detailním error reportem
 - ✅ **Podpora schránky** - automatické kopírování zpráv autorů
 - ✅ **Dvojí režim** - některé služby podporují ověření koordinátů i odpovědí
 - ✅ **Vícejazyčnost** - automatická detekce češtiny/angličtiny
-- ✅ **Vylepšené GUI** - profesionální menu a stavový řádek
+- ✅ **Vylepšené GUI** - profesionální menu a stavový řádek s barevnými výsledky
+- ✅ **Změna velikosti okna** - pamatuje si rozměry okna mezi spuštěními
 
 ## Rychlé použití
 
@@ -63,14 +65,43 @@ Checker.exe challenge N 49 42 660 E 018 23 165 "http://project-gc.com/Challenges
 - **1**: Souřadnice jsou správné ✅
 - **2**: Souřadnice jsou nesprávné ❌
 - **3**: Nefunkční služba ⚠️
+- **4**: Neplatné parametry ❌ *(nový)*
+
+## Validace parametrů
+
+Checker nyní obsahuje pokročilou validaci parametrů, která zkontroluje:
+
+- ✅ **Počet parametrů** - přesně 10 parametrů je vyžadováno
+- ✅ **Směry souřadnic** - N/S pro zeměpisnou šířku, E/W pro délku
+- ✅ **Číselné hodnoty** - všechny koordináty musí být čísla
+- ✅ **Rozsahy hodnot** - stupně (0-90° / 0-180°), minuty (0-59)
+
+**Při chybných parametrech:**
+- Aplikace zobrazí přehlednou chybovou stránku s příklady použití
+- Ukáže přesné parametry, které obdržela
+- Ukončí se s exit kódem 4 pro snadnou detekci chyb ve skriptech
+
+**Příklad chybové stránky:**
+```
+Error: Invalid latitude direction 'https' (must be N or S)
+Parameter 2 (lat): https
+Parameter 3 (latdeg): //validator.gcm.cz/...
+```
 
 ## Testování
 
-Adresář `test/` obsahuje testovací soubory pro všechny služby:
+Adresář `test/` obsahuje testovací soubory pro všechny služby s **aktualizovanými exit kódy**:
 ```batch
 cd test
 Test.Geochecker.bat
 ```
+
+**Všechny testovací soubory nyní podporují exit kód 4:**
+- `0`: No errors
+- `1`: Correct coordinates  
+- `2`: Wrong coordinates
+- `3`: Dead service
+- `4`: Invalid parameters *(nový)*
 
 ## Konfigurace
 
@@ -79,6 +110,8 @@ Nastavení jsou uložena v souboru `Checker.ini`:
 - `copymsg=1` - Kopírovat zprávy autorů do schránky
 - `timeout=10` - Časový limit načítání stránky (sekundy)
 - `debug=0` - Režim ladění
+- `windowWidth=1200` - Šířka okna (automaticky ukládáno)
+- `windowHeight=750` - Výška okna (automaticky ukládáno)
 
 ## Požadavky
 

@@ -16,10 +16,28 @@ The application features a modular architecture with service-specific implementa
 
 ## Command Line Usage
 
-The application accepts geocaching coordinate parameters in this format:
+The application accepts exactly **10 parameters** in this format:
 ```
 Checker.exe service lat latdeg latmin latdec lon londeg lonmin londec url
 ```
+
+### Parameter Validation
+The application now includes **comprehensive parameter validation** that checks:
+
+- **Parameter count**: Exactly 10 parameters required
+- **Coordinate directions**: `lat` must be N or S, `lon` must be E or W  
+- **Numeric values**: All coordinate numbers (latdeg, latmin, latdec, londeg, lonmin, londec) must be valid numbers
+- **Value ranges**: 
+  - Latitude degrees: 0-90
+  - Longitude degrees: 0-180  
+  - Minutes: 0-59 for both lat and lon
+
+### Error Handling
+When invalid parameters are provided:
+- Application displays a styled error page with specific error messages
+- Shows exactly what parameters were received vs. expected
+- Provides usage examples
+- Exits with **exit code 4**
 
 Examples:
 ```
@@ -27,15 +45,17 @@ Checker.exe geochecker S 50 15 123 W 015 54 123 "https://geochecker.com/?languag
 Checker.exe challenge N 49 42 660 E 018 23 165 "http://project-gc.com/Challenges/GC5KDPR/11265"
 ```
 
-Test files are provided in the `test/` directory with 25+ different service tests:
+Test files are provided in the `test/` directory with 23+ different service tests:
 - `Test.Challenge.bat` - project-gc.com challenges (no coordinate filling required)
 - `Test.Certitudes.bat` - certitudes.org with clipboard message support
-- `Test.Geochecker.Correct.bat` / `Test.Geochecker.Incorrect.bat` - geochecker.com
-- `Test.Geocheck.Incorrect.bat` - geocheck.org
-- `Test.Gzchecker.Correct.bat` / `Test.Gzchecker.Incorrect.bat` - gzchecker
-- `Test.Gcm.bat` - validator.gcm.cz
+- `Test.Geochecker.bat` - geochecker.com
+- `Test.Geocheck.bat` - geocheck.org
+- `Test.Gzchecker.bat` - gzchecker with clipboard support
+- `Test.Gcm.bat` - validator.gcm.cz with automatic URL fixing
 - `Test.Geocachefi.bat` - geocache.fi
-- Plus 20+ additional service test files for comprehensive testing
+- Plus 16+ additional service test files for comprehensive testing
+
+**All test files now support exit code 4** for invalid parameter detection.
 
 ## Supported Services
 
@@ -65,6 +85,40 @@ The `challenge` service is specifically designed for Project-GC challenge checke
 - **Dual mode**: Some services support both coordinate and answer verification
 - **Language parameters**: Automatic language parameter injection for supported services
 - **URL fixing**: Automatic URL correction for legacy service URLs
+
+## Exit Codes
+
+The application uses the following exit codes for automation and script integration:
+
+- **0**: Normal exit (user closed window or no result checking)
+- **1**: Coordinates are correct ✅
+- **2**: Coordinates are wrong ❌  
+- **3**: Dead service (service unavailable)
+- **4**: Invalid parameters ⚠️ *(NEW)*
+
+**Exit code 4** is returned when:
+- Insufficient parameters provided (< 10)
+- Invalid coordinate directions (not N/S or E/W)
+- Non-numeric coordinate values
+- Out-of-range coordinate values
+
+## UI Improvements
+
+### Window Management
+- **Resizable window** with minimum size constraints (1000x600)
+- **Persistent window size** - automatically saves and restores window dimensions in `Checker.ini`
+- **Fixed window size drift bug** - window no longer grows by decoration margins on each run
+
+### Status Display  
+- **Enhanced status bar** with colored result indicators
+- **Bold text formatting** for correct/wrong results
+- **Improved colors**: Dark green (#008000) for correct, red for wrong - better visibility on light backgrounds
+
+### Error Pages
+- **Professional error pages** with green color theme when invalid parameters are detected
+- **Detailed parameter breakdown** showing exactly what was received vs. expected
+- **Multiple usage examples** for different services
+- **Specific error messages** explaining exactly what's wrong with the parameters
 
 ## Architecture
 

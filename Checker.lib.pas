@@ -676,8 +676,13 @@ begin
                         end;
                     3:
                         begin
-                            {$ifdef DEBUG_HELPER} LDHe('Dead service!'); {$endif}
-                            ShowMessage(_('Mrtvá služba!'));
+                            {$ifdef DEBUG_HELPER} LDHw('Dead service.'); {$endif}
+                            ShowMessage(_('Dead service.'));
+                        end;
+                    4:
+                        begin
+                            {$ifdef DEBUG_HELPER} LDHe('Wrong parameters!'); {$endif}
+                            ShowMessage(_('Wrong parameters!'));
                         end;
                 end;
             end

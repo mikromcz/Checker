@@ -1,5 +1,12 @@
-** 4.0.0 (202508xx) **
-  * kompletnì pøepsáno z AutoHotkey1 do AutoHotkey2 s podporou WebView2
+** 4.0.1 (202508xx) **
+  * zpìtnì doplnìna podpora challenge keší na project-gc.com
+  * je možné mìnit velikost okna a velikost si Checker pamatuje
+  * robustní validace vstupních parametrù (v pøípadì chyby je zobrazena HTML stránka s nápovìdou a diagnostikou)
+  * nový exitcode: 4 pro neplatné parametry
+
+** 4.0.0 (20250807) **
+  * první testovací verze po tom co bylo kompletnì pøepsáno z AutoHotkey1 do AutoHotkey2 s podporou WebView2
+  * nový exitcode: 3 pro mrtvou službu
 
 ** 3.1.1 (2022/08/08) **
   * pøidána detekce mrtvého ovìøovaèe "evince.locusprime.invalid" (bylo jen evince.locusprime.net)
