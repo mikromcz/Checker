@@ -6,20 +6,14 @@
     Author: mikrom, http://mikrom.cz
     Version: 4.0.0
 
-    ToDo:
+    Uses: CheckerForm, Checker.ahk
+
+    * Depends on: http://ggplg.valicek.name/plugin/DebugHelper
     * This might be interesting: http://www.regular-expressions.info/duplicatelines.html
-
-    * Arne1: mám takový nápad - zatím jsem nebádal zda to bude realizovatelné.
-             Když je ovìøovaèem Certitude, tak by se mohl kouknout do poznámky u keše, zda tam není øádek uvozený "certitude:" (napøíklad)
-             a ten text za tím pak použil pro ovìøení.
-
-    * geoblackbirds.cz: Chtìl bych se ale zeptat, zda by nešlo automaticky po pøíkazu copymsg vložit text ze schránky do poznámky u final pointu.
-                        Jako volitelnou možnost v ini souboru.
-
 }
 
 {Minimum GeoGet version}
-{$V 2.9.15}
+{$V 2.12.0}
 
 {I think I should write here what and why is it here :)}
 uses

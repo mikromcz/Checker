@@ -4,11 +4,11 @@ Checker je nástroj pro automatické ověření souřadnic u geocaching coordina
 
 ## Verze 4.0.1 - Kompletní přepis
 
-Tato verze byla **kompletně přepsána** z AutoHotkey v1 používající Internet Explorer na **AutoHotkey v2 s WebView2** pro lepší kompatibilitu s moderními webovými standardy a budoucí podporu.
+Tato verze byla **kompletně přepsána** z [AutoHotkey](https://autohotkey.com/download/) v1 používající Internet Explorer na **[AutoHotkey](https://autohotkey.com/download/) v2 s [WebView2](https://github.com/thqby/ahk2_lib/tree/master/WebView2)** pro lepší kompatibilitu s moderními webovými standardy a budoucí podporu.
 
 ### Hlavní změny ve verzi 4:
-- ✅ **AutoHotkey v2** - moderní verze AutoHotkey
-- ✅ **WebView2** - nahrazuje zastaralý Internet Explorer
+- ✅ **[AutoHotkey](https://autohotkey.com/download/) v2** - moderní verze AutoHotkey
+- ✅ **[WebView2](https://github.com/thqby/ahk2_lib/tree/master/WebView2)** - nahrazuje zastaralý Internet Explorer
 - ✅ **Modulární architektura** - služby v samostatných souborech
 - ✅ **Pokročilá validace parametrů** - inteligentní kontrola souřadnic s detailním error reportem
 - ✅ **Podpora schránky** - automatické kopírování zpráv autorů
@@ -20,13 +20,14 @@ Tato verze byla **kompletně přepsána** z AutoHotkey v1 používající Intern
 ## Rychlé použití
 
 ```batch
-Checker.exe služba N 50 15 123 E 015 54 123 "URL_adresa"
+Checker.ahk služba N 50 15 123 E 015 54 123 "URL_adresa"
 ```
 
 **Příklady:**
 ```batch
-Checker.exe geochecker S 50 15 123 W 015 54 123 "https://geochecker.com/?language=English"
-Checker.exe challenge N 49 42 660 E 018 23 165 "http://project-gc.com/Challenges/GC5KDPR/11265"
+Checker.ahk geochecker S 50 15 123 W 015 54 123 "https://geochecker.com/?language=English"
+
+Checker.ahk challenge N 49 42 660 E 018 23 165 "http://project-gc.com/Challenges/GC5KDPR/11265"
 ```
 
 ## Podporované služby (24 celkem)
@@ -98,7 +99,7 @@ Test.Geochecker.bat
 
 **Všechny testovací soubory nyní podporují exit kód 4:**
 - `0`: No errors
-- `1`: Correct coordinates  
+- `1`: Correct coordinates
 - `2`: Wrong coordinates
 - `3`: Dead service
 - `4`: Invalid parameters *(nový)*
@@ -115,15 +116,17 @@ Nastavení jsou uložena v souboru `Checker.ini`:
 
 ## Požadavky
 
-- **Windows 10/11** (WebView2 je součástí systému)
+- **Windows 10/11** (WebView2 je součástí systému (na Windows 7 lze tuším doinstalovat))
 - **AutoHotkey v2.0** (pro spuštění zdrojového kódu)
 - **Internetové připojení**
 
 ## Dokumentace
 
-📖 **Hlavní dokumentace:** https://www.geoget.cz/doku.php/user:skript:checker
+📖 **Hlavní stránka pluginu:** https://www.geoget.cz/doku.php/user:skript:checker
 
-Kompletní dokumentace včetně instalace, použití a troubleshootingu je k dispozici na výše uvedené adrese.
+💬 **Fórum WebView2:** https://www.autohotkey.com/boards/viewtopic.php?t=95666
+
+🐞 **LittleDebugHelper plugin:** http://ggplg.valicek.name/plugin/DebugHelper
 
 ## Licence
 
