@@ -5,23 +5,37 @@
     Www: https://www.geoget.cz/doku.php/user:skript:checker
     Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
     Author: mikrom, http://mikrom.cz
-    Version: 4.0.0
+    Version: 4.0.1
 }
 
 {$include InstallTool.lib.pas}
 
-{Safe delete file.}
-procedure DeleteIfExists(s: String)
+{Safe delete file}
+procedure DeleteFileIfExists(s: String);
 begin
+    s := GEOGET_SCRIPTDIR + '\Checker\' + s;
     if FileExists(s) then begin
         DeleteFile(s);
     end;
 end;
 
-{Do install tasks here.}
-function InstallWork: String;
+{Safe delete INI value}
+procedure DeleteIniValueIfExists(s, t: String);
 var
     ini: TIniFile;
+begin
+    ini := TIniFile.Create(GEOGET_SCRIPTDIR + '\Checker\Checker.ini');
+    try
+        if ini.ValueExists(s, t) then begin
+            ini.DeleteKey(s, t);
+        end;
+    finally
+        ini.Free;
+    end;
+end;
+
+{Do install tasks here}
+function InstallWork: String;
 begin
     {Changelog}
     if not GEOGET_SILENTINSTALL then begin
@@ -31,29 +45,31 @@ begin
     end;
 
     {Clean up after upgrade to version 2.0.0}
-    DeleteIfExists(GEOGET_SCRIPTDIR + '\Checker\AutoIt3.exe');
-    DeleteIfExists(GEOGET_SCRIPTDIR + '\Checker\AutoItConstants.au3');
-    DeleteIfExists(GEOGET_SCRIPTDIR + '\Checker\FileConstants.au3');
-    DeleteIfExists(GEOGET_SCRIPTDIR + '\Checker\Checker.au3');
-    DeleteIfExists(GEOGET_SCRIPTDIR + '\Checker\GUIConstantsEx.au3');
-    DeleteIfExists(GEOGET_SCRIPTDIR + '\Checker\IE.au3');
-    DeleteIfExists(GEOGET_SCRIPTDIR + '\Checker\WinAPIError.au3');
-    DeleteIfExists(GEOGET_SCRIPTDIR + '\Checker\WindowsConstants.au3');
+    DeleteFileIfExists('AutoIt3.exe');
+    DeleteFileIfExists('AutoItConstants.au3');
+    DeleteFileIfExists('FileConstants.au3');
+    DeleteFileIfExists('Checker.au3');
+    DeleteFileIfExists('GUIConstantsEx.au3');
+    DeleteFileIfExists('IE.au3');
+    DeleteFileIfExists('WinAPIError.au3');
+    DeleteFileIfExists('WindowsConstants.au3');
 
     {Clean up after upgrade to version 2.5.2}
-    DeleteIfExists(GEOGET_SCRIPTDIR + '\Checker\finar.txt');
+    DeleteFileIfExists('finar.txt');
 
     {Clean up after upgrade to version 4.0.0}
-    DeleteIfExists(GEOGET_SCRIPTDIR + '\Checker\AutoHotkeyU32.exe');
+    InstallTool_RemoveFile('AutoHotkey.exe', 'Checker');
+    DeleteFileIfExists('AutoHotkeyU32.exe');
+    DeleteIniValueIfExists('Checker', 'iefix');
+    DeleteIniValueIfExists('Checker', 'certfix');
+    DeleteIniValueIfExists('Checker', 'proxy');
+    DeleteIniValueIfExists('Checker', 'pgclogin');
 
     result := ''; // Ran without error
 end;
 
-{Do Uninstall tasks here.}
-function UninstallWork: string;
+{Do Uninstall tasks here}
+function UninstallWork: String;
 begin
-    {Installtool}
-    InstallTool_RemoveFile('AutoHotkey.exe', 'Checker');
-
     result := ''; // Ran without error
 end;
