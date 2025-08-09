@@ -1,9 +1,26 @@
+/**
+ * @description Geocheck.org service implementation with comprehensive multilingual support
+ * Handles complex form with separate degree/minute/decimal fields and radio buttons
+ * Includes captcha focus and multilingual result detection
+ * @author mikrom, ClaudeAI
+ * @version 4.0.1
+ * @extends BaseService
+ */
 class GeocheckService extends BaseService {
+    /**
+     * Constructor for Geocheck service
+     * @param {Object} checkerApp Reference to main application
+     */
     __New(checkerApp) {
         super.__New(checkerApp)
         this.serviceName := "geocheck"
     }
 
+    /**
+     * Fills Geocheck form with separate coordinate fields and radio buttons
+     * Prevents duplicate filling and automatically focuses captcha field
+     * @override
+     */
     executeCoordinateFilling() {
         ; For geocheck, only fill coordinates once to avoid stealing focus from captcha
         if (this.app.coordinatesFilled) {
@@ -87,11 +104,17 @@ class GeocheckService extends BaseService {
         this.executeJavaScript(jsCode)
     }
 
+    /**
+     * Builds JavaScript for Geocheck multilingual result detection
+     * Supports 15+ languages with comprehensive success/failure pattern matching
+     * @returns {String} JavaScript code for multilingual Geocheck result detection
+     * @override
+     */
     buildResultCheckingJS() {
         ; Check for geocheck.org specific success/failure with comprehensive multilingual patterns
         return "try { " .
                "var body = document.body.innerHTML; " .
-               
+
                ; Success patterns (multilingual)
                "var successPatterns = [ " .
                "'your solution is correct!!!', " .
@@ -111,7 +134,7 @@ class GeocheckService extends BaseService {
                "'Zadané sou.*adnice nejsou zcela p.*esné', " .
                "'riešenie je správne!!!' " .
                "]; " .
-               
+
                ; Failure patterns (multilingual)
                "var failurePatterns = [ " .
                "'Sorry, that answer is incorrect', " .
@@ -130,7 +153,7 @@ class GeocheckService extends BaseService {
                "'Bohu.*el, zadaná odpov.* není správná', " .
                "'Ľutujeme, odpoveď nie je správna' " .
                "]; " .
-               
+
                ; Check for success patterns
                "var isSuccess = false; " .
                "for (var i = 0; i < successPatterns.length; i++) { " .
@@ -140,7 +163,7 @@ class GeocheckService extends BaseService {
                "    break; " .
                "  } " .
                "} " .
-               
+
                ; Check for failure patterns
                "var isFailure = false; " .
                "for (var i = 0; i < failurePatterns.length; i++) { " .
@@ -150,7 +173,7 @@ class GeocheckService extends BaseService {
                "    break; " .
                "  } " .
                "} " .
-               
+
                "if (isSuccess) { " .
                "'RESULT:SUCCESS'; " .
                "} else if (isFailure) { " .
@@ -163,6 +186,12 @@ class GeocheckService extends BaseService {
                "}"
     }
 
+    /**
+     * Copies owner's message from Geocheck results page
+     * Uses complex table selector to extract message content
+     * @returns {Boolean} True if clipboard operation was initiated
+     * @override
+     */
     copyOwnerMessage() {
         ; Copy geocheck.org owner's message using specific selector
         this.app.updateStatus("Executing clipboard JavaScript for geocheck.org...")

@@ -1,9 +1,26 @@
+/**
+ * @description GZChecker gzchecker.de service implementation
+ * Uses specialized coordinate format and includes clipboard support
+ * for copying owner messages after successful verification
+ * @author mikrom, ClaudeAI
+ * @version 4.0.1
+ * @extends BaseService
+ */
 class GZCheckerService extends BaseService {
+    /**
+     * Constructor for GZChecker service
+     * @param {Object} checkerApp Reference to main application
+     */
     __New(checkerApp) {
         super.__New(checkerApp)
         this.serviceName := "gzchecker"
     }
 
+    /**
+     * Fills GZChecker LLall field using specialized coordinate format
+     * Format: "N 51 45.000 E 0 45.000"
+     * @override
+     */
     executeCoordinateFilling() {
         ; For gzchecker.de - LLall field with format "N 51 45.000 E 0 45.000"
         coordString := this.formatCoordinatesForGzchecker()
@@ -24,10 +41,16 @@ class GZCheckerService extends BaseService {
                   "} catch (e) { " .
                   "'ERROR: ' + e.message; " .
                   "}"
-        
+
         this.executeJavaScript(jsCode)
     }
 
+    /**
+     * Builds JavaScript for GZChecker result detection
+     * Uses specific table selectors and div#Failed element
+     * @returns {String} JavaScript code for GZChecker result detection
+     * @override
+     */
     buildResultCheckingJS() {
         ; Check for gzchecker success/failure using specific selectors
         return "try { " .
@@ -45,6 +68,12 @@ class GZCheckerService extends BaseService {
                "}"
     }
 
+    /**
+     * Copies owner's message from GZChecker results page
+     * Uses specific table selectors with fallback to search all paragraphs
+     * @returns {Boolean} True if clipboard operation was initiated
+     * @override
+     */
     copyOwnerMessage() {
         ; Copy gzchecker owner's message using specific selector
         this.app.updateStatus("Executing clipboard JavaScript for gzchecker...")
@@ -81,7 +110,7 @@ class GZCheckerService extends BaseService {
         this.app.webView.ExecuteScriptAsync(jsCode)
             .then((result) => this.app.onClipboardResult(result))
             .catch((error) => this.app.onClipboardError(error))
-        
+
         return true
     }
 }

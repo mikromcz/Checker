@@ -1,9 +1,26 @@
+/**
+ * @description GCM validator.gcm.cz service implementation
+ * Handles complex coordinate form with separate dropdowns and input fields
+ * Includes automatic URL fixing and captcha focus
+ * @author mikrom, ClaudeAI
+ * @version 4.0.1
+ * @extends BaseService
+ */
 class GcmService extends BaseService {
+    /**
+     * Constructor for GCM service
+     * @param {Object} checkerApp Reference to main application
+     */
     __New(checkerApp) {
         super.__New(checkerApp)
         this.serviceName := "gcm"
     }
 
+    /**
+     * Fills GCM validator form with dropdowns and separate coordinate fields
+     * Automatically focuses captcha field after filling coordinates
+     * @override
+     */
     executeCoordinateFilling() {
         ; For validator.gcm.cz - dropdown selections plus separate coordinate fields
         this.app.updateStatusLeft("Filling GCM validator form...")
@@ -80,6 +97,12 @@ class GcmService extends BaseService {
         this.executeJavaScript(jsCode)
     }
 
+    /**
+     * Builds JavaScript for GCM result detection using CSS classes
+     * Language-independent detection using h3.success and h3.fail selectors
+     * @returns {String} JavaScript code for GCM result detection
+     * @override
+     */
     buildResultCheckingJS() {
         ; Check for GCM success/failure - CSS class selectors only (language independent)
         return "try { " .

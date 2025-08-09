@@ -1,9 +1,24 @@
+/**
+ * @description gocaching.eu coordinate checker service implementation
+ * Uses dropdown selections (N/S, E/W) with separate coordinate fields and reCAPTCHA integration
+ * @author mikrom, ClaudeAI
+ * @version 4.0.1
+ * @extends BaseService
+ */
 class GocachingService extends BaseService {
+    /**
+     * Constructor for gocaching.eu service
+     * @param {Object} checkerApp Reference to main application
+     */
     __New(checkerApp) {
         super.__New(checkerApp)
         this.serviceName := "gocaching"
     }
 
+    /**
+     * Fills gocaching.eu form with dropdowns and separate coordinate fields, focuses reCAPTCHA
+     * @override
+     */
     executeCoordinateFilling() {
         ; For gocaching.eu - separate coordinate fields with dropdowns
         this.app.updateStatusLeft("Filling gocaching.eu form...")
@@ -83,6 +98,11 @@ class GocachingService extends BaseService {
         this.executeJavaScript(jsCode)
     }
 
+    /**
+     * Builds JavaScript code to detect gocaching.eu success/failure using image indicators and German text
+     * @returns {String} JavaScript code for result detection
+     * @override
+     */
     buildResultCheckingJS() {
         ; Check for gocaching.de specific success/failure patterns
         return "try { " .

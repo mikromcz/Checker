@@ -1,9 +1,24 @@
+/**
+ * @description GC-Apps Geochecker service implementation
+ * Service uses specific field names (try[fields][coordinates]) and includes automatic captcha focus
+ * @author mikrom, ClaudeAI
+ * @version 4.0.1
+ * @extends BaseService
+ */
 class GcappsGeocheckerService extends BaseService {
+    /**
+     * Constructor for GC-Apps Geochecker service
+     * @param {Object} checkerApp Reference to main application
+     */
     __New(checkerApp) {
         super.__New(checkerApp)
         this.serviceName := "gcappsgeochecker"
     }
 
+    /**
+     * Fills coordinate field for gc-apps.com geochecker with automatic captcha focus
+     * @override
+     */
     executeCoordinateFilling() {
         ; For gc-apps.com geochecker - uses specific field name and captcha focus
         this.app.updateStatusLeft("Filling GC-Apps Geochecker form...")
@@ -20,7 +35,7 @@ class GcappsGeocheckerService extends BaseService {
                   "field.dispatchEvent(new Event('input', { bubbles: true })); " .
                   "field.dispatchEvent(new Event('change', { bubbles: true })); " .
                   "} " .
-                  
+
                   ; Focus captcha field after filling coordinates
                   "setTimeout(function() { " .
                   "var captchaField = document.getElementById('try_captcha'); " .
@@ -30,7 +45,7 @@ class GcappsGeocheckerService extends BaseService {
                   "captchaField.scrollIntoView(); " .
                   "} " .
                   "}, 200); " .
-                  
+
                   "if (field) { " .
                   "'SUCCESS: GC-Apps Geochecker coordinates field filled with: ' + field.value + ' - Captcha focused'; " .
                   "} else { " .
@@ -43,6 +58,11 @@ class GcappsGeocheckerService extends BaseService {
         this.executeJavaScript(jsCode)
     }
 
+    /**
+     * Builds JavaScript code to detect GC-Apps Geochecker success/failure using Bootstrap alerts
+     * @returns {String} JavaScript code for result detection
+     * @override
+     */
     buildResultCheckingJS() {
         ; Check for GC-Apps Geochecker specific success/failure patterns
         return "try { " .

@@ -1,6 +1,18 @@
+/**
+ * @description Translation system for Checker application
+ * Provides bilingual support (Czech/English) based on system locale detection.
+ * Centralizes all user-facing strings for consistency and maintainability.
+ * @author mikrom, ClaudeAI
+ * @version 4.0.1
+ * @since Initial version
+ */
 class Translation {
     static strings := ""
 
+    /**
+     * Initializes the translation system with Czech/English strings
+     * Automatically detects system language (0405 = Czech) for localization
+     */
     static init() {
         if (Translation.strings == "") {
             Translation.strings := Map()
@@ -83,6 +95,11 @@ class Translation {
         }
     }
 
+    /**
+     * Retrieves translated string for the given key
+     * @param {String} key Translation key to lookup
+     * @returns {String} Localized string or key itself if not found
+     */
     static get(key) {
         Translation.init()
         return Translation.strings.Has(key) ? Translation.strings[key] : key

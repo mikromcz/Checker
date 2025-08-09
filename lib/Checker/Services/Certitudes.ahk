@@ -1,9 +1,26 @@
+/**
+ * @description Certitudes.org service implementation with dual-mode support
+ * Handles both coordinate and answer modes by detecting field maxlength attribute
+ * Includes clipboard support for copying owner messages from hint spans
+ * @author mikrom, ClaudeAI
+ * @version 4.0.1
+ * @extends BaseService
+ */
 class CertitudesService extends BaseService {
+    /**
+     * Constructor for Certitudes service
+     * @param {Object} checkerApp Reference to main application
+     */
     __New(checkerApp) {
         super.__New(checkerApp)
         this.serviceName := "certitudes"
     }
 
+    /**
+     * Smart coordinate filling that detects coordinate vs answer mode
+     * Uses maxlength attribute to determine if coordinates should be filled
+     * @override
+     */
     executeCoordinateFilling() {
         ; For certitudes.org - check mode first (coordinates vs answer) using maxlength attribute
         this.app.updateStatusLeft("Checking certitudes.org mode...")
@@ -33,6 +50,12 @@ class CertitudesService extends BaseService {
         this.executeJavaScript(jsCode)
     }
 
+    /**
+     * Builds JavaScript for Certitudes.org result detection
+     * Checks for woohoo.png (success), doh.png (wrong), or hint span content
+     * @returns {String} JavaScript code for Certitudes result detection
+     * @override
+     */
     buildResultCheckingJS() {
         ; Check for certitudes.org specific success/failure images or hint spans
         return "try { " .
@@ -51,6 +74,12 @@ class CertitudesService extends BaseService {
                "}"
     }
 
+    /**
+     * Copies owner's message from hint span to clipboard
+     * Extracts text content from span.hint element
+     * @returns {Boolean} True if clipboard operation was initiated
+     * @override
+     */
     copyOwnerMessage() {
         ; Copy certitudes owner's message from hint span
         this.app.updateStatus("Executing clipboard JavaScript for certitudes...")
@@ -74,7 +103,7 @@ class CertitudesService extends BaseService {
         this.app.webView.ExecuteScriptAsync(jsCode)
             .then((result) => this.app.onClipboardResult(result))
             .catch((error) => this.app.onClipboardError(error))
-        
+
         return true
     }
 }

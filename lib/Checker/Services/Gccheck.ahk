@@ -1,9 +1,24 @@
+/**
+ * @description gccheck.com coordinate checker service implementation
+ * Uses specific format N50° 20.200 E12° 22.000 and includes clipboard support for owner messages
+ * @author mikrom, ClaudeAI
+ * @version 4.0.1
+ * @extends BaseService
+ */
 class GccheckService extends BaseService {
+    /**
+     * Constructor for gccheck.com service
+     * @param {Object} checkerApp Reference to main application
+     */
     __New(checkerApp) {
         super.__New(checkerApp)
         this.serviceName := "gccheck"
     }
 
+    /**
+     * Fills gccheck.com realcoords field using degree-based coordinate format with automatic captcha focus
+     * @override
+     */
     executeCoordinateFilling() {
         ; For gccheck.com - uses 'realcoords' field with format "N50° 20.200 E12° 22.000"
         this.app.updateStatusLeft("Filling gccheck.com form...")
@@ -22,7 +37,7 @@ class GccheckService extends BaseService {
                   "field.dispatchEvent(new Event('input', { bubbles: true })); " .
                   "field.dispatchEvent(new Event('change', { bubbles: true })); " .
                   "} " .
-                  
+
                   ; Focus captcha field after filling coordinates
                   "setTimeout(function() { " .
                   "var captchaField = document.getElementsByName('captcha')[0]; " .
@@ -32,7 +47,7 @@ class GccheckService extends BaseService {
                   "captchaField.scrollIntoView(); " .
                   "} " .
                   "}, 200); " .
-                  
+
                   "if (field) { " .
                   "'SUCCESS: Gccheck realcoords field filled with: ' + field.value + ' - Captcha focused'; " .
                   "} else { " .
@@ -45,6 +60,11 @@ class GccheckService extends BaseService {
         this.executeJavaScript(jsCode)
     }
 
+    /**
+     * Builds JavaScript code to detect gccheck.com success/failure using span elements
+     * @returns {String} JavaScript code for result detection
+     * @override
+     */
     buildResultCheckingJS() {
         ; Check for gccheck.com specific success/failure elements
         return "try { " .
@@ -62,6 +82,11 @@ class GccheckService extends BaseService {
                "}"
     }
 
+    /**
+     * Copies gccheck.com owner message from div#hint element to clipboard
+     * @returns {Boolean} True if clipboard operation was initiated
+     * @override
+     */
     copyOwnerMessage() {
         ; Copy gccheck.com owner's message from div#hint element
         this.app.updateStatus("Executing clipboard JavaScript for gccheck.com...")

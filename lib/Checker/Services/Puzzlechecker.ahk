@@ -1,9 +1,24 @@
+/**
+ * @description puzzlechecker.de coordinate checker service implementation
+ * Dual-mode service supporting both coordinate input and answer input with clipboard message support
+ * @author mikrom, ClaudeAI
+ * @version 4.0.1
+ * @extends BaseService
+ */
 class PuzzlecheckerService extends BaseService {
+    /**
+     * Constructor for puzzlechecker.de service
+     * @param {Object} checkerApp Reference to main application
+     */
     __New(checkerApp) {
         super.__New(checkerApp)
         this.serviceName := "puzzlechecker"
     }
 
+    /**
+     * Intelligently detects mode (coordinate vs answer) and fills appropriate fields with radio button support
+     * @override
+     */
     executeCoordinateFilling() {
         ; For puzzlechecker.de - check mode first (coordinates vs answer)
         this.app.updateStatusLeft("Checking puzzlechecker.de mode...")
@@ -80,6 +95,11 @@ class PuzzlecheckerService extends BaseService {
         this.executeJavaScript(jsCode)
     }
 
+    /**
+     * Builds JavaScript code to detect puzzlechecker.de success/failure using paragraph color classes
+     * @returns {String} JavaScript code for result detection
+     * @override
+     */
     buildResultCheckingJS() {
         ; Check for puzzlechecker.de specific success/failure patterns
         return "try { " .
@@ -97,6 +117,11 @@ class PuzzlecheckerService extends BaseService {
                "}"
     }
 
+    /**
+     * Copies puzzlechecker.de owner message from h3 element with special parsing for coordinates text
+     * @returns {Boolean} True if clipboard operation was initiated
+     * @override
+     */
     copyOwnerMessage() {
         ; Copy puzzlechecker.de owner's message from specific h3 element
         this.app.updateStatus("Executing clipboard JavaScript for puzzlechecker.de...")

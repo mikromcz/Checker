@@ -2,6 +2,13 @@
 #Include DeadService.ahk
 #Include Translation.ahk
 
+/**
+ * @description Service registry and factory for coordinate checker services.
+ * Manages registration, initialization, and creation of all supported services.
+ * @author mikrom, ClaudeAI
+ * @version 4.0.1
+ */
+
 ; Alive services
 #Include Services\Challenge.ahk
 #Include Services\Certitudes.ahk
@@ -33,6 +40,10 @@
 class ServiceRegistry {
     static services := ""
 
+    /**
+     * Initializes the service registry with all available services
+     * Called automatically when services are first accessed
+     */
     static initializeServices() {
         if (ServiceRegistry.services == "") {
             ServiceRegistry.services := Map()
@@ -67,15 +78,31 @@ class ServiceRegistry {
         }
     }
 
+    /**
+     * Registers a service with the registry
+     * @param {String} serviceName Name used to identify the service
+     * @param {Class|Function} serviceClass Service class constructor or factory function
+     */
     static registerService(serviceName, serviceClass) {
         ServiceRegistry.services[StrLower(serviceName)] := serviceClass
     }
 
+    /**
+     * Registers a standard LatLonString service
+     * @param {String} serviceName Service identifier
+     * @param {String} displayName Human-readable service name
+     */
     static registerStandardService(serviceName, displayName) {
         ServiceRegistry.services[StrLower(serviceName)] := (app) => StandardLatLonService(app, serviceName, displayName
         )
     }
 
+    /**
+     * Creates a service instance for the given service name
+     * @param {String} serviceName Name of the service to create
+     * @param {Object} checkerApp Reference to the main Checker application
+     * @returns {BaseService} Service instance or UnknownService if not found
+     */
     static createService(serviceName, checkerApp) {
         ServiceRegistry.initializeServices()
         serviceKey := StrLower(serviceName)
@@ -97,6 +124,10 @@ class ServiceRegistry {
         return UnknownService(checkerApp, serviceName)
     }
 
+    /**
+     * Gets list of all supported service names
+     * @returns {Array} Array of service names
+     */
     static getSupportedServices() {
         ServiceRegistry.initializeServices()
         services := []
@@ -107,8 +138,17 @@ class ServiceRegistry {
     }
 }
 
-; Standard LatLonString service for services that follow the common pattern
+/**
+ * Standard LatLonString service for services that follow the common pattern
+ * @extends BaseService
+ */
 class StandardLatLonService extends BaseService {
+    /**
+     * Constructor for standard LatLonString services
+     * @param {Object} checkerApp Reference to main application
+     * @param {String} serviceName Service identifier
+     * @param {String} displayName Human-readable service name
+     */
     __New(checkerApp, serviceName, displayName) {
         super.__New(checkerApp)
         this.serviceName := serviceName
@@ -120,8 +160,16 @@ class StandardLatLonService extends BaseService {
     }
 }
 
-; Unknown service handler
+/**
+ * Unknown service handler for unsupported service names
+ * @extends BaseService
+ */
 class UnknownService extends BaseService {
+    /**
+     * Constructor for unknown service handler
+     * @param {Object} checkerApp Reference to main application
+     * @param {String} serviceName The unsupported service name
+     */
     __New(checkerApp, serviceName) {
         super.__New(checkerApp)
         this.serviceName := serviceName

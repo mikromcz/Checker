@@ -1,9 +1,13 @@
-; Checker
-; Www: https://www.geoget.cz/doku.php/user:skript:checker
-; Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
-; Icon: https://icons8.com/icon/18401/Thumb-Up
-; Author: mikrom, https://www.mikrom.cz
-; Version: 4.0.1
+/**
+ * @description Checker - Coordinate verification tool for geocaching services
+ * Automates coordinate submission and verification across multiple geocaching
+ * coordinate checker websites using WebView2 technology.
+ * @author mikrom, ClaudeAI
+ * @version 4.0.1
+ * @url https://www.geoget.cz/doku.php/user:skript:checker
+ * @forum http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
+ * @icon https://icons8.com/icon/18401/Thumb-Up
+ */
 
 #Requires AutoHotkey v2.0
 #NoTrayIcon
@@ -13,6 +17,10 @@
 #Include lib\Checker\ServiceRegistry.ahk
 
 class CheckerApp {
+    /**
+     * Main application entry point
+     * Initializes and runs the Checker application
+     */
     static main() {
         app := CheckerApp()
         app.setupIcons()
@@ -22,6 +30,10 @@ class CheckerApp {
         app.gui.Show()
     }
 
+    /**
+     * Constructor for CheckerApp
+     * Initializes application properties and default settings
+     */
     __New() {
         this.service := ""
         this.lat := ""
@@ -62,6 +74,10 @@ class CheckerApp {
         }
     }
 
+    /**
+     * Parses command line arguments and validates parameters
+     * Expected format: service lat latdeg latmin latdec lon londeg lonmin londec url
+     */
     parseCommandLine() {
         this.hasValidParameters := false
         this.parameterError := ""
@@ -92,6 +108,10 @@ class CheckerApp {
         }
     }
 
+    /**
+     * Validates coordinate parameters for correct format and ranges
+     * @returns {Boolean} True if all parameters are valid, false otherwise
+     */
     validateParameters() {
         ; Validate coordinate directions
         if (this.lat != "N" && this.lat != "S") {
@@ -221,6 +241,10 @@ class CheckerApp {
         this.statusTextRight := this.gui.AddText("x" . rightTextX . " y" . statusTextY . " w90 h16 +Right", "")
     }
 
+    /**
+     * Loads application settings from INI file
+     * Creates default settings file if it doesn't exist
+     */
     loadSettings() {
         ; Load settings from INI file
         try {
@@ -450,6 +474,10 @@ class CheckerApp {
         }
     }
 
+    /**
+     * Fills coordinate field on the loaded webpage
+     * Creates appropriate service instance and delegates coordinate filling
+     */
     fillCoordinateField() {
         try {
             ; Create service instance using the registry
@@ -462,6 +490,10 @@ class CheckerApp {
         }
     }
 
+    /**
+     * Checks if all required coordinate parameters are present
+     * @returns {Boolean} True if all coordinate fields have values, false otherwise
+     */
     hasValidCoordinates() {
         return (this.lat != "" && this.latdeg != "" && this.latmin != "" && this.latdec != "" &&
             this.lon != "" && this.londeg != "" && this.lonmin != "" && this.londec != "")
@@ -473,6 +505,11 @@ class CheckerApp {
         .catch((error) => this.onCoordinatesError(error))
     }
 
+    /**
+     * Callback when coordinates are filled successfully
+     * Starts result checking if enabled in settings
+     * @param {String} result JavaScript execution result
+     */
     onCoordinatesFilled(result) {
         try {
             resultStr := String(result)
@@ -529,6 +566,10 @@ class CheckerApp {
         }
     }
 
+    /**
+     * Initiates periodic result checking timer
+     * Checks coordinate verification results every 200ms
+     */
     startResultChecking() {
         if (!this.isCheckingResults) {
             this.isCheckingResults := true
@@ -715,21 +756,38 @@ class CheckerApp {
         ExitApp(finalCode)
     }
 
+    /**
+     * Updates status text (compatibility method for existing code)
+     * @param {String} text Status message to display
+     */
     updateStatus(text) {
         ; Update left status (for compatibility with existing code)
         this.updateStatusLeft(text)
     }
 
+    /**
+     * Updates left status text for loading/page messages
+     * @param {String} text Status message to display
+     */
     updateStatusLeft(text) {
         if (this.statusTextLeft)
             this.statusTextLeft.Text := text
     }
 
+    /**
+     * Updates right status text for result checking status
+     * @param {String} text Status message to display
+     */
     updateStatusRight(text) {
         if (this.statusTextRight)
             this.statusTextRight.Text := text
     }
 
+    /**
+     * Updates right status text with specific color and bold formatting
+     * @param {String} text Status message to display
+     * @param {String} color Color code (e.g. "0x008000" for green)
+     */
     updateStatusRightWithColor(text, color) {
         if (this.statusTextRight) {
             this.statusTextRight.Text := text
@@ -748,16 +806,21 @@ class CheckerApp {
             ; Read the script file to extract version from header comment
             scriptContent := FileRead(A_ScriptFullPath)
 
-            ; Look for the version line in the header comments
+            ; Look for JSDoc @version format first
+            if (RegExMatch(scriptContent, "im)@version\s+([\d\.]+)", &match)) {
+                return match[1]
+            }
+
+            ; Fallback: Look for the old comment format
             if (RegExMatch(scriptContent, "im)^;\s*Version:\s*([\d\.]+)", &match)) {
                 return match[1]
             }
 
             ; Fallback if version not found in expected format
-            return "4.0.0"
+            return "4.0.1"
         } catch {
             ; Fallback version if file reading fails
-            return "4.0.0"
+            return "4.0.1"
         }
     }
 
@@ -907,5 +970,8 @@ class CheckerApp {
     }
 }
 
-; Start the application
+/**
+ * Application entry point
+ * Creates and starts the Checker application instance
+ */
 CheckerApp.main()

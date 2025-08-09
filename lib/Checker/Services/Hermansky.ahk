@@ -1,9 +1,24 @@
+/**
+ * @description geo.hermansky.net coordinate checker service implementation
+ * Uses Czech field names (vyska/sirka dropdowns, stupne/minuty fields) with colored result divs
+ * @author mikrom, ClaudeAI
+ * @version 4.0.1
+ * @extends BaseService
+ */
 class HermanskyService extends BaseService {
+    /**
+     * Constructor for geo.hermansky.net service
+     * @param {Object} checkerApp Reference to main application
+     */
     __New(checkerApp) {
         super.__New(checkerApp)
         this.serviceName := "hermansky"
     }
 
+    /**
+     * Fills geo.hermansky.net form using Czech naming conventions with dropdowns and coordinate fields
+     * @override
+     */
     executeCoordinateFilling() {
         ; For geo.hermansky.net - dropdown selections plus separate coordinate fields
         this.app.updateStatusLeft("Filling geo.hermansky.net form...")
@@ -71,6 +86,11 @@ class HermanskyService extends BaseService {
         this.executeJavaScript(jsCode)
     }
 
+    /**
+     * Builds JavaScript code to detect geo.hermansky.net success/failure using colored div backgrounds and Czech text
+     * @returns {String} JavaScript code for result detection
+     * @override
+     */
     buildResultCheckingJS() {
         ; Check for hermansky success/failure - look for specific error div and success patterns
         return "try { " .

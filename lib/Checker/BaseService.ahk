@@ -1,17 +1,31 @@
+/**
+ * @description Base class for coordinate checker services. Provides common functionality
+ * for filling coordinates and checking results across different geocaching coordinate
+ * verification websites.
+ * @author mikrom, ClaudeAI
+ * @version 4.0.1
+ */
 class BaseService {
+    /**
+     * Constructor for BaseService
+     * @param {Object} checkerApp Reference to the main Checker application instance
+     */
     __New(checkerApp) {
         this.app := checkerApp
         this.serviceName := ""
         this.isDead := false
     }
 
-    ; Main entry point for filling coordinates
+    /**
+     * Main entry point for filling coordinates into service forms
+     * Validates coordinates and calls service-specific implementation
+     */
     fillFields() {
         if (this.isDead) {
             this.showDeadServiceMessage()
             return
         }
-        
+
         if (!this.app.hasValidCoordinates()) {
             this.app.updateStatus("No valid coordinates to fill")
             return
@@ -20,13 +34,20 @@ class BaseService {
         this.executeCoordinateFilling()
     }
 
-    ; Override in child classes
+    /**
+     * Service-specific coordinate filling implementation
+     * Override in child classes to implement service-specific behavior
+     * @abstract
+     */
     executeCoordinateFilling() {
         ; Default implementation - show error message
         this.app.updateStatus("Error: executeCoordinateFilling() not implemented for " . this.serviceName)
     }
 
-    ; Common coordinate formatting methods
+    /**
+     * Formats coordinates for geochecker-style services
+     * @returns {String} Formatted coordinate string like "S50 15.123 W015 54.123"
+     */
     formatCoordinatesForGeochecker() {
         ; Format: "S50 15.123 W015 54.123"
         latMinDec := this.app.latmin . "." . this.app.latdec
@@ -38,6 +59,10 @@ class BaseService {
         return coordString
     }
 
+    /**
+     * Formats coordinates for gzchecker service
+     * @returns {String} Formatted coordinate string like "N 51 45.000 E 0 45.000"
+     */
     formatCoordinatesForGzchecker() {
         ; Format for gzchecker: "N 51 45.000 E 0 45.000"
         latMinDec := this.app.latmin . "." . this.app.latdec
@@ -53,18 +78,25 @@ class BaseService {
         return coordString
     }
 
-    ; Common JavaScript execution wrapper
+    /**
+     * Executes JavaScript code in the WebView2 control
+     * @param {String} jsCode JavaScript code to execute
+     */
     executeJavaScript(jsCode) {
         this.app.webView.ExecuteScriptAsync(jsCode)
             .then((result) => this.app.onCoordinatesFilled(result))
             .catch((error) => this.app.onCoordinatesError(error))
     }
 
-    ; Common single field filling pattern (LatLonString)
+    /**
+     * Common pattern for filling a single coordinate field
+     * @param {String} fieldId HTML element ID or name to fill (default: "LatLonString")
+     * @param {String} fieldName Display name for status messages (default: serviceName)
+     */
     fillSingleLatLonField(fieldId := "LatLonString", fieldName := "") {
         coordString := this.formatCoordinatesForGeochecker()
         serviceName := fieldName ? fieldName : this.serviceName
-        
+
         this.app.updateStatusLeft("Filling " . serviceName . " coordinates: " . coordString)
 
         jsCode := "try { " .
@@ -86,7 +118,11 @@ class BaseService {
         this.executeJavaScript(jsCode)
     }
 
-    ; Common result checking patterns
+    /**
+     * Builds JavaScript code for checking coordinate verification results
+     * Override in child classes for service-specific result detection
+     * @returns {String} JavaScript code that returns "RESULT:SUCCESS", "RESULT:WRONG", or "RESULT:NONE"
+     */
     buildResultCheckingJS() {
         if (this.isDead) {
             return "try { 'RESULT:NONE'; } catch (e) { 'ERROR: ' + e.message; }"
@@ -96,6 +132,10 @@ class BaseService {
         return this.buildGeocheckerStyleResultJS()
     }
 
+    /**
+     * JavaScript for detecting geochecker-style success/failure divs
+     * @returns {String} JavaScript code for standard geochecker result detection
+     */
     buildGeocheckerStyleResultJS() {
         return "try { " .
                "var success = document.querySelector('div.success'); " .
@@ -112,6 +152,10 @@ class BaseService {
                "}"
     }
 
+    /**
+     * Generic result detection for services without specific selectors
+     * @returns {String} JavaScript code for generic text-based result detection
+     */
     buildGenericResultJS() {
         return "try { " .
                "var body = document.body.innerHTML; " .
@@ -127,13 +171,19 @@ class BaseService {
                "}"
     }
 
-    ; Dead service handler
+    /**
+     * Displays message for services that are no longer available
+     */
     showDeadServiceMessage() {
         this.app.updateStatus("Warning: " . this.serviceName . " service is no longer available. Cannot fill/check anything. Contact cache author to change verification service.")
         this.app.finalExitCode := 0
     }
 
-    ; Clipboard functionality
+    /**
+     * Copies owner message to clipboard for services that support it
+     * Override in child classes that support clipboard functionality
+     * @returns {Boolean} True if message was copied, false otherwise
+     */
     copyOwnerMessage() {
         ; Override in child classes that support clipboard
         return false

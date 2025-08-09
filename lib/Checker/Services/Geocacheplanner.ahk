@@ -1,9 +1,24 @@
+/**
+ * @description geocacheplanner.com coordinate checker service implementation
+ * Uses German-style field names (NORD1/2/3, OST1/2/3) for separate coordinate components
+ * @author mikrom, ClaudeAI
+ * @version 4.0.1
+ * @extends BaseService
+ */
 class GeocacheplannerService extends BaseService {
+    /**
+     * Constructor for geocacheplanner.com service
+     * @param {Object} checkerApp Reference to main application
+     */
     __New(checkerApp) {
         super.__New(checkerApp)
         this.serviceName := "geocacheplanner"
     }
 
+    /**
+     * Fills geocacheplanner.com separate coordinate fields using German naming convention
+     * @override
+     */
     executeCoordinateFilling() {
         ; For geocacheplanner.com - separate coordinate fields
         this.app.updateStatusLeft("Filling geocacheplanner.com form...")
@@ -50,6 +65,11 @@ class GeocacheplannerService extends BaseService {
         this.executeJavaScript(jsCode)
     }
 
+    /**
+     * Builds JavaScript code to detect geocacheplanner.com success/failure with German and English language support
+     * @returns {String} JavaScript code for result detection
+     * @override
+     */
     buildResultCheckingJS() {
         ; Check for geocacheplanner specific success/failure patterns
         return "try { " .

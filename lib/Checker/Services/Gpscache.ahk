@@ -1,9 +1,24 @@
+/**
+ * @description GPS-Cache.de coordinate checker service implementation
+ * Uses specific field names (txtKoords) with ListView controls and smiley image result detection
+ * @author mikrom, ClaudeAI
+ * @version 4.0.1
+ * @extends BaseService
+ */
 class GpscacheService extends BaseService {
+    /**
+     * Constructor for GPS-Cache.de service
+     * @param {Object} checkerApp Reference to main application
+     */
     __New(checkerApp) {
         super.__New(checkerApp)
         this.serviceName := "gpscache"
     }
 
+    /**
+     * Fills GPS-Cache.de txtKoords field with N50 12.345 E012 34.567 format and focuses captcha
+     * @override
+     */
     executeCoordinateFilling() {
         ; For geochecker.gps-cache.de - uses specific field name and format "N50 12.345 E012 34.567"
         this.app.updateStatusLeft("Filling GPS-Cache form...")
@@ -22,7 +37,7 @@ class GpscacheService extends BaseService {
                   "field.dispatchEvent(new Event('input', { bubbles: true })); " .
                   "field.dispatchEvent(new Event('change', { bubbles: true })); " .
                   "} " .
-                  
+
                   ; Focus captcha field after filling coordinates
                   "setTimeout(function() { " .
                   "var captchaField = document.getElementsByName('ListView1$ctrl0$txtCaptchaCode')[0]; " .
@@ -32,7 +47,7 @@ class GpscacheService extends BaseService {
                   "captchaField.scrollIntoView(); " .
                   "} " .
                   "}, 200); " .
-                  
+
                   "if (field) { " .
                   "'SUCCESS: GPS-Cache txtKoords field filled with: ' + field.value + ' - Captcha focused'; " .
                   "} else { " .
@@ -45,6 +60,11 @@ class GpscacheService extends BaseService {
         this.executeJavaScript(jsCode)
     }
 
+    /**
+     * Builds JavaScript code to detect GPS-Cache.de success/failure using smiley images
+     * @returns {String} JavaScript code for result detection
+     * @override
+     */
     buildResultCheckingJS() {
         ; Check for GPS-Cache specific smiley images
         return "try { " .

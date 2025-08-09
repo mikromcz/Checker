@@ -1,9 +1,24 @@
+/**
+ * @description geocache.fi coordinate checker service implementation
+ * Uses complex form with dropdown selections (N/S, E/W) and separate coordinate fields with multi-language support
+ * @author mikrom, ClaudeAI
+ * @version 4.0.1
+ * @extends BaseService
+ */
 class GeocachefiService extends BaseService {
+    /**
+     * Constructor for geocache.fi service
+     * @param {Object} checkerApp Reference to main application
+     */
     __New(checkerApp) {
         super.__New(checkerApp)
         this.serviceName := "geocachefi"
     }
 
+    /**
+     * Fills geocache.fi complex form with dropdowns and separate coordinate fields
+     * @override
+     */
     executeCoordinateFilling() {
         ; For geocache.fi - dropdown selections plus separate coordinate fields (new structure)
         this.app.updateStatusLeft("Filling geocache.fi form...")
@@ -83,6 +98,11 @@ class GeocachefiService extends BaseService {
         this.executeJavaScript(jsCode)
     }
 
+    /**
+     * Builds JavaScript code to detect geocache.fi success/failure with Finnish and English language support
+     * @returns {String} JavaScript code for result detection
+     * @override
+     */
     buildResultCheckingJS() {
         ; Check for geocache.fi specific success/failure patterns
         return "try { " .
@@ -102,6 +122,11 @@ class GeocachefiService extends BaseService {
                "}"
     }
 
+    /**
+     * Copies geocache.fi owner message using complex CSS selector to clipboard
+     * @returns {Boolean} True if clipboard operation was initiated
+     * @override
+     */
     copyOwnerMessage() {
         ; Copy geocache.fi owner's message using specific selector
         this.app.updateStatus("Executing clipboard JavaScript for geocache.fi...")
