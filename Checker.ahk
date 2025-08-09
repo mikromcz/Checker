@@ -209,6 +209,8 @@ class CheckerApp {
 
         ; Create File menu
         this.fileMenu := Menu()
+        this.fileMenu.Add(Translation.get("menu_refresh"), (*) => this.refreshAndFill())
+        this.fileMenu.Add()  ; Separator
         this.fileMenu.Add(Translation.get("menu_preferences"), (*) => this.showPreferences())
         this.fileMenu.Add()  ; Separator
         this.fileMenu.Add(Translation.get("menu_exit"), (*) => this.exitApp())
@@ -419,7 +421,7 @@ class CheckerApp {
                 }
             } else if (StrLower(this.service) == "gcm") {
                 ; Fix Gcm URL: change gc.gcm.cz/validator/ to validator.gcm.cz/
-                finalUrl := StrReplace(finalUrl, "https://gc.gcm.cz/validator/", "https://validator.gcm.cz/")
+                finalUrl := StrReplace(finalUrl, "gc.gcm.cz/validator/", "validator.gcm.cz/")
             } else if (StrLower(this.service) == "hermansky") {
                 ; Fix Hermansky URL: change speedygt.ic.cz/gps to geo.hermansky.net
                 finalUrl := StrReplace(finalUrl, "speedygt.ic.cz/gps", "geo.hermansky.net")
@@ -557,7 +559,40 @@ class CheckerApp {
         try {
             if (this.webView && this.url != "") {
                 this.updateStatus("Refreshing page...")
-                this.webView.Navigate(this.url)
+
+                ; Reset coordinate filling flag to allow refilling after refresh
+                this.coordinatesFilled := false
+
+                ; Apply service-specific URL transformations (same as in onWebViewCreated)
+                finalUrl := this.url
+                if (StrLower(this.service) == "geochecker") {
+                    if (InStr(this.url, "?")) {
+                        finalUrl .= "&language=English"
+                    } else {
+                        finalUrl .= "?language=English"
+                    }
+                } else if (StrLower(this.service) == "geocheck") {
+                    if (InStr(this.url, "?")) {
+                        finalUrl .= "&lang=en_US"
+                    } else {
+                        finalUrl .= "?lang=en_US"
+                    }
+                } else if (StrLower(this.service) == "gcm") {
+                    ; Fix Gcm URL: change gc.gcm.cz/validator/ to validator.gcm.cz/
+                    finalUrl := StrReplace(finalUrl, "gc.gcm.cz/validator/", "validator.gcm.cz/")
+                } else if (StrLower(this.service) == "hermansky") {
+                    ; Fix Hermansky URL: change speedygt.ic.cz/gps to geo.hermansky.net
+                    finalUrl := StrReplace(finalUrl, "speedygt.ic.cz/gps", "geo.hermansky.net")
+                } else if (StrLower(this.service) == "geocachefi") {
+                    ; Add English language parameter for geocache.fi
+                    if (InStr(finalUrl, "?")) {
+                        finalUrl .= "&z=1"
+                    } else {
+                        finalUrl .= "?z=1"
+                    }
+                }
+
+                this.webView.Navigate(finalUrl)
             } else {
                 this.updateStatus("No URL to refresh")
             }

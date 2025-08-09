@@ -38,6 +38,7 @@ class Translation {
 
             ; Menu strings
             Translation.strings["menu_file"] := isCzech ? "&Soubor" : "&File"
+            Translation.strings["menu_refresh"] := isCzech ? "&Obnovit (F5)" : "&Refresh (F5)"
             Translation.strings["menu_preferences"] := isCzech ? "&Předvolby..." : "&Preferences..."
             Translation.strings["menu_exit"] := isCzech ? "&Konec" : "E&xit"
             Translation.strings["menu_help"] := isCzech ? "&Nápověda" : "&Help"

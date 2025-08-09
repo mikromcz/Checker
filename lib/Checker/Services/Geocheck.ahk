@@ -22,11 +22,6 @@ class GeocheckService extends BaseService {
      * @override
      */
     executeCoordinateFilling() {
-        ; For geocheck, only fill coordinates once to avoid stealing focus from captcha
-        if (this.app.coordinatesFilled) {
-            return
-        }
-
         ; For geocheck.org - separate degree/minute/decimal fields with radio buttons
         this.app.updateStatusLeft("Filling geocheck.org form...")
 

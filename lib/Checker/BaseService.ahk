@@ -31,6 +31,11 @@ class BaseService {
             return
         }
 
+        ; Prevent duplicate coordinate filling to avoid flashing status messages
+        if (this.app.coordinatesFilled) {
+            return
+        }
+
         this.executeCoordinateFilling()
     }
 
