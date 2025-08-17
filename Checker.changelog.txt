@@ -1,236 +1,237 @@
-** 4.0.1 (202508xx) **
-  * zpìtnì doplnìna podpora challenge keší na project-gc.com
-  * je možné mìnit velikost okna a velikost si Checker pamatuje
-  * robustní validace vstupních parametrù (v pøípadì chyby je zobrazena HTML stránka s nápovìdou a diagnostikou)
-  * nový exitcode: 4 pro neplatné parametry
+** 4.0.1 (20250817) **
+  * Vrácena podpora challenge keší na project-gc.com
+  * Je možné mìnit velikost okna a velikost si Checker pamatuje
+  * Robustní validace vstupních parametrù (v pøípadì chyby je zobrazena HTML stránka s nápovìdou a diagnostikou)
+  * Nový exitcode: 4 pro neplatné parametry
+  * Do menu pøidána položka Refresh (F5) pro obnovení stránky.
 
 ** 4.0.0 (20250807) **
-  * první testovací verze po tom co bylo kompletnì pøepsáno z AutoHotkey1 do AutoHotkey2 s podporou WebView2
-  * nový exitcode: 3 pro mrtvou službu
+  * První testovací verze po tom, co bylo kompletnì pøepsáno z AutoHotkey1 do AutoHotkey2 (2.0.19.0) s podporou WebView2 (2.0.5)
+  * Nový exitcode: 3 pro mrtvou službu
 
 ** 3.1.1 (2022/08/08) **
-  * pøidána detekce mrtvého ovìøovaèe "evince.locusprime.invalid" (bylo jen evince.locusprime.net)
-  * pokud je u keše více než jedno ovìøení, je možno zvolit jaké chceme (U GC9Q4Y3 jsou tøi geocheckery, u GC6DJTY deset, u GC213AF dvacet), nápad gord
-  * aktualizace AutoHotkey na v 1.1.34.03
-  * aktualizace pøekladu
+  * Pøidána detekce mrtvého ovìøovaèe "evince.locusprime.invalid" (bylo jen evince.locusprime.net)
+  * Pokud je u keše více než jedno ovìøení, je možno zvolit jaké chceme (U GC9Q4Y3 jsou tøi geocheckery, u GC6DJTY deset, u GC213AF dvacet), nápad gord
+  * Aktualizace AutoHotkey na v 1.1.34.03
+  * Aktualizace pøekladu
 
 ** 3.0.0 (2021/05/01) **
-  * pøidána podpora GZ Checker (https://infin.ity.me.uk/GZInput.php) - ale ten web je dìlaný v MS FrontPage a moc nejde
-  * pøidána podpora geotjek.org
-  * pøidána podpora puzzle-checker.com (GC80HFF, GC8X0WQ, ...) se vším všudy (ovìøení správnosti, zkopírování poznámky)
+  * Pøidána podpora GZ Checker (infin.ity.me.uk) - ale ten web je dìlaný v MS FrontPage a moc nejde
+  * Pøidána podpora geotjek.org
+  * Pøidána podpora puzzle-checker.com (GC80HFF, GC8X0WQ, ...) se vším všudy (ovìøení správnosti, zkopírování poznámky)
   * gccounter.de i gccounter.com jsou definitivnì po smrti
-  * pøidána podpora ovìøení na geocaching.com (pøes GC.Live) - díky gordovi!
-  * pøidána podpora gccc.eu
-  * pøidána podpora gocaching.de
-  * pøidána možnost zavolat ggp/gge po ovìøení
-  * aktualizace AutoHotkey na 1.1.33.08
-  * pøidána podpora LittleDebugHelper (http://ggplg.valicek.name/plugin/DebugHelper)
+  * Pøidána podpora ovìøení na geocaching.com (pøes GC.Live) - díky gordovi!
+  * Pøidána podpora gccc.eu
+  * Pøidána podpora gocaching.de
+  * Pøidána možnost zavolat ggp/gge po ovìøení
+  * Aktualizace AutoHotkey na 1.1.33.08
+  * Pøidána podpora LittleDebugHelper (http://ggplg.valicek.name/plugin/DebugHelper)
 
 ** 2.22.0 (2019/06/05) **
-  * u keše GC823B0 je odkaz na checker v hintu, takže nyní budeme prohledávat i hint
-  * kosmetické úpravy v kódu
-  * aktualizace AutoHotkey na 1.1.30.03
-  * opìt povolen gccounter.com, vypadá to, že web je zase funkèní
-  * pøidána podpora pro geotjek.eu
+  * U keše GC823B0 je odkaz na checker v hintu, takže nyní budeme prohledávat i hint
+  * Kosmetické úpravy v kódu
+  * Aktualizace AutoHotkey na 1.1.30.03
+  * Opìt povolen gccounter.com, vypadá to, že web je zase funkèní
+  * Pøidána podpora pro geotjek.eu
 
 ** 2.21.0 (2018/10/25) **
-  * autoclose okna o prekroceni limitu
-  * masivní oprava parsování ownersMessage, takže už to tøeba na GC2R6R8, GC4W3B2 nespadne
+  * Autoclose okna o prekroèení limitu
+  * Masivní oprava parsování ownersMessage, takže už to tøeba na GC2R6R8, GC4W3B2 nespadne
   * gccounter.de a gccounter.com je mrtev - "Dieser Service wird nicht mehr fortgeführt!"
-  * aktualizace AutoHotkey na 1.1.30.00
+  * Aktualizace AutoHotkey na 1.1.30.00
 
 ** 2.20.0 (2018/07/24) **
-  * oprava logování do Checker.csv
-  * oprava dávky pro Combine
-  * doplnìno parsování nbsp ve zprávì z checkeru (ownersMessage)
-  * aktualizace autohotkey na 1.1.29.01
-  * v INI pøibyla možnost writenotfound a notfound
+  * Oprava logování do Checker.csv
+  * Oprava dávky pro Combine
+  * Doplnìno parsování nbsp ve zprávì z checkeru (ownersMessage)
+  * Aktualizace AutoHotkey na 1.1.29.01
+  * V INI pøibyla možnost writenotfound a notfound
 
 ** 2.19.0 (2018/05/01) **
-  * pøidána podpora gctoolbox.de
-  * aktualizace AutoHotkey na 1.1.28.02
-  * v INI pøibyl parametr "history", kterým je možno zapnout jednoduché logování do CSV
-  * pøibaleny dávky pro Combine
+  * Pøidána podpora gctoolbox.de
+  * Aktualizace AutoHotkey na 1.1.28.02
+  * V INI pøibyl parametr "history", kterým je možno zapnout jednoduché logování do CSV
+  * Pøibaleny dávky pro Combine
 
 ** 2.18.1 (2018/03/03) **
-  * aktualizace AutoHotkey na verzi 1.1.28.00
+  * Aktualizace AutoHotkey na verzi 1.1.28.00
 
 ** 2.18.0 (2018/03/02) **
-  * oprava gc-apps.com/checker
-  * pøidána podpora geocache-planer.de
+  * Oprava gc-apps.com/checker
+  * Pøidána podpora geocache-planer.de
 
 ** 2.17.0 (2017/12/17) **
-  * pøidána podpora GEOGET_SILENTINSTALL
-  * zrušena porpora geo.komurka.cz - služba je mrtvá
-  * oprava gc-apps.com/geochecker
+  * Pøidána podpora GEOGET_SILENTINSTALL
+  * Zrušena podpora geo.komurka.cz - služba je mrtvá
+  * Oprava gc-apps.com/geochecker
 
 ** 2.16.0 (2017/10/13) **
-  * aktualizace AutoHotkey na verzi 1.1.26.01
-  * pøidána promìnná timeout do INI. Nyní je možno zmìnit výchozích 5s na více u nìkterých pomalých ovìøovaèù
+  * Aktualizace AutoHotkey na verzi 1.1.26.01
+  * Pøidána promìnná timeout do INI. Nyní je možno zmìnit výchozích 5s na více u nìkterých pomalých ovìøovaèù
 
 ** 2.15.0 (2017/06/13) **
   * BETA: teoreticky automatické pøihlášení na project-gc.com u challenge keší (INI: pgclogin=1)
-  * ošetøeno parsování odkazù bez uvedeného protokolu HTTP/HTTPS, takže jen //gccheck.com
-  * ovìøení na geocheck.org podporuje slovenštinu
-  * oprava parsování geochecker.com. Je upravený web s jedním polem na souøadnice (varianta s dvìmi poli zachována)
+  * Ošetøeno parsování odkazù bez uvedeného protokolu HTTP/HTTPS, takže jen //gccheck.com
+  * Ovìøení na geocheck.org podporuje slovenštinu
+  * Oprava parsování geochecker.com. Je upravený web s jedním polem na souøadnice (varianta s dvìma poli zachována)
 
 ** 2.14.0 (2017/06/01) **
-  * pøidána podpora validator.gcm.cz (na gc.gcm.cz/validator je pøesmìrování)
-  * nìkdy, asi pokud je keš na geocheck.org smazaná se sice objeví souøadnice, ale nelze je ovìøit - uživatel je na to upozornìn
-  * v INI pøibyla možnost beep=1, která aktivuje zvukovou odezvu ovìøení, aby se nemuselo koukat do rohu (mìl by být jiný zvuk pro správnì a špatnì)
-  * zároveò se výsledek ovìøení promítne i do titulku okna
-  * nová ikonka
-  * vylepšená detekce ovìøení u gpscache
-  * BETA: na webu geocheck.org, gccheck.com,  zkopírujeme vzkaz od ownera do schránky, obèas je tam nìco zajímavého, tak je na uživateli zda si to ruènì vloží nìkam do GeoGetu (v INI parametr copymsg)
+  * Pøidána podpora validator.gcm.cz (na gc.gcm.cz/validator je pøesmìrování)
+  * Nìkdy, asi pokud je keš na geocheck.org smazaná se sice objeví souøadnice, ale nelze je ovìøit - uživatel je na to upozornìn
+  * V INI pøibyla možnost beep=1, která aktivuje zvukovou odezvu ovìøení, aby se nemuselo koukat do rohu (mìl by být jiný zvuk pro správnì a špatnì)
+  * Zároveò se výsledek ovìøení promítne i do titulku okna
+  * Nová ikonka
+  * Vylepšená detekce ovìøení u gpscache
+  * BETA: na webu geocheck.org, gccheck.com, zkopírujeme vzkaz od ownera do schránky, obèas je tam nìco zajímavého, tak je na uživateli, zda si to ruènì vloží nìkam do GeoGetu (v INI parametr copymsg)
 
 ** 2.13.0/1 (2017/04/26) **
   * Optimalizace parsování (o 50% ménì pomalých regexù)
   * Další volitelný parametr do INI. fixcert (pokud je nastaven na 1, tak se vypne kontrola odvolání certifikátu. nezbytné pro gccheck.com)
   * geocheck.org: uznáme i "Zadané sou&#345;adnice nejsou zcela p&#345;esné" jako správné øešení
   * Definitivnì umøel web speedygt.ic.cz/gps, ale zda se že je vše na geo.hermansky.net, takže dojde k upravení odkazu
-  * oprava parsování na gc-apps.com
-  * doplnìna možnost kontroly ovìøení pro geochecker.gps-cache.de
-  * oprava geochecker.gps-cache.de pokud se má místo souøadnic vyplnit odpovìï
+  * Oprava parsování na gc-apps.com
+  * Doplnìna možnost kontroly ovìøení pro geochecker.gps-cache.de
+  * Oprava geochecker.gps-cache.de pokud se má místo souøadnic vyplnit odpovìï
   * geocache.fi se naèítá v angliètinì
-  * oprava špatné detekce ovìøení u geocache.fi (napø. u GC14G37)
-  * oprava challenge keší (rozdílné chování podle toho zda odkaz konèí jen GC kódem, nebo je za ním ještì lomítko a èíslo)
-  * pro úplnost doplnìna doxina, s upozornìním na nefunkèní ovìøení
-  * oprava detekce debugovacího režimu
+  * Oprava špatné detekce ovìøení u geocache.fi (napø. u GC14G37)
+  * Oprava challenge keší (rozdílné chování podle toho zda odkaz konèí jen GC kódem, nebo je za ním ještì lomítko a èíslo)
+  * Pro úplnost doplnìna doxina, s upozornìním na nefunkèní ovìøení
+  * Oprava detekce debugovacího režimu
 
 ** 2.12.0/1 (2017/03/15) **
-  * oprava webu hermansky.net (nìkdy pøibudou vteøiny, nìkdy ne, tak si poradíme s obìmi variantami)
-  * zrušena podpora Evince (jen zakomentováno v Checker.ahk) -> http://www.geocaching.cz/topic/31312-evince-mimo-provoz/
-  * dovede si poradit s více ovìøovaèi v listingu (napø: GC5GVRK, GC39D30)
+  * Oprava webu hermansky.net (nìkdy pøibydou vteøiny, nìkdy ne, tak si poradíme s obìma variantami)
+  * Zrušena podpora Evince (jen zakomentováno v Checker.ahk) -> http://www.geocaching.cz/topic/31312-evince-mimo-provoz/
+  * Dovede si poradit s více ovìøovaèi v listingu (napø: GC5GVRK, GC39D30)
   * gccheck.com má problémy s certifikátem pro HTTPS, s tím nic neudìlám
-  * doplnìní cz pøekladu
-  * aktualizace AutoHotkey na nejnovìjší verzi 1.1.25.01
+  * Doplnìní CZ pøekladu
+  * Aktualizace AutoHotkey na nejnovìjší verzi 1.1.25.01
 
 ** 2.11.1 (2017/02/16) **
-  * pøidána podpora https://gc.gcm.cz/validator/
-  * oprava parsování geocache.fi
-  * další opravy a vylepšení
+  * Pøidána podpora gc.gcm.cz/validator/
+  * Oprava parsování geocache.fi
+  * Další opravy a vylepšení
 
 ** 2.10.0 (2017/02/03) **
-  * pøidána podpora geowii.miga.lv
-  * drobné opravy a úpravy debug módu
+  * Pøidána podpora geowii.miga.lv
+  * Drobné opravy a úpravy debug módu
 
-** 0.2.9.0 (2017/01/25) **
-  * pøidána podpora www.geocache.fi
+** 2.9.0 (2017/01/25) **
+  * Pøidána podpora geocache.fi
 
-** 0.2.8.0 (2017/01/22) **
-  * pokud se bìhem instalace zjistí, že v INI neexistuje klíè iefix, tak ho radìji zapíšeme s hodnotou 1 (true)
+** 2.8.0 (2017/01/22) **
+  * Pokud se bìhem instalace zjistí, že v INI neexistuje klíè iefix, tak ho radìji zapíšeme s hodnotou 1 (true)
 
-** 0.2.7.1 (2017/01/08) **
-  * pøidána podpora gc-apps.com/geochecker (a trochu i gc-apps.com/multichecker)
-  * oprava zapisování výsledku do poznámky waypointu. pokud je v INI napsano jen napø. correct= (bez hodnoty), tak se nezapíše
+** 2.7.1 (2017/01/08) **
+  * Pøidána podpora gc-apps.com/geochecker (a trochu i gc-apps.com/multichecker)
+  * Oprava zapisování výsledku do poznámky waypointu. pokud je v INI napsáno jen napø. correct= (bez hodnoty), tak se nezapíše
 
-** 0.2.6.2 (2016/12/28) **
-  * optimalizace kódu
-  * pøidána podpora ovìøení Challenge keší
-  * pøidáno nastavení iefix v INI, pro vynucení použití nejnovìjšího vykreslovacího jádra (místo výchozího IE7)
-  * aktualizace AHK na nejnovìjší verzi 1.1.24.4
-  * nová chybová hláška pøi chybì vyplòování souøadnic
+** 2.6.2 (2016/12/28) **
+  * Optimalizace kódu
+  * Pøidána podpora ovìøení Challenge keší
+  * Pøidáno nastavení iefix v INI, pro vynucení použití nejnovìjšího vykreslovacího jádra (místo výchozího IE7)
+  * Aktualizace AHK na nejnovìjší verzi 1.1.24.4
+  * Nová chybová hláška pøi chybì vyplòování souøadnic
 
-** 0.2.5.3 (2016/06/12) **
-  * pøidáno ovìøení na gccheck.com
-  * pøidána nìjaká druhá verze gccounter.de
-  * koneènì se AHK skript nezhroutí pokud na stránce nenalezne políèko k vyplnìní!
-  * pøidána volitelná možnost pøedání výsledku ovìøení do GeoGetu (zápis do poznámky finálového waypointu)
-  * oprava parsování z certitudes.org
-  * na geochecker.com pøidán natvrdo k URL parametr "&language=English" aby byla stránka vždy anglicky
-  * spousta malých oprav a úprav
+** 2.5.3 (2016/06/12) **
+  * Pøidáno ovìøení na gccheck.com
+  * Pøidána nìjaká druhá verze gccounter.de
+  * Koneènì se AHK skript nezhroutí, pokud na stránce nenalezne políèko k vyplnìní!
+  * Pøidána volitelná možnost pøedání výsledku ovìøení do GeoGetu (zápis do poznámky finálového waypointu)
+  * Oprava parsování z certitudes.org
+  * Na geochecker.com pøidán natvrdo k URL parametr "&language=English" aby byla stránka vždy anglicky
+  * Spousta malých oprav a úprav
 
-** 0.2.3.0 (2016/02/23) **
-  * ošetøena chyba na geocheck.org
-  * aktualizace AutoHotkey na nejnovìjší verzi
-  * použití knihovny InstallTool
-  * úprava parsování odkazù na ovìøovací služby
-  * pøidána podpora geochecker.gps-cache.de
-  * pøi parsování odkazù z listingu se nebere ohled na velikost písmen (u keše GC6BEEF je url velkými písmeny)
-  * odkaz na ovìøení se hledá v celém listingu (u keše GC3PVWQ je odkaz v ShortDescription)
+** 2.3.0 (2016/02/23) **
+  * Ošetøena chyba na geocheck.org
+  * Aktualizace AutoHotkey na nejnovìjší verzi
+  * Použití knihovny InstallTool
+  * Úprava parsování odkazù na ovìøovací služby
+  * Pøidána podpora geochecker.gps-cache.de
+  * Pøi parsování odkazù z listingu se nebere ohled na velikost písmen (u keše GC6BEEF je url velkými písmeny)
+  * Odkaz na ovìøení se hledá v celém listingu (u keše GC3PVWQ je odkaz v ShortDescription)
 
-** 0.2.1.0 (2015/07/14) **
-  * znatelné zrychlení (vyøešeno èekání na naèítající stránku)
-  * kosmetické úpravy kódu
-  * pøíprava na možnou další funkcionalitu (skript vrací údaj o (ne)úspìšnosti ovìøení)
+** 2.1.0 (2015/07/14) **
+  * Znatelné zrychlení (vyøešeno èekání na naèítající stránku)
+  * Kosmetické úpravy kódu
+  * Pøíprava na možnou další funkcionalitu (skript vrací údaj o (ne)úspìšnosti ovìøení)
 
-** 0.2.0.1 (2015/07/07) **
-  * pøidána ikona
-  * oprava jedné mezery navíc
+** 2.0.1 (2015/07/07) **
+  * Pøidána ikona
+  * Oprava jedné mezery navíc
 
-** 0.2.0.0 (2015/07/06) **
-  * pøepsání celého "browseru" z AutoIt do AutoHotkey (OpenSource, nevyžaduje k chodu další knihovny)
-  * obsahuje všechny novinky z betaverze 0.1.3.0 co vyšla na fóru
-    * oprava vytuhávání na geocheck.org, geochecker.com
-    * v otevøeném oknì funguje F5
-  * obsahuje vlastní lokalizaci (pokud bìží na èeských Windows je èesky, pokud ne, tak anglicky)
-  * pøidána podpora "1 pole" u geocheck.org
+** 2.0.0 (2015/07/06) **
+  * Pøepsání celého "browseru" z AutoIt do AutoHotkey (OpenSource, nevyžaduje k chodu další knihovny)
+  * Obsahuje všechny novinky z betaverze 0.1.3.0 co vyšla na fóru
+    * Oprava vytuhávání na geocheck.org, geochecker.com
+    * V otevøeném oknì funguje F5
+  * Obsahuje vlastní lokalizaci (pokud bìží na èeských Windows je èesky, pokud ne, tak anglicky)
+  * Pøidána podpora "1 pole" u geocheck.org
 
-** 0.1.3.0 (2015/06/21) **
-  * aktualizace AutoIt na nejnovìjší verzi
-  * oprava vytuhávání u geocheck.org
-  * proèištìní a zjednodušení kódu
-  * oprava chyby pøi parsování nulových souøadnic
-  * oprava geochecker.com opìt klikáme na ovìøení (chaptcha se vzdala?)
-  * oprava vytuhávání  na geochecker.com
-  * oprava umístìní paypalu pøi zmìnì velikosti okna
-  * v otevøeném oknì funguje F5
+** 1.3.0 (2015/06/21) **
+  * Aktualizace AutoIt na nejnovìjší verzi
+  * Oprava vytuhávání u geocheck.org
+  * Proèištìní a zjednodušení kódu
+  * Oprava chyby pøi parsování nulových souøadnic
+  * Oprava geochecker.com opìt klikáme na ovìøení (captcha se vzdala?)
+  * Oprava vytuhávání na geochecker.com
+  * Oprava umístìní PayPalu pøi zmìnì velikosti okna
+  * V otevøeném oknì funguje F5
 
-** 0.1.2.1 (2015/03/19) **
-  * na geochecker.com pøidali captchu, tak oprava ovìøení. nìkdy se napoprvé nenaète správnì obrázek, ale staèí si kliknout pro refresh obrázku
+** 1.2.1 (2015/03/19) **
+  * Na geochecker.com pøidali captchu, tak oprava ovìøení. nìkdy se napoprvé nenaète správnì obrázek, ale staèí si kliknout pro refresh obrázku
 
-** 0.1.2.0 (2014/11/16) **
-  * optimalizace kódu
-  * doplnìní pøekladu
+** 1.2.0 (2014/11/16) **
+  * Optimalizace kódu
+  * Doplnìní pøekladu
 
-** 0.1.1.2 (2014/10/07) **
+** 1.1.2 (2014/10/07) **
   * Oprava chyby s doplòováním nuly k souøadnicím u jednoho webu
   * Pøidána lokalizace do èeštiny
 
-** 0.1.0.2 (2014/05/04) **
-  * pøidán plugin GGC, takže lze spustit z okna listingu
-  * benevolentnìjší chování - pokud je vybrán bod ovìøují se jeho korigované souøadnice, pokud waypoint tak souø. waypointu. žádná vazba na "Final"
+** 1.0.2 (2014/05/04) **
+  * Pøidán plugin GGC, takže lze spustit z okna listingu
+  * Benevolentnìjší chování - pokud je vybrán bod ovìøují se jeho korigované souøadnice, pokud waypoint tak souø. waypointu. žádná vazba na "Final"
 
-** 0.1.0.1 (2014/05/01) **
-  * pøidáno posunutí stránky s výsledkem pokud nebylo na první pohled vidìt úspìšné ovìøení
-  * oprava chyb z verze 0.1.0.0
+** 1.0.1 (2014/05/01) **
+  * Pøidáno posunutí stránky s výsledkem, pokud nebylo na první pohled vidìt úspìšné ovìøení
+  * Oprava chyb z verze 0.1.0.0
   * ESC zavøe okno
-  * oprava nefunkènosti kopírovat/vložit mimo browser (chyba AutoIt. poslední funkèní verze 3.3.8.1)
-  * prohlížeè spuštìn jako RunExecNoWait, takže neblokuje práci s GeoGetem
+  * Oprava nefunkènosti kopírovat/vložit mimo browser (chyba AutoIt. poslední funkèní verze 3.3.8.1)
+  * Prohlížeè spuštìn jako RunExecNoWait, takže neblokuje práci s GeoGetem
 
-** 0.1.0.0 (2014/05/01) **
-  * kompletnì pøepsáno, otevírá se ve vlastním prohlížeèi
-  * oprava vkládání souøadnic na geo.komurka.cz. web neakceptuje minuty bez úvodní nuly pokud se jedná o jednociferné èíslo
-  * úprava parsování z geochecker.com
-  * pøidáno gccounter.com (nejen gccounter.de)
+** 1.0.0 (2014/05/01) **
+  * Kompletnì pøepsáno, otevírá se ve vlastním prohlížeèi
+  * Oprava vkládání souøadnic na geo.komurka.cz. Web neakceptuje minuty bez úvodní nuly pokud se jedná o jednociferné èíslo
+  * Úprava parsování z geochecker.com
+  * Pøidáno gccounter.com (nejen gccounter.de)
 
-** 0.0.1.7 (2014/04/28) **
-  * dodìlána podpora webu certitudes.org (bez pøihlášení)
+** 0.1.7 (2014/04/28) **
+  * Dodìlána podpora webu certitudes.org (bez pøihlášení)
 
-** 0.0.1.6 (2014/04/28) **
-  * další ošetøení parsování url
-  * pøidána malinká prodleva mezi posílanými pøíkazy
-  * oprava geocheck.org
+** 0.1.6 (2014/04/28) **
+  * Další ošetøení parsování url
+  * Pøidána malinká prodleva mezi posílanými pøíkazy
+  * Oprava geocheck.org
 
-** 0.0.1.5 (2013/11/28) **
-  * pøidána podpora webu http://www.certitudes.org/
-  * pøidána podpora geotjek.dk (obdoba geocheck.org)
-  * png ikonka
-  * podpora mezer v cestì k souboru
+** 0.1.5 (2013/11/28) **
+  * Pøidána podpora webu certitudes.org
+  * Pøidána podpora geotjek.dk (obdoba geocheck.org)
+  * PNG ikonka
+  * Podpora mezer v cestì k souboru
 
-** 0.0.1.4 (2013/05/07) **
-  * pøidán changelog
-  * úprava detekce titulku okna
+** 0.1.4 (2013/05/07) **
+  * Pøidán changelog
+  * Úprava detekce titulku okna
 
-** 0.0.1.3 (2013/05/02) **
-  * zvýšen timeout z 15 na 30 sekund
-  * zrušena informaèní hláška o použití korigovaných souøadnic
+** 0.1.3 (2013/05/02) **
+  * Zvýšen timeout z 15 na 30 sekund
+  * Zrušena informaèní hláška o použití korigovaných souøadnic
 
-** 0.0.1.2 (2013/05/02) **
+** 0.1.2 (2013/05/02) **
    * První veøejná verze
-   * pøidána podpora GCCounter.de
+   * Pøidána podpora gccounter.de
 
-** 0.0.1.1 (2013/04/30) **
+** 0.1.1 (2013/04/30) **
   * GIP verze
 
 ** Thanks To **

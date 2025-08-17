@@ -45,20 +45,20 @@ Checker.ahk challenge N 49 42 660 E 018 23 165 "http://project-gc.com/Challenges
 - **gcm** - validator.gcm.cz *(automatická oprava URL)*
 - **gocaching** - gocaching.de *(standardní pole)*
 - **gpscache** - gpscache.com *(standardní pole)*
-- **gzchecker** - gzchecker *(speciální pole, schránka)*
+- **gzchecker** - infin.ity.me.uk *(speciální pole, schránka)*
 - **hermansky** - geo.hermansky.net *(rozbalovací seznamy)*
 - **nanochecker** - nanochecker.com *(standardní pole)*
 - **puzzlechecker** - puzzlechecker.com *(dvojí režim, schránka)*
 
 ### Nefunkční služby (8)
-- **doxina** *(mrtvé od 2016-10)*
-- **evince** *(mrtvé od 2016-03)*
-- **gccc** *(mrtvé od 2018-05)*
-- **gccounter** *(mrtvé od 2018-08)*
-- **gccounter2** *(mrtvé od 2018-08)*
-- **gctoolbox** *(mrtvé od 2018-05)*
-- **geowii** *(mrtvé od 2023-09)*
-- **komurka** *(mrtvé od 2018-03)*
+- **doxina** - doxina.filipruzicka.net *(mrtvé od 2016-10)*
+- **evince** - evince.locusprime.net *(mrtvé od 2016-03)*
+- **gccc** - gccc.eu *(mrtvé od 2018-05)*
+- **gccounter** - gccounter.de *(mrtvé od 2018-08)*
+- **gccounter2** - gccounter.com *(mrtvé od 2018-08)*
+- **gctoolbox** - gctoolbox.de *(mrtvé od 2018-05)*
+- **geowii** - geowii.miga.lv *(mrtvé od 2023-09)*
+- **komurka** - geo.komurka.cz *(mrtvé od 2018-03)*
 
 ## Exit kódy
 
@@ -124,9 +124,20 @@ Nastavení jsou uložena v souboru `Checker.ini`:
 
 📖 **Hlavní stránka pluginu:** https://www.geoget.cz/doku.php/user:skript:checker
 
-💬 **Fórum WebView2:** https://www.autohotkey.com/boards/viewtopic.php?t=95666
+## Využívá
 
-🐞 **LittleDebugHelper plugin:** http://ggplg.valicek.name/plugin/DebugHelper
+### AutoHotkey2
+🌐 **Domovská stránka:** https://autohotkey.com/
+
+### WebView2
+🌐 **Domovská stránka:** https://learn.microsoft.com/en-us/microsoft-edge/webview2/
+
+🌐 **AutoHotkey knihovna:** https://github.com/thqby/ahk2_lib/tree/master/WebView2
+
+💬 **Fórum WebView2 knihovny:** https://www.autohotkey.com/boards/viewtopic.php?t=95666
+
+### LittleDebugHelper
+🐞 **Plugin:** http://ggplg.valicek.name/plugin/DebugHelper
 
 ## Licence
 

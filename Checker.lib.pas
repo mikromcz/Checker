@@ -4,7 +4,7 @@
     Www: https://www.geoget.cz/doku.php/user:skript:checker
     Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
     Author: mikrom, http://mikrom.cz
-    Version: 4.0.0
+    Version: 4.0.1
 
     Uses: CheckerForm, Checker.ahk
 
