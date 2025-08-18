@@ -701,8 +701,9 @@ var s: String;
 begin
     {$ifdef DEBUG_HELPER} LDHp('Call Checker.ahk'); {$endif}
 
-    s := '"' + GEOGET_SCRIPTDIR + '\Checker\AutoHotkey64.exe" "' + GEOGET_SCRIPTDIR + '\Checker\Checker.ahk" "' + RemoveSerialNum(service) + '" ' + coordinates + ' "' + url + '"';
+    s := '"' + GEOGET_SCRIPTDIR + '\Checker\AutoHotkey64.exe" "' + GEOGET_SCRIPTDIR + '\Checker\Checker.ahk" "' + UtfToAnsi(RemoveSerialNum(service)) + '" ' + coordinates + ' "' + url + '"';
     {$ifdef DEBUG_HELPER} LDH('Command: ' + s); {$endif}
+    //ShowMessage(s);
 
     if (answer) then
         HandleCheckerResult(RunExec(s), coordinates)
