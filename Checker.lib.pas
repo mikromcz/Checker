@@ -28,8 +28,7 @@ const
     {Define search regex here, good test is here: https://regex101.com/ or http://regexr.com/
     (https?:)?\/\/(www\.)? should handle probably all possible combination of http://, https://, http://www, https://www, //www, //}
     certitudesRegex      = '(?i)(https?:)?\/\/(www\.)?certitudes\.org\/certitude(\.php)?\?wp\=[^"''<\s]+';
-    challenge2Regex      = '(?i)(https?:)?\/\/(www\.)?project-gc\.com\/Challenges\/GC[A-Z0-9]+"';
-    challengeRegex       = '(?i)(https?:)?\/\/(www\.)?project-gc\.com\/Challenges\/GC[A-Z0-9]+\/\d+[^"''<\s]+';
+    challengeRegex       = '(?i)(https?:)?\/\/(www\.)?project-gc\.com\/Challenges\/GC[A-Z0-9]+(\/\d+)?[^"''<\s]*';
     doxinaRegex          = '(?i)(https?:)?\/\/(www\.)?doxina\.filipruzicka\.net\/cache\.php\?id=[^"''<\s]+';
     evinceRegex          = '(?i)(https?:)?\/\/(www\.)?evince\.locusprime\.(net|invalid)\/cgi-bin\/[^"''<\s]+';
     gcappsGeoRegex       = '(?i)(https?:)?\/\/(www\.)?gc-apps\.com\/(en|de)?\/?(checker|geochecker\/show)\/[a-z0-9]+\/try';
@@ -262,25 +261,7 @@ procedure DetectChallenge(const description: String);
 var s: String;
 begin
     s := RegexExtract(challengeRegex, description);
-    if (s <> '') then begin
-        serviceName.Add('challenge');
-        serviceUrl.Add(s);
-        Inc(serviceNum);
-        {$ifdef DEBUG_HELPER} LDH('Service: challenge'); {$endif}
-    end;
-end;
-
-procedure DetectChallenge2(const description: String);
-var s: String;
-begin
-    s := RegexExtract(challenge2Regex, description);
-    if (s <> '') then begin
-        serviceName.Add('challenge');
-        s := SeparateLeft(s, '"');
-        serviceUrl.Add(s);
-        Inc(serviceNum);
-        {$ifdef DEBUG_HELPER} LDH('Service: challenge(2)'); {$endif}
-    end;
+    AddToCheckersList(s, 'challenge');
 end;
 
 procedure DetectDoxina(const description: String);
@@ -301,14 +282,14 @@ procedure DetectGcappsGeo(const description: String);
 var s: String;
 begin
     s := RegexExtract(gcappsGeoRegex, description);
-    AddToCheckersList(s, 'gcappsGeochecker');
+    AddToCheckersList(s, 'gcappsgeochecker');
 end;
 
 procedure DetectGcappsMulti(const description: String);
 var s: String;
 begin
     s := RegexExtract(gcappsMultiRegex, description);
-    AddToCheckersList(s, 'gcappsMultichecker');
+    AddToCheckersList(s, 'gcappsmultichecker');
 end;
 
 procedure DetectGccc(const description: String);
@@ -462,7 +443,6 @@ begin
 
     DetectCertitudes(description);
     DetectChallenge(description);
-    DetectChallenge2(description);
     DetectDoxina(description);
     DetectEvince(description);
     DetectGcappsGeo(description);
@@ -780,7 +760,10 @@ begin
         if not HasServicesFound() then Exit;
 
         {Prepare coordinates format}
-        coordinates := RegexReplace('(N|S)(\d+)°(\d+)\.(\d+)''\s(E|W)(\d+)°(\d+)\.(\d+)''', coords, '$1 $2 $3 $4 $5 $6 $7 $8', true);
+        {$ifdef DEBUG_HELPER} LDH('Coords: ' + coords); {$endif}
+        coordinates := RegexReplace('(N|S)(\d+)Â°(\d+)\.(\d+)''\s(E|W)(\d+)Â°(\d+)\.(\d+)''', AnsiToUtf(coords), '$1 $2 $3 $4 $5 $6 $7 $8', true);
+        //ShowMessage(_('Coords: ') + CRLF + coords + CRLF + _('Coordinates: ') + CRLF + coordinates);
+        {$ifdef DEBUG_HELPER} LDH('Coordinates: ' + coordinates); {$endif}
         coordinates := CorrectCoords(coordinates);
 
         {Let user select service if multiple found}
