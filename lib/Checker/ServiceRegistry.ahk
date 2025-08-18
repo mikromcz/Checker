@@ -99,13 +99,20 @@ class ServiceRegistry {
 
     /**
      * Creates a service instance for the given service name
-     * @param {String} serviceName Name of the service to create
+     * @param {String} serviceName Name of the service to create (may include |comment)
      * @param {Object} checkerApp Reference to the main Checker application
      * @returns {BaseService} Service instance or UnknownService if not found
      */
     static createService(serviceName, checkerApp) {
         ServiceRegistry.initializeServices()
-        serviceKey := StrLower(serviceName)
+        
+        ; Extract base service name (before |) for registry lookup
+        baseServiceName := serviceName
+        if (InStr(serviceName, "|")) {
+            baseServiceName := StrSplit(serviceName, "|")[1]
+        }
+        
+        serviceKey := StrLower(baseServiceName)
 
         if (ServiceRegistry.services.Has(serviceKey)) {
             serviceFactory := ServiceRegistry.services[serviceKey]

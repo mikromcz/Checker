@@ -19,33 +19,75 @@ class CertitudesService extends BaseService {
     /**
      * Smart coordinate filling that detects coordinate vs answer mode
      * Uses maxlength attribute to determine if coordinates should be filled
+     * If service has comment (certitudes|comment), fills the answer field
      * @override
      */
     executeCoordinateFilling() {
+        ; Check if service name contains a comment (format: "certitudes|comment")
+        comment := ""
+        if (InStr(this.app.service, "|")) {
+            parts := StrSplit(this.app.service, "|")
+            if (parts.Length >= 2) {
+                comment := Trim(parts[2])
+            }
+        }
+
         ; For certitudes.org - check mode first (coordinates vs answer) using maxlength attribute
         this.app.updateStatusLeft("Checking certitudes.org mode...")
 
         ; Build JavaScript code to check for maxlength and conditionally fill
-        jsCode := "try { " .
-                  "var solutionField = document.querySelector('input[name=`"coordinates`"]'); " .
-                  "if (solutionField) { " .
-                  "var maxLength = solutionField.getAttribute('maxlength'); " .
-                  "if (maxLength && parseInt(maxLength) > 100) { " .
-                  "'SUCCESS: Certitudes in answer mode - maxlength=' + maxLength + ' detected, skipping coordinate filling'; " .
-                  "} else { " .
-                  ; No maxlength or small maxlength, proceed with coordinate filling
-                  "var coordString = '" . this.formatCoordinatesForGeochecker() . "'; " .
-                  "solutionField.value = coordString; " .
-                  "solutionField.dispatchEvent(new Event('input', { bubbles: true })); " .
-                  "solutionField.dispatchEvent(new Event('change', { bubbles: true })); " .
-                  "'SUCCESS: Certitudes coordinate field filled with: ' + coordString; " .
-                  "} " .
-                  "} else { " .
-                  "'ERROR: coordinates field not found on certitudes page'; " .
-                  "} " .
-                  "} catch (e) { " .
-                  "'ERROR: ' + e.message; " .
-                  "}"
+        if (comment != "") {
+            ; We have a comment - force answer mode and fill the answer
+            ; Escape the comment for safe JavaScript injection
+            escapedComment := StrReplace(comment, "'", "\'")
+            escapedComment := StrReplace(escapedComment, "`"", "\`"")
+            escapedComment := StrReplace(escapedComment, "`n", "\n")
+            escapedComment := StrReplace(escapedComment, "`r", "\r")
+
+            this.app.updateStatusLeft("Certitudes.org loaded - Filling answer: " . comment)
+            
+            jsCode := "try { " .
+                      "var solutionField = document.querySelector('input[name=`"coordinates`"]'); " .
+                      "if (solutionField) { " .
+                      "var maxLength = solutionField.getAttribute('maxlength'); " .
+                      "if (maxLength && parseInt(maxLength) > 100) { " .
+                      ; Answer mode detected - fill the provided answer
+                      "solutionField.value = '" . escapedComment . "'; " .
+                      "solutionField.dispatchEvent(new Event('input', { bubbles: true })); " .
+                      "solutionField.dispatchEvent(new Event('change', { bubbles: true })); " .
+                      "'SUCCESS: Certitudes answer field filled with: " . escapedComment . "'; " .
+                      "} else { " .
+                      "'ERROR: Certitudes is in coordinate mode but answer was provided - maxlength=' + maxLength; " .
+                      "} " .
+                      "} else { " .
+                      "'ERROR: coordinates field not found on certitudes page'; " .
+                      "} " .
+                      "} catch (e) { " .
+                      "'ERROR: ' + e.message; " .
+                      "}"
+        } else {
+            ; No comment - use original logic (coordinate mode or detect answer mode)
+            jsCode := "try { " .
+                      "var solutionField = document.querySelector('input[name=`"coordinates`"]'); " .
+                      "if (solutionField) { " .
+                      "var maxLength = solutionField.getAttribute('maxlength'); " .
+                      "if (maxLength && parseInt(maxLength) > 100) { " .
+                      "'SUCCESS: Certitudes in answer mode - maxlength=' + maxLength + ' detected, skipping coordinate filling'; " .
+                      "} else { " .
+                      ; No maxlength or small maxlength, proceed with coordinate filling
+                      "var coordString = '" . this.formatCoordinatesForGeochecker() . "'; " .
+                      "solutionField.value = coordString; " .
+                      "solutionField.dispatchEvent(new Event('input', { bubbles: true })); " .
+                      "solutionField.dispatchEvent(new Event('change', { bubbles: true })); " .
+                      "'SUCCESS: Certitudes coordinate field filled with: ' + coordString; " .
+                      "} " .
+                      "} else { " .
+                      "'ERROR: coordinates field not found on certitudes page'; " .
+                      "} " .
+                      "} catch (e) { " .
+                      "'ERROR: ' + e.message; " .
+                      "}"
+        }
 
         this.executeJavaScript(jsCode)
     }

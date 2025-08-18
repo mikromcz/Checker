@@ -16,16 +16,58 @@ class NanocheckerService extends BaseService {
     }
 
     /**
-     * Skips coordinate filling as this service asks questions instead of requiring coordinates
+     * Handles nanochecker service - fills comment if provided, otherwise just loads the question
      * @override
      */
     executeCoordinateFilling() {
-        ; For nanochecker.de - no coordinates to fill, it asks a question instead
-        this.app.updateStatusLeft("Nanochecker.de loaded - This service asks a question instead of coordinates")
-        this.app.updateStatus("Nanochecker: No coordinates to fill - Please answer the question manually and wait for result")
+        ; Check if service name contains a comment (format: "nanochecker|comment")
+        comment := ""
+        if (InStr(this.app.service, "|")) {
+            parts := StrSplit(this.app.service, "|")
+            if (parts.Length >= 2) {
+                comment := Trim(parts[2])
+            }
+        }
 
-        ; No JavaScript to execute since there are no coordinates to fill
-        ; The service just displays a question that needs to be answered manually
+        if (comment != "") {
+            ; Fill the comment in the input field
+            this.app.updateStatusLeft("Nanochecker.de loaded - Filling comment: " . comment)
+            this.app.updateStatus("Nanochecker: Filling comment into input field...")
+
+            ; Escape the comment for safe JavaScript injection
+            escapedComment := StrReplace(comment, "'", "\'")
+            escapedComment := StrReplace(escapedComment, "`"", "\`"")
+            escapedComment := StrReplace(escapedComment, "`n", "\n")
+            escapedComment := StrReplace(escapedComment, "`r", "\r")
+
+            ; JavaScript to fill the comment into the nanochecker input field
+            js := "try { " .
+                  "var inputField = document.querySelector('#nc-content > form > input:nth-child(1)'); " .
+                  "if (inputField) { " .
+                  "inputField.value = '" . escapedComment . "'; " .
+                  "inputField.dispatchEvent(new Event('input', { bubbles: true })); " .
+                  "'SUCCESS: Comment filled'; " .
+                  "} else { " .
+                  "'ERROR: Input field not found'; " .
+                  "} " .
+                  "} catch (e) { " .
+                  "'ERROR: ' + e.message; " .
+                  "}"
+
+            ; Execute the JavaScript to fill the comment
+            result := this.app.webView.executeScript(js)
+            
+            ; Update status based on result
+            if (InStr(result, "SUCCESS")) {
+                this.app.updateStatus("Nanochecker: Comment filled successfully - Please submit and wait for result")
+            } else {
+                this.app.updateStatus("Nanochecker: Failed to fill comment - Please fill manually: " . comment)
+            }
+        } else {
+            ; No comment provided - just load the question
+            this.app.updateStatusLeft("Nanochecker.de loaded - This service asks a question instead of coordinates")
+            this.app.updateStatus("Nanochecker: No comment provided - Please answer the question manually and wait for result")
+        }
 
         ; Mark coordinates as "filled" so result checking can start
         this.app.coordinatesFilled := true

@@ -30,11 +30,48 @@ Checker.ahk geochecker S 50 15 123 W 015 54 123 "https://geochecker.com/?languag
 Checker.ahk challenge N 49 42 660 E 018 23 165 "http://project-gc.com/Challenges/GC5KDPR/11265"
 ```
 
+## Pokročilé funkce
+
+### Automatické vyplňování odpovědí pomocí komentářů
+
+Některé služby podporují automatické vyplňování řešení pomocí komentářů v cache. Stačí přidat do komentáře keše název služby následovaný dvojtečkou a odpovědí:
+
+#### Nanochecker
+```
+nanochecker: my answer
+```
+Automaticky vyplní odpověď "my answer" do input pole na nanochecker.com.
+
+#### Certitudes  
+```
+certitudes: solution word
+```
+Automaticky vyplní odpověď "solution word" do odpovědního pole na certitudes.org (pouze v answer módu).
+
+**Příklady komentářů:**
+```
+nanochecker: red
+certitudes: PRAHA
+nanochecker: 42
+certitudes: geocaching is fun
+```
+
+**Jak to funguje:**
+1. Plugin najde komentář ve formátu `služba: odpověď`
+2. Extrahuje odpověď a automaticky ji vyplní do správného pole
+3. Pole se okamžitě vyplní a je připravené k odeslání
+4. Funguje i s mezerami: `nanochecker: answer` i `nanochecker:answer`
+
+**Poznámky:**
+- Nanochecker: Vyplní odpověď do input pole `#nc-content > form > input:nth-child(1)`
+- Certitudes: Funguje pouze v answer módu (maxlength > 100), jinak zobrazí chybu
+- Bez komentáře se služby chovají normálně (vyplní koordináty nebo detekují mód)
+
 ## Podporované služby (24 celkem)
 
 ### Aktivní služby (16)
 - **challenge** - project-gc.com challenges *(bez vyplňování, pouze kontrola výsledků)*
-- **certitudes** - certitudes.org *(dvojí režim, schránka)*
+- **certitudes** - certitudes.org *(dvojí režim, schránka, podpora komentářů)*
 - **gcappsgeochecker** - gcapps.org/geochecker *(standardní pole)*
 - **gcappsmultichecker** - gcapps.org/multichecker *(standardní pole)*
 - **gccheck** - gccheck.com *(schránka)*
@@ -47,7 +84,7 @@ Checker.ahk challenge N 49 42 660 E 018 23 165 "http://project-gc.com/Challenges
 - **gpscache** - gpscache.com *(standardní pole)*
 - **gzchecker** - infin.ity.me.uk *(speciální pole, schránka)*
 - **hermansky** - geo.hermansky.net *(rozbalovací seznamy)*
-- **nanochecker** - nanochecker.com *(standardní pole)*
+- **nanochecker** - nanochecker.com *(standardní pole, podpora komentářů)*
 - **puzzlechecker** - puzzlechecker.com *(dvojí režim, schránka)*
 
 ### Nefunkční služby (8)
