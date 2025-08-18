@@ -6,7 +6,7 @@
  * @description Service registry and factory for coordinate checker services.
  * Manages registration, initialization, and creation of all supported services.
  * @author mikrom, ClaudeAI
- * @version 4.0.1
+ * @version 4.1.0
  */
 
 ; Alive services
@@ -32,7 +32,6 @@
 #Include Services\Evince.ahk
 #Include Services\Gccc.ahk
 #Include Services\Gccounter.ahk
-#Include Services\Gccounter2.ahk
 #Include Services\Gctoolbox.ahk
 #Include Services\Geowii.ahk
 #Include Services\Komurka.ahk
@@ -71,7 +70,6 @@ class ServiceRegistry {
             ServiceRegistry.registerService("evince", EvincService)
             ServiceRegistry.registerService("gccc", GcccService)
             ServiceRegistry.registerService("gccounter", GccounterService)
-            ServiceRegistry.registerService("gccounter2", Gccounter2Service)
             ServiceRegistry.registerService("gctoolbox", GctoolboxService)
             ServiceRegistry.registerService("geowii", GeowiiService)
             ServiceRegistry.registerService("komurka", KomurkaService)
@@ -105,13 +103,13 @@ class ServiceRegistry {
      */
     static createService(serviceName, checkerApp) {
         ServiceRegistry.initializeServices()
-        
+
         ; Extract base service name (before |) for registry lookup
         baseServiceName := serviceName
         if (InStr(serviceName, "|")) {
             baseServiceName := StrSplit(serviceName, "|")[1]
         }
-        
+
         serviceKey := StrLower(baseServiceName)
 
         if (ServiceRegistry.services.Has(serviceKey)) {

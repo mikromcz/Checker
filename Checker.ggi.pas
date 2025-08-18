@@ -5,7 +5,7 @@
     Www: https://www.geoget.cz/doku.php/user:skript:checker
     Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
     Author: mikrom, http://mikrom.cz
-    Version: 4.0.1
+    Version: 4.1.0
 }
 
 {$include InstallTool.lib.pas}
@@ -64,6 +64,9 @@ begin
     DeleteIniValueIfExists('Checker', 'certfix');
     DeleteIniValueIfExists('Checker', 'proxy');
     DeleteIniValueIfExists('Checker', 'pgclogin');
+
+    {Clean up after upgrade to version 4.1.0}
+    DeleteFileIfExists('lib\Checker\Services\Gccounter2.ahk');
 
     result := ''; // Ran without error
 end;
