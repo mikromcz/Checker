@@ -65,6 +65,9 @@ begin
     DeleteIniValueIfExists('Checker', 'proxy');
     DeleteIniValueIfExists('Checker', 'pgclogin');
 
+    {Clean up after upgrade to version 4.1.0}
+    DeleteFileIfExists('lib\Checker\Services\Gccounter2.ahk');
+
     result := ''; // Ran without error
 end;
 

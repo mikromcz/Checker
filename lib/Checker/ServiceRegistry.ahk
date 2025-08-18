@@ -32,7 +32,6 @@
 #Include Services\Evince.ahk
 #Include Services\Gccc.ahk
 #Include Services\Gccounter.ahk
-#Include Services\Gccounter2.ahk
 #Include Services\Gctoolbox.ahk
 #Include Services\Geowii.ahk
 #Include Services\Komurka.ahk
@@ -71,7 +70,6 @@ class ServiceRegistry {
             ServiceRegistry.registerService("evince", EvincService)
             ServiceRegistry.registerService("gccc", GcccService)
             ServiceRegistry.registerService("gccounter", GccounterService)
-            ServiceRegistry.registerService("gccounter2", Gccounter2Service)
             ServiceRegistry.registerService("gctoolbox", GctoolboxService)
             ServiceRegistry.registerService("geowii", GeowiiService)
             ServiceRegistry.registerService("komurka", KomurkaService)

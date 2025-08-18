@@ -35,8 +35,7 @@ const
     gcappsMultiRegex     = '(?i)(https?:)?\/\/(www\.)?gc-apps\.com\/multichecker\/show\/[^"''<\s]+';
     gcccRegex            = '(?i)(https?:)?\/\/(www\.)?gccc\.eu\/\?page=[^"''<\s]+';
     gccheckRegex         = '(?i)(https?:)?\/\/(www\.)?gccheck\.com\/GC[^"''<\s]+';
-    gccounter2Regex      = '(?i)(https?:)?\/\/(www\.)?gccounter\.(de|com)\/GCchecker\/Check[^"''<\s]+';
-    gccounterRegex       = '(?i)(https?:)?\/\/(www\.)?gccounter\.(de|com)\/gcchecker\.php[^"''<\s]+';
+    gccounterRegex       = '(?i)(https?:)?\/\/(www\.)?gccounter\.(de|com)\/(gcchecker\.php|GCchecker\/Check)[^"''<\s]+';
     gcmRegex             = '(?i)(https?:)?\/\/(www\.)?(gc\.gcm\.cz\/validator|validator\.gcm\.cz)\/index[^"''<\s]+';
     gctoolboxRegex       = '(?i)(https?:)?\/\/(www\.)?gctoolbox\.de\/index\.php\?goto=tools&showtool=coordinatechecker[^"''<\s]+';
     geocacheFiRegex      = '(?i)(https?:)?\/\/(www\.)?geocache\.fi\/checker\/\?[^"''<\s]+';
@@ -313,12 +312,6 @@ begin
     AddToCheckersList(s, 'gccounter');
 end;
 
-procedure DetectGccounter2(const description: String);
-var s: String;
-begin
-    s := RegexExtract(gccounter2Regex, description);
-    AddToCheckersList(s, 'gccounter2');
-end;
 
 procedure DetectGcm(const description: String);
 var s: String;
@@ -450,7 +443,6 @@ begin
     DetectGccc(description);
     DetectGccheck(description);
     DetectGccounter(description);
-    DetectGccounter2(description);
     DetectGcm(description);
     DetectGctoolbox(description);
     DetectGeocacheFi(description);
