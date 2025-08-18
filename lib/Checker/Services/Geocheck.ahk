@@ -3,7 +3,7 @@
  * Handles complex form with separate degree/minute/decimal fields and radio buttons
  * Includes captcha focus and multilingual result detection
  * @author mikrom, ClaudeAI
- * @version 4.0.1
+ * @version 4.1.0
  * @extends BaseService
  */
 class GeocheckService extends BaseService {
@@ -191,7 +191,7 @@ class GeocheckService extends BaseService {
         ; Copy geocheck.org owner's message using specific selector
         this.app.updateStatus("Executing clipboard JavaScript for geocheck.org...")
         jsCode := "try { " .
-                  "var messageElement = document.querySelector('body > table > tbody > tr:nth-child(2) > td > table > tbody > tr > td:nth-child(2) > form > table > tbody > tr:nth-child(7) > td > p'); " .
+                  "var messageElement = document.querySelector('body > table > tbody > tr:nth-child(2) > td > table > tbody > tr > td:nth-child(2) > form > table > tbody > tr:nth-child(6) > td'); " .
                   "if (messageElement) { " .
                   "var messageText = messageElement.textContent || messageElement.innerText; " .
                   "if (messageText) { " .
