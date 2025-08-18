@@ -87,12 +87,11 @@ certitudes: geocaching is fun
 - **nanochecker** - nanochecker.com *(standardní pole, podpora komentářů)*
 - **puzzlechecker** - puzzlechecker.com *(dvojí režim, schránka)*
 
-### Nefunkční služby (8)
+### Nefunkční služby (7)
 - **doxina** - doxina.filipruzicka.net *(mrtvé od 2016-10)*
 - **evince** - evince.locusprime.net *(mrtvé od 2016-03)*
 - **gccc** - gccc.eu *(mrtvé od 2018-05)*
-- **gccounter** - gccounter.de *(mrtvé od 2018-08)*
-- **gccounter2** - gccounter.com *(mrtvé od 2018-08)*
+- **gccounter** - gccounter.de / gccounter.com *(mrtvé od 2018-08)*
 - **gctoolbox** - gctoolbox.de *(mrtvé od 2018-05)*
 - **geowii** - geowii.miga.lv *(mrtvé od 2023-09)*
 - **komurka** - geo.komurka.cz *(mrtvé od 2018-03)*
