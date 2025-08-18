@@ -4,7 +4,7 @@
     Www: https://www.geoget.cz/doku.php/user:skript:checker
     Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
     Author: mikrom, http://mikrom.cz
-    Version: 4.0.1
+    Version: 4.1.0
 
     Uses: CheckerForm, Checker.ahk
 
@@ -27,37 +27,39 @@ uses
 const
     {Define search regex here, good test is here: https://regex101.com/ or http://regexr.com/
     (https?:)?\/\/(www\.)? should handle probably all possible combination of http://, https://, http://www, https://www, //www, //}
-    geocheckRegex        = '(?i)(https?:)?\/\/(www\.)?(geocheck\.org|geotjek\.(dk|eu|org))\/geo_inputchkcoord[^"''<\s]+';
-    geocheckerRegex      = '(?i)(https?:)?\/\/(www\.)?geochecker\.com\/index\.php[^"''<\s]+';
-    evinceRegex          = '(?i)(https?:)?\/\/(www\.)?evince\.locusprime\.(net|invalid)\/cgi-bin\/[^"''<\s]+';
-    hermanskyRegex       = '(?i)(https?:)?\/\/(www\.)?(geo\.hermansky\.net|speedygt\.ic\.cz\/gps)\/index\.php\?co\=checker[^"''<\s]+';
-    komurkaRegex         = '(?i)(https?:)?\/\/(www\.)?geo\.komurka\.cz\/check\.php[^"''<\s]+';
-    gccounterRegex       = '(?i)(https?:)?\/\/(www\.)?gccounter\.(de|com)\/gcchecker\.php[^"''<\s]+';
-    gccounter2Regex      = '(?i)(https?:)?\/\/(www\.)?gccounter\.(de|com)\/GCchecker\/Check[^"''<\s]+';
     certitudesRegex      = '(?i)(https?:)?\/\/(www\.)?certitudes\.org\/certitude(\.php)?\?wp\=[^"''<\s]+';
-    gpscacheRegex        = '(?i)(https?:)?\/\/(www\.)?geochecker\.gps-cache\.de\/check\.aspx\?id\=[^"''<\s]+';
-    gccheckRegex         = '(?i)(https?:)?\/\/(www\.)?gccheck\.com\/GC[^"''<\s]+';
-    challengeRegex       = '(?i)(https?:)?\/\/(www\.)?project-gc\.com\/Challenges\/GC[A-Z0-9]+\/\d+[^"''<\s]+';
     challenge2Regex      = '(?i)(https?:)?\/\/(www\.)?project-gc\.com\/Challenges\/GC[A-Z0-9]+"';
+    challengeRegex       = '(?i)(https?:)?\/\/(www\.)?project-gc\.com\/Challenges\/GC[A-Z0-9]+\/\d+[^"''<\s]+';
+    doxinaRegex          = '(?i)(https?:)?\/\/(www\.)?doxina\.filipruzicka\.net\/cache\.php\?id=[^"''<\s]+';
+    evinceRegex          = '(?i)(https?:)?\/\/(www\.)?evince\.locusprime\.(net|invalid)\/cgi-bin\/[^"''<\s]+';
     gcappsGeoRegex       = '(?i)(https?:)?\/\/(www\.)?gc-apps\.com\/(en|de)?\/?(checker|geochecker\/show)\/[a-z0-9]+\/try';
     gcappsMultiRegex     = '(?i)(https?:)?\/\/(www\.)?gc-apps\.com\/multichecker\/show\/[^"''<\s]+';
-    geocacheFiRegex      = '(?i)(https?:)?\/\/(www\.)?geocache\.fi\/checker\/\?[^"''<\s]+';
-    geowiiRegex          = '(?i)(https?:)?\/\/(www\.)?geowii\.miga\.lv\/wii\/[^"''<\s]+';
-    gcmRegex             = '(?i)(https?:)?\/\/(www\.)?(gc\.gcm\.cz\/validator|validator\.gcm\.cz)\/index[^"''<\s]+';
-    doxinaRegex          = '(?i)(https?:)?\/\/(www\.)?doxina\.filipruzicka\.net\/cache\.php\?id=[^"''<\s]+';
-    geocachePlannerRegex = '(?i)(https?:)?\/\/(www\.)?geocache-planer\.de\/CAL\/checker\.php[^"''<\s]+';
-    gctoolboxRegex       = '(?i)(https?:)?\/\/(www\.)?gctoolbox\.de\/index\.php\?goto=tools&showtool=coordinatechecker[^"''<\s]+';
-    nanocheckerRegex     = '(?i)(https?:)?\/\/(www\.)?nanochecker\.sternli\.ch\/\?g=[^"''<\s]+';
-    gzcheckerRegex       = '(?i)(https?:)?\/\/infin\.ity\.me\.uk\/GZ\.php\?MC=[^"''<\s]+';
-    puzzleCheckerRegex   = '(?i)(https?:)?\/\/(www\.)?puzzle-checker\.com\/?\?wp=[^"''<\s]+';
-    gocachingRegex       = '(?i)(https?:)?\/\/(www\.)?gocaching\.de\/cochecker[^"''<\s]+';
     gcccRegex            = '(?i)(https?:)?\/\/(www\.)?gccc\.eu\/\?page=[^"''<\s]+';
+    gccheckRegex         = '(?i)(https?:)?\/\/(www\.)?gccheck\.com\/GC[^"''<\s]+';
+    gccounter2Regex      = '(?i)(https?:)?\/\/(www\.)?gccounter\.(de|com)\/GCchecker\/Check[^"''<\s]+';
+    gccounterRegex       = '(?i)(https?:)?\/\/(www\.)?gccounter\.(de|com)\/gcchecker\.php[^"''<\s]+';
+    gcmRegex             = '(?i)(https?:)?\/\/(www\.)?(gc\.gcm\.cz\/validator|validator\.gcm\.cz)\/index[^"''<\s]+';
+    gctoolboxRegex       = '(?i)(https?:)?\/\/(www\.)?gctoolbox\.de\/index\.php\?goto=tools&showtool=coordinatechecker[^"''<\s]+';
+    geocacheFiRegex      = '(?i)(https?:)?\/\/(www\.)?geocache\.fi\/checker\/\?[^"''<\s]+';
+    geocachePlannerRegex = '(?i)(https?:)?\/\/(www\.)?geocache-planer\.de\/CAL\/checker\.php[^"''<\s]+';
+    geocheckRegex        = '(?i)(https?:)?\/\/(www\.)?(geocheck\.org|geotjek\.(dk|eu|org))\/geo_inputchkcoord[^"''<\s]+';
+    geocheckerRegex      = '(?i)(https?:)?\/\/(www\.)?geochecker\.com\/index\.php[^"''<\s]+';
+    geowiiRegex          = '(?i)(https?:)?\/\/(www\.)?geowii\.miga\.lv\/wii\/[^"''<\s]+';
+    gocachingRegex       = '(?i)(https?:)?\/\/(www\.)?gocaching\.de\/cochecker[^"''<\s]+';
+    gpscacheRegex        = '(?i)(https?:)?\/\/(www\.)?geochecker\.gps-cache\.de\/check\.aspx\?id\=[^"''<\s]+';
+    gzcheckerRegex       = '(?i)(https?:)?\/\/infin\.ity\.me\.uk\/GZ\.php\?MC=[^"''<\s]+';
+    hermanskyRegex       = '(?i)(https?:)?\/\/(www\.)?(geo\.hermansky\.net|speedygt\.ic\.cz\/gps)\/index\.php\?co\=checker[^"''<\s]+';
+    komurkaRegex         = '(?i)(https?:)?\/\/(www\.)?geo\.komurka\.cz\/check\.php[^"''<\s]+';
+    nanocheckerRegex     = '(?i)(https?:)?\/\/(www\.)?nanochecker\.sternli\.ch\/\?g=[^"''<\s]+';
+    puzzleCheckerRegex   = '(?i)(https?:)?\/\/(www\.)?puzzle-checker\.com\/?\?wp=[^"''<\s]+';
 
 var
     answer, history: Boolean;
     coords: String;
     serviceName, serviceUrl: TStringList;
     serviceNum: Integer;
+    service, url: String;
+    correct, incorrect: String;
 
 {Update waypoint comment. Add custom string (correct|incorrect from ini) at the begining of the waypoint comment. String will be in curly brackets!}
 procedure UpdateWaypointComment(ans: String);
@@ -131,14 +133,14 @@ begin
     {$ifdef DEBUG_HELPER} LDHp('CorrectCoords'); {$endif}
     {$ifdef DEBUG_HELPER} LDH('in:  ' + c); {$endif}
 
-    {                        N            50         30        123        E            015        29        456                 N    50 30 123 E 015 29 456}
+    {                        N      50     30     123    E      015    29    456        N 50 30 123 E 015 29 456}
     c      := RegexReplace('(N|S)\s(\d+)\s(\d+)\s(\d+)\s(E|W)\s(\d+)\s(\d)\s(\d+)', c, '$1 $2 $3 $4 $5 $6 0$7 $8', True); // For lat
     result := RegexReplace('(N|S)\s(\d+)\s(\d)\s(\d+)\s(E|W)\s(\d+)\s(\d+)\s(\d+)', c, '$1 $2 0$3 $4 $5 $6 $7 $8', True); // For lon
 
     {$ifdef DEBUG_HELPER} LDH('out: ' + result); {$endif}
 end;
 
-{Function to work with GcApi, written by gord.}
+{Function to work with GcApi, written by gord}
 function GcVerify: Integer;
 var s, apiuri, apidata, apiresponse: String;
     lat, lon: Extended;
@@ -182,7 +184,7 @@ begin
         406: s := _('Error: Basic member cannot verify PMO geocache!');             // "BM nemuze overit souradnice PMO kese"
         408: s := _('Error: Cannot verify an unpublished or archived geocache!');   // "Nelze overit nepublikovanou nebo archivovanou kesku"
         429: s := _('Error: Limit exceeded, only 10 in 10 minutes allowed!');       // "Prekrocen limit poctu kontrol (10/10 minut)"
-        else s := _('Result: ') + IntToStr(Result) + CRLF + apiresponse;            // "Návratová hodnota"
+        else s := _('Result: ') + IntToStr(Result) + CRLF + apiresponse;            // "Nï¿½vratovï¿½ hodnota"
     end;
     if (s <> '') then ShowMessage(s);
 end;
@@ -239,12 +241,507 @@ begin
     {$ifdef DEBUG_HELPER} LDH('Out: ' + Result); {$endif}
 end;
 
-{Main function. Mainly just sifting by service and call AHK at the end}
+{Service detection procedures - extracted from main Checker procedure}
+procedure DetectCertitudes(const description: String);
+var s, t: String;
+begin
+    s := RegexExtract(certitudesRegex, description);
+    if (s <> '') then begin
+        t := RegExSubstitute('certitudes:(.+)', GC.Comment, '$1');
+        if (t <> '') then
+            serviceName.Add('certitudes|' + t)
+        else
+            serviceName.Add('certitudes');
+        serviceUrl.Add(s);
+        Inc(serviceNum);
+        {$ifdef DEBUG_HELPER} LDH('Service: certitudes'); {$endif}
+    end;
+end;
+
+procedure DetectChallenge(const description: String);
+var s: String;
+begin
+    s := RegexExtract(challengeRegex, description);
+    if (s <> '') then begin
+        serviceName.Add('challenge');
+        serviceUrl.Add(s);
+        Inc(serviceNum);
+        {$ifdef DEBUG_HELPER} LDH('Service: challenge'); {$endif}
+    end;
+end;
+
+procedure DetectChallenge2(const description: String);
+var s: String;
+begin
+    s := RegexExtract(challenge2Regex, description);
+    if (s <> '') then begin
+        serviceName.Add('challenge');
+        s := SeparateLeft(s, '"');
+        serviceUrl.Add(s);
+        Inc(serviceNum);
+        {$ifdef DEBUG_HELPER} LDH('Service: challenge(2)'); {$endif}
+    end;
+end;
+
+procedure DetectDoxina(const description: String);
+var s: String;
+begin
+    s := RegexExtract(doxinaRegex, description);
+    AddToCheckersList(s, 'doxina');
+end;
+
+procedure DetectEvince(const description: String);
+var s: String;
+begin
+    s := RegexExtract(evinceRegex, description);
+    AddToCheckersList(s, 'evince');
+end;
+
+procedure DetectGcappsGeo(const description: String);
+var s: String;
+begin
+    s := RegexExtract(gcappsGeoRegex, description);
+    AddToCheckersList(s, 'gcappsGeochecker');
+end;
+
+procedure DetectGcappsMulti(const description: String);
+var s: String;
+begin
+    s := RegexExtract(gcappsMultiRegex, description);
+    AddToCheckersList(s, 'gcappsMultichecker');
+end;
+
+procedure DetectGccc(const description: String);
+var s: String;
+begin
+    s := RegexExtract(gcccRegex, description);
+    AddToCheckersList(s, 'gccc');
+end;
+
+procedure DetectGccheck(const description: String);
+var s: String;
+begin
+    s := RegexExtract(gccheckRegex, description);
+    AddToCheckersList(s, 'gccheck');
+end;
+
+procedure DetectGccounter(const description: String);
+var s: String;
+begin
+    s := RegexExtract(gccounterRegex, description);
+    AddToCheckersList(s, 'gccounter');
+end;
+
+procedure DetectGccounter2(const description: String);
+var s: String;
+begin
+    s := RegexExtract(gccounter2Regex, description);
+    AddToCheckersList(s, 'gccounter2');
+end;
+
+procedure DetectGcm(const description: String);
+var s: String;
+begin
+    s := RegexExtract(gcmRegex, description);
+    AddToCheckersList(s, 'gcm');
+end;
+
+procedure DetectGctoolbox(const description: String);
+var s: String;
+begin
+    s := RegexExtract(gctoolboxRegex, description);
+    AddToCheckersList(s, 'gctoolbox');
+end;
+
+procedure DetectGeocacheFi(const description: String);
+var s: String;
+begin
+    s := RegexExtract(geocacheFiRegex, description);
+    AddToCheckersList(s, 'geocachefi');
+end;
+
+procedure DetectGeocachePlanner(const description: String);
+var s: String;
+begin
+    s := RegexExtract(geocachePlannerRegex, description);
+    AddToCheckersList(s, 'geocacheplanner');
+end;
+
+procedure DetectGeocachingCom();
+begin
+    if (Pos('hqsolutionchecker-yes', GC.TagValues('attribute')) > 0) then begin
+        serviceName.Add('geocaching.com');
+        serviceUrl.Add('#');
+        Inc(serviceNum);
+    end;
+end;
+
+procedure DetectGeocheck(const description: String);
+var s: String;
+begin
+    s := RegexExtract(geocheckRegex, description);
+    AddToCheckersList(s, 'geocheck');
+end;
+
+procedure DetectGeochecker(const description: String);
+var s: String;
+begin
+    s := RegexExtract(geocheckerRegex, description);
+    AddToCheckersList(s, 'geochecker');
+end;
+
+procedure DetectGeowii(const description: String);
+var s: String;
+begin
+    s := RegexExtract(geowiiRegex, description);
+    AddToCheckersList(s, 'geowii');
+end;
+
+procedure DetectGocaching(const description: String);
+var s: String;
+begin
+    s := RegexExtract(gocachingRegex, description);
+    AddToCheckersList(s, 'gocaching');
+end;
+
+procedure DetectGpscache(const description: String);
+var s: String;
+begin
+    s := RegexExtract(gpscacheRegex, description);
+    AddToCheckersList(s, 'gpscache');
+end;
+
+procedure DetectGzchecker(const description: String);
+var s: String;
+begin
+    s := RegexExtract(gzcheckerRegex, description);
+    AddToCheckersList(s, 'gzchecker');
+end;
+
+procedure DetectHermansky(const description: String);
+var s: String;
+begin
+    s := RegexExtract(hermanskyRegex, description);
+    AddToCheckersList(s, 'hermansky');
+end;
+
+procedure DetectKomurka(const description: String);
+var s: String;
+begin
+    s := RegexExtract(komurkaRegex, description);
+    AddToCheckersList(s, 'komurka');
+end;
+
+procedure DetectNanochecker(const description: String);
+var s, t: String;
+begin
+    s := RegExSubstitute(nanocheckerRegex, description, '$0#');
+    if (s <> '') then begin
+        t := RegExSubstitute('nanochecker:(.+)', GC.Comment, '$1');
+        if (t <> '') then
+            serviceName.Add('nanochecker|' + t)
+        else
+            serviceName.Add('nanochecker');
+        serviceUrl.Add(s);
+        Inc(serviceNum);
+        {$ifdef DEBUG_HELPER} LDH('Service: nanochecker'); {$endif}
+    end;
+end;
+
+procedure DetectPuzzleChecker(const description: String);
+var s: String;
+begin
+    s := RegexExtract(puzzleCheckerRegex, description);
+    AddToCheckersList(s, 'puzzlechecker');
+end;
+
+{Detect all supported services in the cache description}
+procedure DetectAllServices(const description: String);
+begin
+    {$ifdef DEBUG_HELPER} LDHp('DetectAllServices'); {$endif}
+
+    DetectCertitudes(description);
+    DetectChallenge(description);
+    DetectChallenge2(description);
+    DetectDoxina(description);
+    DetectEvince(description);
+    DetectGcappsGeo(description);
+    DetectGcappsMulti(description);
+    DetectGccc(description);
+    DetectGccheck(description);
+    DetectGccounter(description);
+    DetectGccounter2(description);
+    DetectGcm(description);
+    DetectGctoolbox(description);
+    DetectGeocacheFi(description);
+    DetectGeocachePlanner(description);
+    DetectGeocachingCom();
+    DetectGeocheck(description);
+    DetectGeochecker(description);
+    DetectGeowii(description);
+    DetectGocaching(description);
+    DetectGpscache(description);
+    DetectGzchecker(description);
+    DetectHermansky(description);
+    DetectKomurka(description);
+    DetectNanochecker(description);
+    DetectPuzzleChecker(description);
+end;
+
+{Result handling procedures - extracted from main Checker procedure}
+procedure CallExternalScripts();
+var
+    ini: TIniFile;
+    callggp, callgge, ggeoutput: String;
+begin
+    ini := TIniFile.Create(GEOGET_SCRIPTDIR+'\Checker\Checker.ini');
+    try
+        callggp   := ini.ReadString('Checker', 'callggp', '');
+        callgge   := ini.ReadString('Checker', 'callgge', '');
+        ggeoutput := ini.ReadString('Checker', 'ggeoutput', '');
+    finally
+        ini.Free;
+    end;
+
+    if (callggp <> '') then
+        GeoCallGGP(GEOGET_SCRIPTDIR + callggp);
+    if (callgge <> '') then
+        GeoExport(GEOGET_SCRIPTDIR + callgge, ggeoutput);
+end;
+
+procedure HandleNeutralResult();
+begin
+    {$ifdef DEBUG_HELPER} LDH('OK, neither correct or incorrect'); {$endif}
+    CallExternalScripts();
+end;
+
+procedure HandleCorrectResult(const coordinates: String);
+var
+    ini: TIniFile;
+    localCorrect: String;
+begin
+    {$ifdef DEBUG_HELPER} LDH('Correct solution! :)'); {$endif}
+
+    ini := TIniFile.Create(GEOGET_SCRIPTDIR+'\Checker\Checker.ini');
+    try
+        localCorrect := ini.ReadString('Checker', 'correct', 'CORRECT');
+    finally
+        ini.Free;
+    end;
+
+    if (localCorrect <> '') then begin
+        UpdateWaypointComment(localCorrect);
+        CallExternalScripts();
+    end;
+    if (history) then
+        LogHistory(coordinates, 'Correct');
+end;
+
+procedure HandleIncorrectResult(const coordinates: String);
+var
+    ini: TIniFile;
+    localIncorrect: String;
+begin
+    {$ifdef DEBUG_HELPER} LDH('Incorrect solution! :('); {$endif}
+
+    ini := TIniFile.Create(GEOGET_SCRIPTDIR+'\Checker\Checker.ini');
+    try
+        localIncorrect := ini.ReadString('Checker', 'incorrect', 'INCORRECT');
+    finally
+        ini.Free;
+    end;
+
+    if (localIncorrect <> '') then begin
+        UpdateWaypointComment(localIncorrect);
+        CallExternalScripts();
+    end;
+    if (history) then
+        LogHistory(coordinates, 'Incorrect');
+end;
+
+procedure HandleDeadService();
+begin
+    {$ifdef DEBUG_HELPER} LDHw('Dead service.'); {$endif}
+    ShowMessage(_('Dead service.'));
+end;
+
+procedure HandleWrongParameters();
+begin
+    {$ifdef DEBUG_HELPER} LDHe('Wrong parameters!'); {$endif}
+    ShowMessage(_('Wrong parameters!'));
+end;
+
+procedure HandleCheckerResult(exitCode: Integer; const coordinates: String);
+begin
+    case exitCode of
+        0: HandleNeutralResult();
+        1: HandleCorrectResult(coordinates);
+        2: HandleIncorrectResult(coordinates);
+        3: HandleDeadService();
+        4: HandleWrongParameters();
+    end;
+end;
+
+{Service selection procedures}
+function ShowServiceSelectionDialog(): Boolean;
+var i: Integer;
+begin
+    Result := False;
+    CheckerForm_ListBox.Items.Assign(serviceName);
+    CheckerForm_ListBox.Selected[0] := true;
+
+    if (CheckerForm.ShowModal <> 1) then
+        Exit
+    else begin
+        if (CheckerForm_ListBox.ItemIndex <> -1) then begin
+            for i := 0 to CheckerForm_ListBox.Items.Count - 1 do begin
+                if (CheckerForm_ListBox.Selected[i]) then begin
+                    service := CheckerForm_ListBox.Items[CheckerForm_ListBox.ItemIndex];
+                    url := TrimUrl(serviceUrl[i]);
+                    {$ifdef DEBUG_HELPER} LDH(CheckerForm_ListBox.Items[CheckerForm_ListBox.ItemIndex] + CRLF + serviceUrl[i]); {$endif}
+                    Result := True;
+                end;
+            end;
+        end
+        else begin
+            ShowMessage(_('Error: You didn''t select anything!'));
+            {$ifdef DEBUG_HELPER} LDHe('Error: You didn''t select anything!'); {$endif}
+            GeoAbort;
+        end;
+    end;
+    CheckerForm.Close;
+end;
+
+function SelectService(): Boolean;
+begin
+    Result := False;
+    if (serviceNum > 1) then
+        Result := ShowServiceSelectionDialog()
+    else begin
+        service := serviceName[0];
+        url := TrimUrl(serviceUrl[0]);
+        Result := True;
+    end;
+end;
+
+{Helper functions for main procedure}
+function InitializeChecker(runFrom: String): Boolean;
+var n: Integer;
+begin
+    Result := False;
+
+    {Check if this script runs from GGP or GGC script}
+    case runFrom of
+        'ggp':
+            if (GC.IsSelected) then
+                coords := FormatCoordNum(GC.CorrectedLatNum, GC.CorrectedLonNum)
+            else begin
+                for n := 0 to GC.Waypoints.Count - 1 do begin
+                    if (GC.Waypoints[n].IsSelected) then
+                        coords := FormatCoordNum(GC.Waypoints[n].LatNum, GC.Waypoints[n].LonNum);
+                end;
+            end;
+        'ggc':
+            coords := FormatCoordNum(GC.CorrectedLatNum, GC.CorrectedLonNum);
+    end;
+
+    Result := True;
+end;
+
+function ValidateCoordinates(): Boolean;
+begin
+    Result := (coords <> '???');
+    if not Result then begin
+        {$ifdef DEBUG_HELPER} LDHe('Wrong coordinates. Maybe they are zero'); {$endif}
+        ShowMessage(_('Wrong coordinates. Maybe they are zero'));
+    end;
+end;
+
+function HasServicesFound(): Boolean;
+var
+    ini: TIniFile;
+    writenotfound: Boolean;
+    notfound, callggp, callgge, ggeoutput: String;
+begin
+    Result := (serviceNum > 0);
+    if not Result then begin
+        ShowMessage(_('Error: No coordinate checker URL found!'));
+        {$ifdef DEBUG_HELPER} LDHe('Error: No coordinate checker URL found!'); {$endif}
+
+        ini := TIniFile.Create(GEOGET_SCRIPTDIR+'\Checker\Checker.ini');
+        try
+            writenotfound := ini.ReadBool('Checker', 'writenotfound', False);
+            notfound      := ini.ReadString('Checker', 'notfound', 'NOTFOUND');
+            callggp       := ini.ReadString('Checker', 'callggp', '');
+            callgge       := ini.ReadString('Checker', 'callgge', '');
+            ggeoutput     := ini.ReadString('Checker', 'ggeoutput', '');
+        finally
+            ini.Free;
+        end;
+
+        if (writenotfound) then
+            UpdateWaypointComment(notfound);
+        if (callggp <> '') then
+            GeoCallGGP(GEOGET_SCRIPTDIR + callggp);
+        if (callgge <> '') then
+            GeoExport(GEOGET_SCRIPTDIR + callgge, ggeoutput);
+        GeoAbort;
+    end;
+end;
+
+procedure HandleGeocachingComService(const coordinates: String);
+var
+    i: Integer;
+    ini: TIniFile;
+    localCorrect, localIncorrect: String;
+begin
+    {$ifdef DEBUG_HELPER} LDH('Service: geocaching.com'); {$endif}
+    {$ifdef DEBUG_HELPER} LDH('Attributes: ' + GC.TagValues('attribute')); {$endif}
+
+    ini := TIniFile.Create(GEOGET_SCRIPTDIR+'\Checker\Checker.ini');
+    try
+        localCorrect   := ini.ReadString('Checker', 'correct', 'CORRECT');
+        localIncorrect := ini.ReadString('Checker', 'incorrect', 'INCORRECT');
+    finally
+        ini.Free;
+    end;
+
+    i := GcVerify();
+    case i of
+        204: begin
+            if (localCorrect <> '') then UpdateWaypointComment(localCorrect);
+            if (history) then LogHistory(coordinates, 'Correct');
+            i := -1;
+        end;
+        400: begin
+            if (localIncorrect <> '') then UpdateWaypointComment(localIncorrect);
+            if (history) then LogHistory(coordinates, 'Inorrect');
+            i := -1;
+        end;
+        401, 403, 404, 405, 406, 407, 408, 429: i := 0;
+        else ShowMessage(_('Error: Unexpected return value: ') + IntToStr(i));
+    end;
+    if (i = -1) then GeoAbort();
+end;
+
+procedure HandleExternalService(const coordinates: String);
+var s: String;
+begin
+    {$ifdef DEBUG_HELPER} LDHp('Call Checker.ahk'); {$endif}
+
+    s := '"' + GEOGET_SCRIPTDIR + '\Checker\AutoHotkey64.exe" "' + GEOGET_SCRIPTDIR + '\Checker\Checker.ahk" ' + RemoveSerialNum(service) + ' ' + coordinates + ' "' + url + '"';
+    {$ifdef DEBUG_HELPER} LDH('Command: ' + s); {$endif}
+
+    if (answer) then
+        HandleCheckerResult(RunExec(s), coordinates)
+    else
+        RunExecNoWait(s);
+end;
+
+{Main function - simplified and refactored}
 procedure Checker(runFrom: String);
 var
-    url, s, t, coordinates, service, description, correct, incorrect, notfound, callggp, callgge, ggeoutput: String;
-    writenotfound: Boolean;
-    i, n: Integer;
+    description, coordinates: String;
     ini: TIniFile;
 begin
     {$ifdef DEBUG_HELPER} LDHInit(true); {$endif}
@@ -255,15 +752,10 @@ begin
     {Read configuration from INI}
     ini := TIniFile.Create(GEOGET_SCRIPTDIR+'\Checker\Checker.ini');
     try
-        answer        := ini.ReadBool('Checker', 'answer', False);
-        correct       := ini.ReadString('Checker', 'correct', 'CORRECT');
-        incorrect     := ini.ReadString('Checker', 'incorrect', 'INCORRECT');
-        history       := ini.ReadBool('Checker', 'history', False);
-        writenotfound := ini.ReadBool('Checker', 'writenotfound', False);
-        notfound      := ini.ReadString('Checker', 'notfound', ' NOTFOUND');
-        callggp       := ini.ReadString('Checker', 'callggp', '');
-        callgge       := ini.ReadString('Checker', 'callgge', '');
-        ggeoutput     := ini.ReadString('Checker', 'ggeoutput', '');
+        answer    := ini.ReadBool('Checker', 'answer', False);
+        correct   := ini.ReadString('Checker', 'correct', 'CORRECT');
+        incorrect := ini.ReadString('Checker', 'incorrect', 'INCORRECT');
+        history   := ini.ReadBool('Checker', 'history', False);
     finally
         ini.Free;
     end;
@@ -271,428 +763,37 @@ begin
     {This cache GC3PVWQ have url in short description, so we join short and long together}
     description := GC.ShortDescription + GC.LongDescription + GC.Hint;
 
-    {Check if this script runs from GGP or GGC script}
-    case runFrom of
-        'ggp':
-            if (GC.IsSelected) then                                                  // for cache
-                coords := FormatCoordNum(GC.CorrectedLatNum, GC.CorrectedLonNum)
-            else begin                                                               // for waypoint
-                for n := 0 to GC.Waypoints.Count - 1 do begin
-                    if (GC.Waypoints[n].IsSelected) then
-                        coords := FormatCoordNum(GC.Waypoints[n].LatNum, GC.Waypoints[n].LonNum);
-                end;
-            end;
-        'ggc':
-            coords := FormatCoordNum(GC.CorrectedLatNum, GC.CorrectedLonNum);
-    end;
+    {Initialize coordinates based on run source}
+    if not InitializeChecker(runFrom) then Exit;
 
-    {Just for sure if coordinates are not zero}
-    if (coords <> '???') then begin
+    {Validate coordinates}
+    if not ValidateCoordinates() then Exit;
 
-        serviceName := TStringList.Create;
-        serviceUrl := TStringList.Create;
+    serviceName := TStringList.Create;
+    serviceUrl := TStringList.Create;
 
-        try
-            {Try to find type of the checking service - geocheck.org, geochecker.com, evince.locusprime.net, etc..}
-            {
-            GEOCHECK
-            url: geocheck.org/geo_inputchkcoord.php?gid=61241961c72ab1d-b813-47da-bf03-07c67bb81ac9
-            captcha: yes
-            }
-            s := RegexExtract(geocheckRegex, description);
-            AddToCheckersList(s, 'geocheck');
+    try
+        {Detect all supported checker services}
+        DetectAllServices(description);
 
-            {
-            GEOCHECKER
-            url: http://www.geochecker.com/index.php?code=e380cf72d82fa02a81bf71505e8c535c&action=check&wp=4743324457584d&name=536b6c656e696b202d20477265656e20486f757365
-            captcha: no
-            }
-            s := RegexExtract(geocheckerRegex, description);
-            AddToCheckersList(s, 'geochecker');
+        {Check if any services were found}
+        if not HasServicesFound() then Exit;
 
-            {
-            EVINCE - DEAD
-            url: http://evince.locusprime.net/cgi-bin/index.cgi?q=d0ZNzQeHKReGKzr
-            captcha: yes
-            }
-            s := RegexExtract(evinceRegex, description);
-            AddToCheckersList(s, 'evince');
+        {Prepare coordinates format}
+        coordinates := RegexReplace('(N|S)(\d+)°(\d+)\.(\d+)''\s(E|W)(\d+)°(\d+)\.(\d+)''', coords, '$1 $2 $3 $4 $5 $6 $7 $8', true);
+        coordinates := CorrectCoords(coordinates);
 
-            {
-            HERMANSKY
-            url: http://geo.hermansky.net/index.php?co=checker&code=2542e4245f80d4f7783e41ed7503fba6b3c8cc3188ff05
-            captcha: no
-            }
-            s := RegexExtract(hermanskyRegex, description);
-            //s := ReplaceString(s, 'speedygt.ic.cz/gps', 'geo.hermansky.net'); // Done in Checker.ahk, 20250806
-            AddToCheckersList(s, 'hermansky');
+        {Let user select service if multiple found}
+        if not SelectService() then Exit;
 
-            {
-            KOMURKA - DEAD
-            url: http://geo.komurka.cz/check.php?cache=GC2JCEQ
-            captcha: yes
-            }
-            s := RegexExtract(komurkaRegex, description);
-            AddToCheckersList(s, 'komurka');
+        {Handle the selected service}
+        if (service = 'geocaching.com') then
+            HandleGeocachingComService(coordinates)
+        else
+            HandleExternalService(coordinates);
 
-            {
-            GCCOUNTER - DEAD
-            url: http://gccounter.com/gcchecker.php?site=gcchecker_check&id=2076
-            captcha: no
-            }
-            s := RegexExtract(gccounterRegex, description);
-            AddToCheckersList(s, 'gccounter');
-
-            {
-            GCCOUNTER2 - DEAD
-            url: http://gccounter.de/GCchecker/Check?cacheID=3545
-            captcha: no
-            }
-            s := RegexExtract(gccounter2Regex, description);
-            AddToCheckersList(s, 'gccounter2');
-
-            {
-            CERTITUDES
-            url: http://www.certitudes.org/certitude?wp=GC2QFYT
-            captcha: no
-            }
-            s := RegexExtract(certitudesRegex, description);
-            if (s <> '') then begin
-
-                // look for note "certitudes: xxx"
-                t := RegExSubstitute('certitudes:(.+)', GC.Comment, '$1');
-                if (t <> '') then
-                    serviceName.Add('certitudes|' + t)
-                else
-                    serviceName.Add('certitudes');
-
-                serviceUrl.Add(s);
-                Inc(serviceNum);
-                {$ifdef DEBUG_HELPER} LDH('Service: certitudes'); {$endif}
-            end;
-
-            {
-            GPS-CACHE
-            url: http://geochecker.gps-cache.de/check.aspx?id=7c52d196-b9d2-4b23-ad99-5d6e1bece187
-            captcha: yes
-            }
-            s := RegexExtract(gpscacheRegex, description);
-            AddToCheckersList(s, 'gpscache');
-
-            {
-            GCCHECK
-            url: http://gccheck.com/GC5EJH7
-            captcha: yes
-            }
-            s := RegexExtract(gccheckRegex, description);
-            AddToCheckersList(s, 'gccheck');
-
-            {
-            CHALLENGE
-            url: https://project-gc.com/Challenges/GC5KDPR/11265 - musi se kliknout na submit a mit IE10+
-            captcha: no
-            (url vsech pro CZ: https://project-gc.com/Tools/Challenges?ccId=85&amp;ccTagId=378&amp;ccCountry=Czech+Republic)
-            }
-            s := RegexExtract(challengeRegex, description);
-            if (s <> '') then begin
-                //serviceName.Add('"challenge|' + GEOGET_OWNER +'"'); //EncodeUrlElement(GEOGET_OWNER);
-                serviceName.Add('challenge');
-                serviceUrl.Add(s);
-                Inc(serviceNum);
-                {$ifdef DEBUG_HELPER} LDH('Service: challenge'); {$endif}
-            end;
-
-            {
-            CHALLENGE2
-            url: https://project-gc.com/Challenges/GC27Z84 - staèí poslat s parametry (https://project-gc.com/Challenges/GC27Z84?profile_name=mikrom&submit=Filter)
-            captcha: no
-            (url vsech pro CZ: https://project-gc.com/Tools/Challenges?ccId=85&amp;ccTagId=378&amp;ccCountry=Czech+Republic)
-            }
-            s := RegexExtract(challenge2Regex, description);
-            if (s <> '') then begin
-                //serviceName.Add('"challenge2|' + GEOGET_OWNER +'"'); //EncodeUrlElement(GEOGET_OWNER);
-                serviceName.Add('challenge');
-                s := SeparateLeft(s, '"'); // Regex returns URL ending with "
-                serviceUrl.Add(s);
-                Inc(serviceNum);
-                {$ifdef DEBUG_HELPER} LDH('Service: challenge(2)'); {$endif}
-            end;
-
-            {
-            GC-APPS GEOCHECKER
-            url: http://www.gc-apps.com/geochecker/show/b1a0a77fa830ddbb6aa4ed4c69057e79
-            url: http://www.gc-apps.com/index.php?option=com_geochecker&view=item&id=b1a0a77fa830ddbb6aa4ed4c69057e79
-            captcha: yes
-            }
-            s := RegexExtract(gcappsGeoRegex, description);
-            AddToCheckersList(s, 'gcappsGeochecker');
-
-            {
-            GC-APPS MULTICHECKER
-            url: http://beta.gc-apps.com/checker/try/6e520532c3aa8c150ab90a82bf68d874
-            captcha: ?
-            }
-            s := RegexExtract(gcappsMultiRegex, description);
-            AddToCheckersList(s, 'gcappsMultichecker');
-
-            {
-            GEOCACHE.FI
-            url: http://www.geocache.fi/checker/?uid=M9KAR6VJJG5VCDCSZQCR&act=check&wp=GC4CEFD
-            captcha: yes
-            }
-            s := RegexExtract(geocacheFiRegex, description);
-            AddToCheckersList(s, 'geocachefi');
-
-            {
-            GEOWII.MIGA.LV
-            url: http://geowii.miga.lv/wii/GC55D0E
-            captcha: -
-            }
-            s := RegexExtract(geowiiRegex, description);
-            AddToCheckersList(s, 'geowii');
-
-            {
-            GC.GCM.CZ
-            url: https://gc.gcm.cz/validator/index.php?uuid=7f401a15-231e-44c8-a6e6-bf8b9c69a624
-            captcha: yes
-            }
-            s := RegexExtract(gcmRegex, description);
-            //s := ReplaceString(s, 'gc.gcm.cz/validator', 'validator.gcm.cz'); // Checker.ahk does the conversion, 20250806
-            AddToCheckersList(s, 'gcm');
-
-            {
-            DOXINA - DEAD
-            url: http://doxina.filipruzicka.net/cache.php?id=480
-            captcha: ?
-            }
-            s := RegexExtract(doxinaRegex, description);
-            AddToCheckersList(s, 'doxina');
-
-            {
-            GEOCACHE-PLANNER
-            url: https://geocache-planer.de/CAL/checker.php?CALID=GJHTSLO&KEY=0JZRSAG
-            captcha: NO
-            }
-            s := RegexExtract(geocachePlannerRegex, description);
-            AddToCheckersList(s, 'geocacheplanner');
-
-            {
-            GCTOOLBOX
-            url: http://www.gctoolbox.de/index.php?goto=tools&showtool=coordinatechecker&solve=true&id=2062&lang=ger
-            captcha: NO
-            }
-            s := RegexExtract(gctoolboxRegex, description);
-            //s := ReplaceString(s, 'lang=ger', 'lang=eng'); // Force ENGLISH
-            AddToCheckersList(s, 'gctoolbox');
-
-            {
-            NANOCHECKER
-            url: https://nanochecker.sternli.ch/?g=GC662FD
-            captcha: YES
-            }
-            s := RegExSubstitute(nanocheckerRegex, description, '$0#');
-            if (s <> '') then begin
-
-                // look for note "nanochecker: xxx"
-                t := RegExSubstitute('nanochecker:(.+)', GC.Comment, '$1');
-                if (t <> '') then
-                    serviceName.Add('nanochecker|' + t)
-                else
-                    serviceName.Add('nanochecker');
-
-                serviceUrl.Add(s);
-                Inc(serviceNum);
-                {$ifdef DEBUG_HELPER} LDH('Service: nanochecker'); {$endif}
-            end;
-
-            {
-            GZ CHECKER
-            url: http://infin.ity.me.uk/GZ.php?MC=RR074
-            captcha: NO
-            }
-            s := RegexExtract(gzcheckerRegex, description);
-            AddToCheckersList(s, 'gzchecker');
-
-            {
-            PUZZLE CHECKER
-            url: https://puzzle-checker.com/?wp=GC80HFF
-            captcha: YES
-            }
-            s := RegexExtract(puzzleCheckerRegex, description);
-            AddToCheckersList(s, 'puzzlechecker');
-
-            {
-            GOCACHING
-            url: http://www.gocaching.de/cochecker.php?check=406
-            captcha: YES
-            }
-            s := RegexExtract(gocachingRegex, description);
-            AddToCheckersList(s, 'gocaching');
-
-            {
-            GCCC
-            url: http://gccc.eu/?page=GC6FBFA
-            captcha: NO
-            }
-            s := RegexExtract(gcccRegex, description);
-            AddToCheckersList(s, 'gccc');
-
-            {
-            GEOCACHING.COM
-            geocaching.com coordinate verify via GC.Api by Gord
-            }
-            if (serviceNum = 0) then begin
-              serviceName.Add('gccom');
-              i := GcVerify();
-              case i of
-                204: begin      // Souradnice jsou spravne
-                       if (correct <> '') then UpdateWaypointComment(correct);
-                       if (history) then LogHistory(coordinates, 'Correct');
-                       i := -1;
-                     end;
-                400: begin      // Souradnice jsou chybne
-                       if (incorrect <> '') then UpdateWaypointComment(incorrect);
-                       if (history) then LogHistory(coordinates, 'Inorrect');
-                       i := -1;
-                     end;
-                401,            // Chybny pozadavek
-                403,            // Nelze overit, prekrocen limit stahovani
-                404,            // Nelze overit, keska neexistuje
-                405,            // Nelze overit, keska nema overovatko
-                406,            // BM clen nemuze overit PMO kesku
-                407,            // Uzivatel nepovoluje sdilet informace (to asi pri overovani nemuze nastat)
-                408,            // ??? (pri overeni archivnich kesi)
-                429: i := 0;    // Prekrocen pocet opakovani (10 pokusu/10 minut)
-                else ShowMessage(_('Error: Unexpected return value: ') + IntToStr(i)); // "ERR: neocekavana navratova hodnota"
-              end;
-              if (i = -1) then GeoAbort();
-            end;
-
-            {Nothing found}
-            if (serviceNum = 0) then begin
-                ShowMessage(_('Error: No coordinate checker URL found!'));
-                {$ifdef DEBUG_HELPER} LDHe('Error: No coordinate checker URL found!'); {$endif}
-                if (writenotfound) then
-                    UpdateWaypointComment(notfound);
-                    if (callggp <> '') then
-                        GeoCallGGP(GEOGET_SCRIPTDIR + callggp);
-                    if (callgge <> '') then
-                        GeoExport(GEOGET_SCRIPTDIR + callgge, ggeoutput);
-                GeoAbort;
-            end;
-
-            {N50°30.123' E015°29.456' split to sections divided by spaces => N 50 30 123 E 015 29 456}
-            coordinates := RegexReplace('(N|S)(\d+)°(\d+)\.(\d+)''\s(E|W)(\d+)°(\d+)\.(\d+)''', coords, '$1 $2 $3 $4 $5 $6 $7 $8', true);
-            coordinates := CorrectCoords(coordinates); // Add leading zeroes to minutes if missing
-
-            {If there more than 1 services found}
-            if (serviceNum > 1) then begin
-                CheckerForm_ListBox.Items.Assign(serviceName); // Just fill ListBox with TStringList
-                CheckerForm_ListBox.Selected[0] := true;
-
-                {Show Window (Cancel return 1, OK return 2)}
-                if (CheckerForm.ShowModal <> 1) then
-                    Exit
-                else begin
-                    if (CheckerForm_ListBox.ItemIndex <> -1) then begin
-                        for i := 0 to CheckerForm_ListBox.Items.Count - 1 do begin
-                            if (CheckerForm_ListBox.Selected[i]) then begin
-                                service := CheckerForm_ListBox.Items[CheckerForm_ListBox.ItemIndex]; // Just get selected item
-                                url := TrimUrl(serviceUrl[i]);                                                                              // Get same row from stringlist with URLs
-
-                                {$ifdef DEBUG_HELPER} LDH(CheckerForm_ListBox.Items[CheckerForm_ListBox.ItemIndex] + CRLF + serviceUrl[i]); {$endif} // Show name of selected item
-                            end;
-                        end;
-                    end
-                    else begin
-                        ShowMessage(_('Error: You didn''t select anything!'));
-                        {$ifdef DEBUG_HELPER} LDHe('Error: You didn''t select anything!'); {$endif}
-                        GeoAbort;
-                    end;
-                end;
-                CheckerForm.Close;
-            end
-            else begin
-                service := serviceName[0];
-                url := TrimUrl(serviceUrl[0]);
-            end;
-
-            {$ifdef DEBUG_HELPER} LDHp('Call Checker.ahk'); {$endif}
-
-            {Make command for running AHK}
-            s := '"' + GEOGET_SCRIPTDIR + '\Checker\AutoHotkey64.exe" "' + GEOGET_SCRIPTDIR + '\Checker\Checker.ahk" ' + RemoveSerialNum(service) + ' ' + coordinates + ' "' + url + '"';
-            {$ifdef DEBUG_HELPER} LDH('Command: ' + s); {$endif}
-
-            {If we can get result of the check}
-            if (answer) then begin
-                case RunExec(s) of
-                    0:  begin
-                        // AHK script ran without error, but not found if result was correct or not
-
-                         {$ifdef DEBUG_HELPER} LDH('OK, neither correct or incorrect'); {$endif}
-
-                         if (callggp <> '') then
-                            GeoCallGGP(GEOGET_SCRIPTDIR + callggp);
-                         if (callgge <> '') then
-                            GeoExport(GEOGET_SCRIPTDIR + callgge, ggeoutput);
-
-                        end;
-                    1:  begin
-                        // If it WAS correct add special comment to the Final waypoint
-
-                            {$ifdef DEBUG_HELPER} LDH('Correct solution! :)'); {$endif}
-
-                            if (correct <> '') then begin
-                                UpdateWaypointComment(correct);
-                                if (callggp <> '') then
-                                    GeoCallGGP(GEOGET_SCRIPTDIR + callggp);
-                                if (callgge <> '') then
-                                    GeoExport(GEOGET_SCRIPTDIR + callgge, ggeoutput);
-                            end;
-                            if (history) then
-                                LogHistory(coordinates, 'Correct');
-
-                        end;
-                    2:  begin
-                        // If it WAS NOT correct add special comment to the Final waypoint
-
-                            {$ifdef DEBUG_HELPER} LDH('Incorrect solution! :('); {$endif}
-
-                            if (incorrect <> '') then begin
-                                UpdateWaypointComment(incorrect);
-                                if (callggp <> '') then
-                                    GeoCallGGP(GEOGET_SCRIPTDIR + callggp);
-                                if (callgge <> '') then
-                                    GeoExport(GEOGET_SCRIPTDIR + callgge, ggeoutput);
-                            end;
-                            if (history) then
-                                LogHistory(coordinates, 'Incorrect');
-
-                        end;
-                    3:
-                        begin
-                            {$ifdef DEBUG_HELPER} LDHw('Dead service.'); {$endif}
-                            ShowMessage(_('Dead service.'));
-                        end;
-                    4:
-                        begin
-                            {$ifdef DEBUG_HELPER} LDHe('Wrong parameters!'); {$endif}
-                            ShowMessage(_('Wrong parameters!'));
-                        end;
-                end;
-            end
-            else
-                RunExecNoWait(s);
-
-        finally
-            serviceName.Free;
-            serviceUrl.Free;
-        end;
-    end
-    {Wrong coordinates, maybe they are zero}
-    else begin
-        {$ifdef DEBUG_HELPER} LDHe('Wrong coordinates. Maybe they are zero'); {$endif}
-
-        ShowMessage(_('Wrong coordinates. Maybe they are zero'));
+    finally
+        serviceName.Free;
+        serviceUrl.Free;
     end;
 end;
