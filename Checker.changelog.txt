@@ -1,7 +1,10 @@
-** 4.1.0 (202508xx) **
+** 4.1.0 (20250820) **
   * Zmìna chování pokud má keš ovìžení geocaching.com (atribut: hqsolutionchecker-yes) - zacházíme s ní jako s každým jiným ovìøením. Mìlo by øešit keše co mají i jiné ovìøení.
+  * Certitudes a Nanochecker umí použít slovo z poznámky keše a vyplnit ho pro ovìøení tam, kde se neovìøují souøadnice. Musí být na samostatném øádku uvozeno slovem "checker:" napø.: checker: øešení
   * Kompletní pøepsání Checker.lib.pas - zredukování kódu o 12%, efektivnìjší, pøehlednìjší a lépe udržovatelný kód
-  * Certitudes a Nanochecker umí použít slovo z poznámky keše a vyplnit ho pro ovìøení tam, kde se neovìøují souøadnice. Musí být na samostatném øádku uvozeno názvem ovìøení napø.: certitudes: øešení
+  * Ovìøování challenge zjednodušeno pouze na jednu službu "challenge"
+  * Ovìøování gccounter.de/gccounter.com (mrtvá služba) zjednodušeno pouze na jednu službu "gccounter"
+  * Odebrána závislost na knihovnì InstallTool
 
 ** 4.0.1 (20250817) **
   * Vrácena podpora challenge keší na project-gc.com
