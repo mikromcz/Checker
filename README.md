@@ -34,38 +34,32 @@ Checker.ahk challenge N 49 42 660 E 018 23 165 "http://project-gc.com/Challenges
 
 ### Automatické vyplňování odpovědí pomocí komentářů
 
-Některé služby podporují automatické vyplňování řešení pomocí komentářů v cache. Stačí přidat do komentáře keše název služby následovaný dvojtečkou a odpovědí:
+Některé služby podporují automatické vyplňování řešení pomocí komentářů v cache. Stačí přidat do komentáře keše "checker" následovaný dvojtečkou a odpovědí:
 
 #### Nanochecker
 ```
-nanochecker: my answer
+checker: my answer
 ```
 Automaticky vyplní odpověď "my answer" do input pole na nanochecker.com.
 
-#### Certitudes  
+#### Certitudes
 ```
-certitudes: solution word
+checker: solution word
 ```
 Automaticky vyplní odpověď "solution word" do odpovědního pole na certitudes.org (pouze v answer módu).
 
 **Příklady komentářů:**
 ```
-nanochecker: red
-certitudes: PRAHA
-nanochecker: 42
-certitudes: geocaching is fun
+checker: 42
+checker: PRAHA
+checker: geocaching is fun
 ```
 
 **Jak to funguje:**
-1. Plugin najde komentář ve formátu `služba: odpověď`
+1. Plugin najde komentář ve formátu `checker: odpověď`
 2. Extrahuje odpověď a automaticky ji vyplní do správného pole
 3. Pole se okamžitě vyplní a je připravené k odeslání
-4. Funguje i s mezerami: `nanochecker: answer` i `nanochecker:answer`
-
-**Poznámky:**
-- Nanochecker: Vyplní odpověď do input pole `#nc-content > form > input:nth-child(1)`
-- Certitudes: Funguje pouze v answer módu (maxlength > 100), jinak zobrazí chybu
-- Bez komentáře se služby chovají normálně (vyplní koordináty nebo detekují mód)
+4. Funguje i s mezerami: `checker: answer` i `checker:answer`
 
 ## Podporované služby (24 celkem)
 
