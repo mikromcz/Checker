@@ -246,7 +246,6 @@ begin
     s := RegexExtract(certitudesRegex, description);
     if (s <> '') then begin
         t := RegExSubstitute('(?m)^checker:\s?(.+)$', GC.Comment, '$1');
-        ShowMessage(AnsiToUtf(t));
         if (t <> '') then
             serviceName.Add('certitudes|' + t)
         else
