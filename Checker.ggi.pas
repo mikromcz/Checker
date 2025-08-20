@@ -8,8 +8,6 @@
     Version: 4.1.0
 }
 
-{$include InstallTool.lib.pas}
-
 {Safe delete file}
 procedure DeleteFileIfExists(s: String);
 begin
