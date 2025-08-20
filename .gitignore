@@ -8,6 +8,7 @@ Desktop.ini
 # Temporary files
 *.tmp
 *.temp
+*.old
 
 # Log files
 *.log

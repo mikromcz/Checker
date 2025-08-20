@@ -56,7 +56,6 @@ begin
     DeleteFileIfExists('finar.txt');
 
     {Clean up after upgrade to version 4.0.0}
-    InstallTool_RemoveFile('AutoHotkey.exe', 'Checker');
     DeleteFileIfExists('AutoHotkeyU32.exe');
     DeleteIniValueIfExists('Checker', 'iefix');
     DeleteIniValueIfExists('Checker', 'certfix');

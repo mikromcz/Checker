@@ -19,7 +19,7 @@
 uses
     Checker;
 
-{ $define DEBUG_HELPER}
+// {$define DEBUG_HELPER}
 {$ifdef DEBUG_HELPER}
     {$include DebugHelper.lib.pas}
 {$endif}
