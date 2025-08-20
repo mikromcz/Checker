@@ -6,8 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Checker\n"
-"POT-Creation-Date: 2025-08-08 11:54\n"
-"PO-Revision-Date: 2025-08-08 11:57+0200\n"
+"POT-Creation-Date: 2025-08-20 19:20\n"
+"PO-Revision-Date: 2025-08-20 19:21+0200\n"
 "Last-Translator: mikrom <mikrom@mikrom.cz>\n"
 "Language-Team: mikrom <mikrom@mikrom.cz>\n"
 "MIME-Version: 1.0\n"
@@ -35,70 +35,68 @@ msgstr "Zrušit"
 msgid "Open and fill checker page (geocheck.org, geochecker.com, evince.locusprime.net, etc.)"
 msgstr "Pokud je v listingu odkaz na ověření, otevře web a předvyplní souřadnice"
 
-#: Checker.ggi.pas:43
+#: Checker.ggi.pas:41
 msgid "Changelog"
 msgstr "Seznam změn"
 
 #. "Uspesne overeno"
-#: Checker.lib.pas:183
+#: Checker.lib.pas:177
 msgid "OK: Succesfuly verified!"
 msgstr "OK: Úspěšně ověřeno!"
 
 #. "Kontrolovane souradnice jsou chybne"
-#: Checker.lib.pas:184
+#: Checker.lib.pas:178
 msgid "Error: Coordinates do not match!"
 msgstr "Chyba: Souřadnice jsou chybné!"
 
 #. "Keska neexistuje"
-#: Checker.lib.pas:186
+#: Checker.lib.pas:180
 msgid "Error: Geocache not found!"
 msgstr "Chyba: Keš neexistuje!"
 
 #. "BM nemuze overit souradnice PMO kese"
-#: Checker.lib.pas:188
+#: Checker.lib.pas:182
 msgid "Error: Basic member cannot verify PMO geocache!"
 msgstr "Chyba: Běžní hráči nemohou kontrolovat Pémiové keše!"
 
 #. "Nelze overit nepublikovanou nebo archivovanou kesku"
-#: Checker.lib.pas:189
+#: Checker.lib.pas:183
 msgid "Error: Cannot verify an unpublished or archived geocache!"
 msgstr "Chyba: Nelze zkontrolovat nepublikované, nebo archivované keše!"
 
 #. "Prekrocen limit poctu kontrol (10/10 minut)"
-#: Checker.lib.pas:190
+#: Checker.lib.pas:184
 msgid "Error: Limit exceeded, only 10 in 10 minutes allowed!"
 msgstr "Chyba: Překročen limit počtu ověření! Povoleno 10 během 10 minut."
 
-#. "Návratová hodnota"
-#: Checker.lib.pas:191
+#. "Nďż˝vratovďż˝ hodnota"
+#: Checker.lib.pas:185
 msgid "Result: "
 msgstr "Výsledek: "
 
-#. "ERR: neocekavana navratova hodnota"
-#: Checker.lib.pas:571
-msgid "Error: Unexpected return value: "
-msgstr "Chyba: Neočekávaná hodnota: "
-
-#: Checker.lib.pas:578
-msgid "Error: No coordinate checker URL found!"
-msgstr "Chyba: Nenalezen odkaz na žádnou ověřovací službu!"
-
-#. Show name of selected item
-#: Checker.lib.pas:613
-msgid "Error: You didn't select anything!"
-msgstr "Chyba: Nebylo nic vybráno!"
-
-#: Checker.lib.pas:680
+#: Checker.lib.pas:537
 msgid "Dead service."
 msgstr "Mrtvá služba."
 
-#: Checker.lib.pas:685
+#: Checker.lib.pas:543
 msgid "Wrong parameters!"
 msgstr "Neplatné parametry!"
 
-#: Checker.lib.pas:701
+#: Checker.lib.pas:579
+msgid "Error: You didn't select anything!"
+msgstr "Chyba: Nebylo nic vybráno!"
+
+#: Checker.lib.pas:628
 msgid "Wrong coordinates. Maybe they are zero"
 msgstr "Špatné souřadnice. Možná jsou nulové."
+
+#: Checker.lib.pas:640
+msgid "Error: No coordinate checker URL found!"
+msgstr "Chyba: Nenalezen odkaz na žádnou ověřovací službu!"
+
+#: Checker.lib.pas:694
+msgid "Error: Unexpected return value: "
+msgstr "Chyba: Neočekávaná hodnota: "
 
 #~ msgid ""
 #~ "Error: This should not happen!\n"
