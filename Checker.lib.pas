@@ -245,7 +245,8 @@ var s, t: String;
 begin
     s := RegexExtract(certitudesRegex, description);
     if (s <> '') then begin
-        t := RegExSubstitute('certitudes:(.+)', GC.Comment, '$1');
+        t := RegExSubstitute('(?m)^checker:\s?(.+)$', GC.Comment, '$1');
+        ShowMessage(AnsiToUtf(t));
         if (t <> '') then
             serviceName.Add('certitudes|' + t)
         else
@@ -411,7 +412,7 @@ var s, t: String;
 begin
     s := RegExSubstitute(nanocheckerRegex, description, '$0#');
     if (s <> '') then begin
-        t := RegExSubstitute('nanochecker:(.+)', GC.Comment, '$1');
+        t := RegExSubstitute('(?m)^checker:\s?(.+)$', GC.Comment, '$1');
         if (t <> '') then
             serviceName.Add('nanochecker|' + t)
         else
