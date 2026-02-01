@@ -2,18 +2,25 @@
 
 Checker je nástroj pro automatické ověření souřadnic u geocaching coordinate checker služeb. Aplikace automatizuje proces odesílání souřadnic na různé webové stránky pro ověření koordinátů a vyhodnocuje výsledky.
 
-## Verze 4.0.1 - Kompletní přepis
+## Verze 4.2.0
 
 Tato verze byla **kompletně přepsána** z [AutoHotkey](https://autohotkey.com/download/) v1 používající Internet Explorer na **[AutoHotkey](https://autohotkey.com/download/) v2 s [WebView2](https://github.com/thqby/ahk2_lib/tree/master/WebView2)** pro lepší kompatibilitu s moderními webovými standardy a budoucí podporu.
 
-### Hlavní změny ve verzi 4:
+### Hlavní změny ve verzi 4.2:
+- ✅ **Vícejazyčnost** - podpora 5 jazyků: čeština, slovenština, polština, němčina, angličtina
+- ✅ **Externí překlady** - překlady v INI souborech (`lib/Checker/lang/*.ini`) - snadné přidávání nových jazyků
+- ✅ **Výběr jazyka** - možnost ručního výběru jazyka v Předvolbách (nebo auto-detekce)
+- ✅ **Jazyk služeb** - geochecker, geocheck, certitudes, gc-apps, puzzlechecker používají jazyk Checkeru
+- ✅ **Mrtvé služby** - vlastní HTML stránka místo načítání potenciálně škodlivých URL (reklamy, domény na prodej)
+- ✅ **Refaktoring kódu** - CheckerApp rozdělen na menší třídy (CheckerSettings, CoordinateValidator)
+
+### Hlavní změny ve verzi 4.0:
 - ✅ **[AutoHotkey](https://autohotkey.com/download/) v2** - moderní verze AutoHotkey
 - ✅ **[WebView2](https://github.com/thqby/ahk2_lib/tree/master/WebView2)** - nahrazuje zastaralý Internet Explorer
 - ✅ **Modulární architektura** - služby v samostatných souborech
 - ✅ **Pokročilá validace parametrů** - inteligentní kontrola souřadnic s detailním error reportem
 - ✅ **Podpora schránky** - automatické kopírování zpráv autorů
 - ✅ **Dvojí režim** - některé služby podporují ověření koordinátů i odpovědí
-- ✅ **Vícejazyčnost** - automatická detekce češtiny/angličtiny
 - ✅ **Vylepšené GUI** - profesionální menu a stavový řádek s barevnými výsledky
 - ✅ **Změna velikosti okna** - pamatuje si rozměry okna mezi spuštěními
 
@@ -141,8 +148,16 @@ Nastavení jsou uložena v souboru `Checker.ini`:
 - `copymsg=1` - Kopírovat zprávy autorů do schránky
 - `timeout=10` - Časový limit načítání stránky (sekundy)
 - `debug=0` - Režim ladění
+- `language=` - Jazyk rozhraní (prázdné = auto-detekce, nebo: `cs`, `sk`, `pl`, `de`, `en`)
 - `windowWidth=1200` - Šířka okna (automaticky ukládáno)
 - `windowHeight=750` - Výška okna (automaticky ukládáno)
+
+### Podporované jazyky
+- 🇬🇧 **English** (en) - výchozí/fallback
+- 🇨🇿 **Čeština** (cs) - automatická detekce pro Windows CZ
+- 🇸🇰 **Slovenčina** (sk) - automatická detekce pro Windows SK
+- 🇵🇱 **Polski** (pl) - automatická detekce pro Windows PL
+- 🇩🇪 **Deutsch** (de) - automatická detekce pro Windows DE/AT/CH
 
 ## Požadavky
 
@@ -176,10 +191,10 @@ Projekt je licencován pod GNU General Public License v3.0.
 ## O aplikaci
 
 - **Autor:** mikrom (https://www.mikrom.cz)
-- **Verze:** 4.0.1
-- **Forum:** http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
+- **Verze:** 4.2.0
+- **Forum:** https://forum.geocaching.cz/t/checker-klikatko-na-overeni-souradnic/24502
 - **Ikona:** https://icons8.com/icon/18401/Thumb-Up
 
 ---
 
-*Checker v4 - Modernizace pro budoucnost geocachingu* 🚀
+*Checker v4.2 - Vícejazyčná verze pro mezinárodní geocaching komunitu* 🌍

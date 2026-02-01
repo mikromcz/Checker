@@ -443,7 +443,7 @@ end;
 procedure HandleDeadService();
 begin
     {$ifdef DEBUG_HELPER} LDHw('Dead service.'); {$endif}
-    ShowMessage(_('Dead service.'));
+    //ShowMessage(_('Dead service.'));
 end;
 
 procedure HandleWrongParameters();

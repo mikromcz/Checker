@@ -3,10 +3,10 @@
     General Plugin Script
 
     Www: https://www.geoget.cz/doku.php/user:skript:checker
-    Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
+    Forum: https://forum.geocaching.cz/t/checker-klikatko-na-overeni-souradnic/24502
     Icon: https://icons8.com/icon/18401/Thumb-Up
     Author: mikrom, https://www.mikrom.cz
-    Version: 4.0.0
+    Version: 4.2.0
 }
 
 {$include Checker.lib.pas}

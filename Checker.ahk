@@ -591,6 +591,16 @@ class CheckerApp {
 
         ; Navigate to URL if provided
         if (this.url != "") {
+            ; Check if service is dead before navigating to potentially bad URL
+            serviceInstance := ServiceRegistry.createService(this.service, this)
+            if (serviceInstance.isDead) {
+                ; Show custom dead service page instead of loading the dead URL
+                this.webView.NavigateToString(this.generateDeadServicePage(serviceInstance))
+                this.finalExitCode := 3
+                this.updateStatus(Translation.get("dead_service_warning") . " " . serviceInstance.siteName . " " . Translation.get("dead_service_desc"))
+                return
+            }
+
             ; Apply service-specific URL transformations
             finalUrl := this.transformServiceUrl(this.url, this.service)
 
@@ -741,8 +751,18 @@ class CheckerApp {
                 ; gc-apps.com uses path prefix: /de/checker/ or /en/checker/
                 ; Only German is natively supported, force English for others
                 if (currentLang != "de") {
-                    ; Check if URL has language prefix like /de/ and replace with /en/
-                    if (RegExMatch(finalUrl, "gc-apps\.com/[a-z]{2}/")) {
+                    ; Handle multichecker URLs: /multichecker/show/HASH -> /en/checker/HASH/try
+                    if (RegExMatch(finalUrl, "i)gc-apps\.com/multichecker/show/([a-f0-9]+)", &multiMatch)) {
+                        hash := multiMatch[1]
+                        finalUrl := RegExReplace(finalUrl, "i)(https?://[^/]*gc-apps\.com/).*", "$1en/checker/" . hash . "/try")
+                    }
+                    ; Handle geochecker URLs: /geochecker/show/HASH -> /en/checker/HASH/try
+                    else if (RegExMatch(finalUrl, "i)gc-apps\.com/geochecker/show/([a-f0-9]+)", &geoMatch)) {
+                        hash := geoMatch[1]
+                        finalUrl := RegExReplace(finalUrl, "i)(https?://[^/]*gc-apps\.com/).*", "$1en/checker/" . hash . "/try")
+                    }
+                    ; Check if URL already has language prefix like /de/ and replace with /en/
+                    else if (RegExMatch(finalUrl, "gc-apps\.com/[a-z]{2}/")) {
                         finalUrl := RegExReplace(finalUrl, "(gc-apps\.com/)[a-z]{2}/", "$1en/")
                     } else if (RegExMatch(finalUrl, "gc-apps\.com/(?!en/)")) {
                         ; No language prefix, add /en/ after domain
@@ -1109,6 +1129,41 @@ class CheckerApp {
             ; Fallback version if file reading fails
             return "4.0.1"
         }
+    }
+
+    /**
+     * Generates HTML page for dead/discontinued services
+     * Shows warning message instead of loading potentially bad URL with ads
+     * @param {Object} serviceInstance The dead service instance with siteName and deadSince
+     * @returns {String} HTML content for the dead service page
+     */
+    generateDeadServicePage(serviceInstance) {
+        deadInfo := serviceInstance.deadSince ? " (" . Translation.get("dead_since") . " " . serviceInstance.deadSince . ")" : ""
+
+        html := "<html><head><title>Checker - " . Translation.get("dead_service_warning") . "</title>"
+        html .= "<meta charset='UTF-8'>"
+        html .= "<style>body{font-family:Arial,sans-serif;margin:40px;background:#f5f5f5;text-align:center;}"
+        html .= "h1{color:#cc0000;margin-bottom:30px;}"
+        html .= ".container{max-width:600px;margin:0 auto;background:#fff;padding:40px;border-radius:10px;box-shadow:0 4px 15px rgba(0,0,0,0.1);}"
+        html .= ".icon{font-size:80px;margin-bottom:20px;}"
+        html .= ".site-name{font-size:24px;color:#333;font-weight:bold;margin:20px 0;}"
+        html .= ".dead-info{color:#666;font-size:14px;margin-bottom:20px;}"
+        html .= ".message{background:#fff3cd;padding:20px;border-radius:5px;border-left:4px solid #ffc107;text-align:left;margin:20px 0;}"
+        html .= ".url{background:#f8f9fa;padding:15px;border-radius:5px;font-family:monospace;font-size:12px;word-break:break-all;text-align:left;margin-top:20px;}"
+        html .= ".url-label{font-weight:bold;color:#666;margin-bottom:5px;}</style></head><body>"
+
+        html .= "<div class='container'>"
+        html .= "<div class='icon'>⚠️</div>"
+        html .= "<h1>" . Translation.get("dead_service_warning") . "</h1>"
+        html .= "<div class='site-name'>" . serviceInstance.siteName . "</div>"
+        if (serviceInstance.deadSince != "")
+            html .= "<div class='dead-info'>" . Translation.get("dead_since") . " " . serviceInstance.deadSince . ")</div>"
+        html .= "<div class='message'>" . Translation.get("dead_service_desc") . "</div>"
+        html .= "<div class='url'><div class='url-label'>URL:</div>" . this.url . "</div>"
+        html .= "</div>"
+
+        html .= "</body></html>"
+        return html
     }
 
     generateUsagePage() {

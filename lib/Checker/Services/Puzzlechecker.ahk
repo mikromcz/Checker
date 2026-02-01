@@ -124,7 +124,7 @@ class PuzzlecheckerService extends BaseService {
      */
     copyOwnerMessage() {
         ; Copy puzzlechecker.de owner's message from specific h3 element
-        this.app.updateStatus("Executing clipboard JavaScript for puzzlechecker.de...")
+        this.app.updateStatus(Translation.get("executing_clipboard") . " puzzlechecker.de...")
         jsCode := "try { " .
                   "var h3Element = document.querySelector('body > div > div.content > div > div.tipblock > h3'); " .
                   "if (h3Element) { " .

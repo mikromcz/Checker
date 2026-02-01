@@ -10,9 +10,29 @@ The application features a modular architecture with service-specific implementa
 
 ## Translation Support
 
-- Added capability to integrate translation functionality across different coordinate checker services
-- Planned enhancement to support multi-language result detection and localization
-- Future improvements to include dynamic language parameter handling in service URL configurations
+The application uses an external INI-based translation system located in `lib/Checker/lang/`:
+
+### Supported Languages
+- **English** (en.ini) - default/fallback
+- **Czech** (cs.ini) - language code 0405
+- **Slovak** (sk.ini) - language code 041B
+- **Polish** (pl.ini) - language code 0415
+- **German** (de.ini) - language codes 0407, 0807, 0C07
+
+### Language Selection
+1. **Manual override**: Set `language=xx` in `Checker.ini` (e.g., `language=de`)
+2. **Auto-detect**: If no manual setting, detects from Windows system language
+3. **Fallback**: English is used if language not found
+
+### Adding New Languages
+1. Copy `lib/Checker/lang/en.ini` to `xx.ini` (where xx is language code)
+2. Translate all values in the `[Strings]` section
+3. Add the Windows language code mapping in `Translation.init()` in `Translation.ahk`
+
+### Technical Notes
+- INI files must be saved as **UTF-8 with BOM** for proper character display
+- Uses `FileRead` with UTF-8 encoding (not `IniRead`) to properly handle special characters
+- Language can be changed in Preferences dialog (requires app restart)
 
 ## Command Line Usage
 
@@ -86,6 +106,21 @@ The `challenge` service is specifically designed for Project-GC challenge checke
 - **Language parameters**: Automatic language parameter injection for supported services
 - **URL fixing**: Automatic URL correction for legacy service URLs
 
+### Service URL Language Handling
+
+The `transformServiceUrl()` method in CheckerApp handles language-aware URL transformations:
+
+| Service | Method | Languages |
+|---------|--------|-----------|
+| geochecker | `?language=` param | English, German |
+| geocheck | `changeLocale.php` redirect | cs_CZ, sk_SK, pl_PL, de_DE, en_US |
+| certitudes | `?lang=` param | cs_CZ, sk_SK, pl_PL, de_DE, en_GB |
+| gc-apps | Path prefix `/en/` or `/de/` | English, German |
+| puzzlechecker | `?lang=` param | cs, sk, en |
+| geocachefi | `?z=1` (English only) | Finnish, English |
+
+Note: geocheck.org requires a special approach - it uses `changeLocale.php` to set a session cookie, not a URL parameter.
+
 ## Exit Codes
 
 The application uses the following exit codes for automation and script integration:
@@ -120,6 +155,12 @@ The application uses the following exit codes for automation and script integrat
 - **Multiple usage examples** for different services
 - **Specific error messages** explaining exactly what's wrong with the parameters
 
+### Dead Service Pages
+- **Custom HTML pages** for discontinued services instead of loading potentially harmful URLs
+- Shows warning icon, service name, date when service died, and explanation message
+- Prevents loading domains that may contain ads or be for sale
+- Sets exit code 3 immediately without network request
+
 ## Architecture
 
 ### Service Implementation
@@ -132,11 +173,23 @@ Each service extends `BaseService` and implements:
 ```
 lib/Checker/
 ├── ServiceRegistry.ahk          # Service registration and factory
-├── BaseService.ahk             # Base service class
+├── BaseService.ahk             # Base service class (with copyTextFromSelector helper)
 ├── Services/
 │   ├── Challenge.ahk           # Project-GC challenges
 │   ├── Certitudes.ahk          # Certitudes.org
 │   ├── Geochecker.ahk          # Standard geochecker
 │   └── ...                     # Other service implementations
-└── Translation.ahk             # Multi-language support
+├── Translation.ahk             # Multi-language support (loads from lang/*.ini)
+└── lang/
+    ├── en.ini                  # English translations (fallback)
+    ├── cs.ini                  # Czech translations
+    ├── sk.ini                  # Slovak translations
+    ├── pl.ini                  # Polish translations
+    └── de.ini                  # German translations
 ```
+
+### Main Application Classes
+- **CheckerApp** - Main application window and WebView2 management
+- **CheckerSettings** - INI settings load/save management
+- **CoordinateValidator** - Command-line parameter validation
+- **Translation** - External INI-based translation system
