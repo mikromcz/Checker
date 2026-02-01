@@ -76,7 +76,7 @@ class GZCheckerService extends BaseService {
      */
     copyOwnerMessage() {
         ; Copy gzchecker owner's message using specific selector
-        this.app.updateStatus("Executing clipboard JavaScript for gzchecker...")
+        this.app.updateStatus(Translation.get("executing_clipboard") . " gzchecker...")
         jsCode := "try { " .
                   "var messageElement = document.querySelector('body > div > table > tbody > tr:nth-child(3) > td > div:nth-child(1) > p:nth-child(5)'); " .
                   "if (messageElement) { " .

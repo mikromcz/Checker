@@ -129,7 +129,7 @@ class GeocachefiService extends BaseService {
      */
     copyOwnerMessage() {
         ; Copy geocache.fi owner's message using specific selector
-        this.app.updateStatus("Executing clipboard JavaScript for geocache.fi...")
+        this.app.updateStatus(Translation.get("executing_clipboard") . " geocache.fi...")
         jsCode := "try { " .
                   "var messageElement = document.querySelector('body > center > table:nth-child(5) > tbody > tr > td > table > tbody > tr:nth-child(1) > td:nth-child(3) > table > tbody > tr:nth-child(2) > td:nth-child(2) > center > table:nth-child(5) > tbody > tr:nth-child(3) > td > table:nth-child(4) > tbody > tr:nth-child(1) > td > p:nth-child(5)'); " .
                   "if (messageElement) { " .

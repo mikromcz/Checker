@@ -189,7 +189,7 @@ class GeocheckService extends BaseService {
      */
     copyOwnerMessage() {
         ; Copy geocheck.org owner's message using specific selector
-        this.app.updateStatus("Executing clipboard JavaScript for geocheck.org...")
+        this.app.updateStatus(Translation.get("executing_clipboard") . " geocheck.org...")
         jsCode := "try { " .
                   "var messageElement = document.querySelector('body > table > tbody > tr:nth-child(2) > td > table > tbody > tr > td:nth-child(2) > form > table > tbody > tr:nth-child(6) > td'); " .
                   "if (messageElement) { " .

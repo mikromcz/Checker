@@ -124,7 +124,7 @@ class CertitudesService extends BaseService {
      */
     copyOwnerMessage() {
         ; Copy certitudes owner's message from hint span
-        this.app.updateStatus("Executing clipboard JavaScript for certitudes...")
+        this.app.updateStatus(Translation.get("executing_clipboard") . " certitudes...")
         jsCode := "try { " .
                   "var hintElement = document.querySelector('span.hint'); " .
                   "if (hintElement) { " .

@@ -671,22 +671,110 @@ class CheckerApp {
      */
     transformServiceUrl(url, service) {
         finalUrl := url
+        currentLang := Translation.getLanguage()
+
         switch StrLower(service) {
             case "geochecker":
-                ; Add English language parameter for geochecker.com
-                finalUrl .= InStr(url, "?") ? "&language=English" : "?language=English"
+                ; geochecker.com supports: English, German, French, Spanish, Swedish, Norwegian, Danish, Dutch, Quebec, Italian, Portuguese
+                ; Map Checker language to geochecker language (fallback to English)
+                geochecker_lang := "English"
+                if (currentLang == "de")
+                    geochecker_lang := "German"
+
+                ; Check if language parameter already exists, replace or add
+                if (RegExMatch(finalUrl, "i)[?&]language=\w+")) {
+                    finalUrl := RegExReplace(finalUrl, "i)([?&]language=)\w+", "$1" . geochecker_lang)
+                } else {
+                    finalUrl .= InStr(url, "?") ? "&language=" . geochecker_lang : "?language=" . geochecker_lang
+                }
+
             case "geocheck":
-                ; Add English language parameter for geocheck.org
-                finalUrl .= InStr(url, "?") ? "&lang=en_US" : "?lang=en_US"
+                ; geocheck.org uses changeLocale.php to set language via session cookie
+                ; We need to navigate to changeLocale.php?lang=xx_XX&return=<encoded_path>
+                ; Map Checker language to geocheck locale
+                geocheck_locales := Map(
+                    "cs", "cs_CZ",
+                    "sk", "sk_SK",
+                    "pl", "pl_PL",
+                    "de", "de_DE",
+                    "en", "en_US"
+                )
+                geocheck_lang := geocheck_locales.Has(currentLang) ? geocheck_locales[currentLang] : "en_US"
+
+                ; Extract the path and query from the URL to use as return parameter
+                ; URL format: https://geocheck.org/geo_inputchkcoord.php?gid=xxx
+                if (RegExMatch(finalUrl, "i)https?://[^/]+(/.*)", &match)) {
+                    pathAndQuery := match[1]  ; e.g., /geo_inputchkcoord.php?gid=xxx
+                    ; URL-encode the path (replace special chars)
+                    encodedPath := pathAndQuery
+                    encodedPath := StrReplace(encodedPath, "%", "%25")  ; Must be first
+                    encodedPath := StrReplace(encodedPath, "/", "%2F")
+                    encodedPath := StrReplace(encodedPath, "?", "%3F")
+                    encodedPath := StrReplace(encodedPath, "=", "%3D")
+                    encodedPath := StrReplace(encodedPath, "&", "%26")
+                    encodedPath := StrReplace(encodedPath, "-", "%2D")
+
+                    ; Build changeLocale.php URL
+                    finalUrl := "https://geocheck.org/changeLocale.php?lang=" . geocheck_lang . "&return=" . encodedPath
+                }
+
+            case "certitudes":
+                ; certitudes.org supports: en_GB, en_US, cs_CZ, sk_SK, pl_PL, de_DE, fr_FR, it_IT, nl_NL, etc.
+                ; Map Checker language to certitudes locale
+                certitudes_locales := Map(
+                    "cs", "cs_CZ",
+                    "sk", "sk_SK",
+                    "pl", "pl_PL",
+                    "de", "de_DE",
+                    "en", "en_GB"
+                )
+                certitudes_lang := certitudes_locales.Has(currentLang) ? certitudes_locales[currentLang] : "en_GB"
+
+                ; Check if lang parameter already exists, replace or add
+                if (RegExMatch(finalUrl, "i)[?&]lang=\w+")) {
+                    finalUrl := RegExReplace(finalUrl, "i)([?&]lang=)\w+", "$1" . certitudes_lang)
+                } else {
+                    finalUrl .= InStr(url, "?") ? "&lang=" . certitudes_lang : "?lang=" . certitudes_lang
+                }
+
+            case "gcappsgeochecker", "gcappsmultichecker":
+                ; gc-apps.com uses path prefix: /de/checker/ or /en/checker/
+                ; Only German is natively supported, force English for others
+                if (currentLang != "de") {
+                    ; Check if URL has language prefix like /de/ and replace with /en/
+                    if (RegExMatch(finalUrl, "gc-apps\.com/[a-z]{2}/")) {
+                        finalUrl := RegExReplace(finalUrl, "(gc-apps\.com/)[a-z]{2}/", "$1en/")
+                    } else if (RegExMatch(finalUrl, "gc-apps\.com/(?!en/)")) {
+                        ; No language prefix, add /en/ after domain
+                        finalUrl := RegExReplace(finalUrl, "(gc-apps\.com/)", "$1en/")
+                    }
+                }
+
             case "gcm":
                 ; Fix Gcm URL: change gc.gcm.cz/validator/ to validator.gcm.cz/
                 finalUrl := StrReplace(finalUrl, "gc.gcm.cz/validator/", "validator.gcm.cz/")
+
             case "hermansky":
                 ; Fix Hermansky URL: change speedygt.ic.cz/gps to geo.hermansky.net
                 finalUrl := StrReplace(finalUrl, "speedygt.ic.cz/gps", "geo.hermansky.net")
+
             case "geocachefi":
-                ; Add English language parameter for geocache.fi
+                ; Add language parameter for geocache.fi (z=1 forces English interface)
                 finalUrl .= InStr(finalUrl, "?") ? "&z=1" : "?z=1"
+
+            case "puzzlechecker":
+                ; puzzle-checker.com supports: en, cs, sk, sv (Swedish)
+                ; Uses simple lang= parameter with short codes
+                puzzlechecker_lang := "en"  ; Default to English
+                if (currentLang == "cs" || currentLang == "sk")
+                    puzzlechecker_lang := currentLang
+
+                ; Check if lang parameter already exists, replace or add
+                if (RegExMatch(finalUrl, "i)[?&]lang=\w+")) {
+                    finalUrl := RegExReplace(finalUrl, "i)([?&]lang=)\w+", "$1" . puzzlechecker_lang)
+                } else {
+                    finalUrl .= InStr(finalUrl, "?") ? "&lang=" . puzzlechecker_lang : "?lang=" . puzzlechecker_lang
+                }
         }
         return finalUrl
     }
@@ -861,7 +949,7 @@ class CheckerApp {
             }
 
             resultStr := String(result)
-            this.updateStatus("Clipboard JavaScript result: " . resultStr)
+            this.updateStatus(Translation.get("clipboard_js_result") . " " . resultStr)
 
             ; Remove surrounding quotes if present
             cleanResultStr := resultStr
@@ -902,7 +990,7 @@ class CheckerApp {
                         this.updateStatus("Clipboard assignment error: " . e.message)
                     }
                 } else {
-                    this.updateStatus("Clipboard copy failed - invalid text: [" . clipboardText . "]")
+                    this.updateStatus(Translation.get("clipboard_invalid_text") . " [" . clipboardText . "]")
                     ; Debug information about why clipboard failed
                     if (this.settings.debug) {
                         MsgBox("Clipboard debug: " . clipboardText, "Clipboard Debug", "OK")
@@ -917,7 +1005,7 @@ class CheckerApp {
     }
 
     onClipboardError(error) {
-        this.updateStatus("Clipboard JavaScript error: " . error.message)
+        this.updateStatus(Translation.get("clipboard_js_error") . " " . error.message)
     }
 
     onResultCheckError(error) {

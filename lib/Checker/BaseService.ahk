@@ -205,7 +205,7 @@ class BaseService {
         if (serviceName == "")
             serviceName := this.serviceName
 
-        this.app.updateStatus("Executing clipboard JavaScript for " . serviceName . "...")
+        this.app.updateStatus(Translation.get("executing_clipboard") . " " . serviceName . "...")
 
         jsCode := "try { " .
                   "var element = document.querySelector('" . selector . "'); " .

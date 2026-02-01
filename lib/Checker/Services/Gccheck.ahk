@@ -89,7 +89,7 @@ class GccheckService extends BaseService {
      */
     copyOwnerMessage() {
         ; Copy gccheck.com owner's message from div#hint element
-        this.app.updateStatus("Executing clipboard JavaScript for gccheck.com...")
+        this.app.updateStatus(Translation.get("executing_clipboard") . " gccheck.com...")
         jsCode := "try { " .
                   "var messageElement = document.querySelector('div#hint'); " .
                   "if (messageElement) { " .
