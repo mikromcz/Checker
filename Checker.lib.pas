@@ -2,14 +2,14 @@
     Library of Functions
 
     Www: https://www.geoget.cz/doku.php/user:skript:checker
-    Forum: http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
-    Author: mikrom, http://mikrom.cz
-    Version: 4.1.0
+    Forum: https://forum.geocaching.cz/t/checker-klikatko-na-overeni-souradnic/24502
+    Author: mikrom, https://www.mikrom.cz
+    Version: 4.1.1
 
     Uses: CheckerForm, Checker.ahk
 
     * Depends on: http://ggplg.valicek.name/plugin/DebugHelper
-    * This might be interesting: http://www.regular-expressions.info/duplicatelines.html
+    * This might be interesting: https://www.regular-expressions.info/duplicatelines.html
 }
 
 {Minimum GeoGet version}
@@ -51,6 +51,9 @@ const
     nanocheckerRegex     = '(?i)(https?:)?\/\/(www\.)?nanochecker\.sternli\.ch\/\?g=[^"''<\s]+';
     puzzleCheckerRegex   = '(?i)(https?:)?\/\/(www\.)?puzzle-checker\.com\/?\?wp=[^"''<\s]+';
 
+    {Number of standard services (used for data-driven detection loop)}
+    STANDARD_SERVICE_COUNT = 18;
+
 var
     answer, history: Boolean;
     coords: String;
@@ -58,6 +61,36 @@ var
     serviceNum: Integer;
     service, url: String;
     correct, incorrect: String;
+
+    {Cached settings - loaded once per session}
+    settingsLoaded: Boolean;
+    cachedAnswer, cachedHistory, cachedWriteNotFound: Boolean;
+    cachedCorrect, cachedIncorrect, cachedNotFound: String;
+    cachedCallGgp, cachedCallGge, cachedGgeOutput: String;
+
+{Load settings from INI file once and cache them}
+procedure LoadCachedSettings();
+var
+    ini: TIniFile;
+begin
+    if settingsLoaded then Exit;
+
+    ini := TIniFile.Create(GEOGET_SCRIPTDIR+'\Checker\Checker.ini');
+    try
+        cachedAnswer        := ini.ReadBool('Checker', 'answer', False);
+        cachedHistory       := ini.ReadBool('Checker', 'history', False);
+        cachedCorrect       := ini.ReadString('Checker', 'correct', 'CORRECT');
+        cachedIncorrect     := ini.ReadString('Checker', 'incorrect', 'INCORRECT');
+        cachedWriteNotFound := ini.ReadBool('Checker', 'writenotfound', False);
+        cachedNotFound      := ini.ReadString('Checker', 'notfound', 'NOTFOUND');
+        cachedCallGgp       := ini.ReadString('Checker', 'callggp', '');
+        cachedCallGge       := ini.ReadString('Checker', 'callgge', '');
+        cachedGgeOutput     := ini.ReadString('Checker', 'ggeoutput', '');
+        settingsLoaded      := True;
+    finally
+        ini.Free;
+    end;
+end;
 
 {Update waypoint comment. Add custom string (correct|incorrect from ini) at the begining of the waypoint comment. String will be in curly brackets!}
 procedure UpdateWaypointComment(ans: String);
@@ -239,7 +272,48 @@ begin
     {$ifdef DEBUG_HELPER} LDH('Out: ' + Result); {$endif}
 end;
 
-{Service detection procedures - extracted from main Checker procedure}
+{Service detection - data-driven approach}
+{Detect a standard service using regex and add to checkers list}
+procedure DetectStandardService(const description, regex, name: String);
+var s: String;
+begin
+    s := RegexExtract(regex, description);
+    AddToCheckersList(s, name);
+end;
+
+{Detect all standard services using data-driven loop}
+procedure DetectStandardServices(const description: String);
+var
+    i: Integer;
+    regexList, nameList: array[0..STANDARD_SERVICE_COUNT-1] of String;
+begin
+    {Define regex and service name pairs}
+    regexList[0]  := challengeRegex;       nameList[0]  := 'challenge';
+    regexList[1]  := doxinaRegex;          nameList[1]  := 'doxina';
+    regexList[2]  := evinceRegex;          nameList[2]  := 'evince';
+    regexList[3]  := gcappsGeoRegex;       nameList[3]  := 'gcappsgeochecker';
+    regexList[4]  := gcappsMultiRegex;     nameList[4]  := 'gcappsmultichecker';
+    regexList[5]  := gcccRegex;            nameList[5]  := 'gccc';
+    regexList[6]  := gccheckRegex;         nameList[6]  := 'gccheck';
+    regexList[7]  := gccounterRegex;       nameList[7]  := 'gccounter';
+    regexList[8]  := gcmRegex;             nameList[8]  := 'gcm';
+    regexList[9]  := gctoolboxRegex;       nameList[9]  := 'gctoolbox';
+    regexList[10] := geocacheFiRegex;      nameList[10] := 'geocachefi';
+    regexList[11] := geocachePlannerRegex; nameList[11] := 'geocacheplanner';
+    regexList[12] := geocheckRegex;        nameList[12] := 'geocheck';
+    regexList[13] := geocheckerRegex;      nameList[13] := 'geochecker';
+    regexList[14] := geowiiRegex;          nameList[14] := 'geowii';
+    regexList[15] := gocachingRegex;       nameList[15] := 'gocaching';
+    regexList[16] := gpscacheRegex;        nameList[16] := 'gpscache';
+    regexList[17] := gzcheckerRegex;       nameList[17] := 'gzchecker';
+
+    {Loop through all standard services}
+    for i := 0 to STANDARD_SERVICE_COUNT - 1 do begin
+        DetectStandardService(description, regexList[i], nameList[i]);
+    end;
+end;
+
+{Special service detection - services requiring custom handling}
 procedure DetectCertitudes(const description: String);
 var s, t: String;
 begin
@@ -254,156 +328,6 @@ begin
         Inc(serviceNum);
         {$ifdef DEBUG_HELPER} LDH('Service: certitudes'); {$endif}
     end;
-end;
-
-procedure DetectChallenge(const description: String);
-var s: String;
-begin
-    s := RegexExtract(challengeRegex, description);
-    AddToCheckersList(s, 'challenge');
-end;
-
-procedure DetectDoxina(const description: String);
-var s: String;
-begin
-    s := RegexExtract(doxinaRegex, description);
-    AddToCheckersList(s, 'doxina');
-end;
-
-procedure DetectEvince(const description: String);
-var s: String;
-begin
-    s := RegexExtract(evinceRegex, description);
-    AddToCheckersList(s, 'evince');
-end;
-
-procedure DetectGcappsGeo(const description: String);
-var s: String;
-begin
-    s := RegexExtract(gcappsGeoRegex, description);
-    AddToCheckersList(s, 'gcappsgeochecker');
-end;
-
-procedure DetectGcappsMulti(const description: String);
-var s: String;
-begin
-    s := RegexExtract(gcappsMultiRegex, description);
-    AddToCheckersList(s, 'gcappsmultichecker');
-end;
-
-procedure DetectGccc(const description: String);
-var s: String;
-begin
-    s := RegexExtract(gcccRegex, description);
-    AddToCheckersList(s, 'gccc');
-end;
-
-procedure DetectGccheck(const description: String);
-var s: String;
-begin
-    s := RegexExtract(gccheckRegex, description);
-    AddToCheckersList(s, 'gccheck');
-end;
-
-procedure DetectGccounter(const description: String);
-var s: String;
-begin
-    s := RegexExtract(gccounterRegex, description);
-    AddToCheckersList(s, 'gccounter');
-end;
-
-
-procedure DetectGcm(const description: String);
-var s: String;
-begin
-    s := RegexExtract(gcmRegex, description);
-    AddToCheckersList(s, 'gcm');
-end;
-
-procedure DetectGctoolbox(const description: String);
-var s: String;
-begin
-    s := RegexExtract(gctoolboxRegex, description);
-    AddToCheckersList(s, 'gctoolbox');
-end;
-
-procedure DetectGeocacheFi(const description: String);
-var s: String;
-begin
-    s := RegexExtract(geocacheFiRegex, description);
-    AddToCheckersList(s, 'geocachefi');
-end;
-
-procedure DetectGeocachePlanner(const description: String);
-var s: String;
-begin
-    s := RegexExtract(geocachePlannerRegex, description);
-    AddToCheckersList(s, 'geocacheplanner');
-end;
-
-procedure DetectGeocachingCom();
-begin
-    if (Pos('hqsolutionchecker-yes', GC.TagValues('attribute')) > 0) then begin
-        serviceName.Add('geocaching.com');
-        serviceUrl.Add('#');
-        Inc(serviceNum);
-    end;
-end;
-
-procedure DetectGeocheck(const description: String);
-var s: String;
-begin
-    s := RegexExtract(geocheckRegex, description);
-    AddToCheckersList(s, 'geocheck');
-end;
-
-procedure DetectGeochecker(const description: String);
-var s: String;
-begin
-    s := RegexExtract(geocheckerRegex, description);
-    AddToCheckersList(s, 'geochecker');
-end;
-
-procedure DetectGeowii(const description: String);
-var s: String;
-begin
-    s := RegexExtract(geowiiRegex, description);
-    AddToCheckersList(s, 'geowii');
-end;
-
-procedure DetectGocaching(const description: String);
-var s: String;
-begin
-    s := RegexExtract(gocachingRegex, description);
-    AddToCheckersList(s, 'gocaching');
-end;
-
-procedure DetectGpscache(const description: String);
-var s: String;
-begin
-    s := RegexExtract(gpscacheRegex, description);
-    AddToCheckersList(s, 'gpscache');
-end;
-
-procedure DetectGzchecker(const description: String);
-var s: String;
-begin
-    s := RegexExtract(gzcheckerRegex, description);
-    AddToCheckersList(s, 'gzchecker');
-end;
-
-procedure DetectHermansky(const description: String);
-var s: String;
-begin
-    s := RegexExtract(hermanskyRegex, description);
-    AddToCheckersList(s, 'hermansky');
-end;
-
-procedure DetectKomurka(const description: String);
-var s: String;
-begin
-    s := RegexExtract(komurkaRegex, description);
-    AddToCheckersList(s, 'komurka');
 end;
 
 procedure DetectNanochecker(const description: String);
@@ -422,6 +346,29 @@ begin
     end;
 end;
 
+procedure DetectGeocachingCom();
+begin
+    if (Pos('hqsolutionchecker-yes', GC.TagValues('attribute')) > 0) then begin
+        serviceName.Add('geocaching.com');
+        serviceUrl.Add('#');
+        Inc(serviceNum);
+    end;
+end;
+
+procedure DetectHermansky(const description: String);
+var s: String;
+begin
+    s := RegexExtract(hermanskyRegex, description);
+    AddToCheckersList(s, 'hermansky');
+end;
+
+procedure DetectKomurka(const description: String);
+var s: String;
+begin
+    s := RegexExtract(komurkaRegex, description);
+    AddToCheckersList(s, 'komurka');
+end;
+
 procedure DetectPuzzleChecker(const description: String);
 var s: String;
 begin
@@ -434,51 +381,29 @@ procedure DetectAllServices(const description: String);
 begin
     {$ifdef DEBUG_HELPER} LDHp('DetectAllServices'); {$endif}
 
+    {Special services with custom handling}
     DetectCertitudes(description);
-    DetectChallenge(description);
-    DetectDoxina(description);
-    DetectEvince(description);
-    DetectGcappsGeo(description);
-    DetectGcappsMulti(description);
-    DetectGccc(description);
-    DetectGccheck(description);
-    DetectGccounter(description);
-    DetectGcm(description);
-    DetectGctoolbox(description);
-    DetectGeocacheFi(description);
-    DetectGeocachePlanner(description);
+    DetectNanochecker(description);
     DetectGeocachingCom();
-    DetectGeocheck(description);
-    DetectGeochecker(description);
-    DetectGeowii(description);
-    DetectGocaching(description);
-    DetectGpscache(description);
-    DetectGzchecker(description);
+
+    {Standard services detected via data-driven loop}
+    DetectStandardServices(description);
+
+    {Additional services not in the main array (to keep array size manageable)}
     DetectHermansky(description);
     DetectKomurka(description);
-    DetectNanochecker(description);
     DetectPuzzleChecker(description);
 end;
 
-{Result handling procedures - extracted from main Checker procedure}
+{Result handling procedures - using cached settings}
 procedure CallExternalScripts();
-var
-    ini: TIniFile;
-    callggp, callgge, ggeoutput: String;
 begin
-    ini := TIniFile.Create(GEOGET_SCRIPTDIR+'\Checker\Checker.ini');
-    try
-        callggp   := ini.ReadString('Checker', 'callggp', '');
-        callgge   := ini.ReadString('Checker', 'callgge', '');
-        ggeoutput := ini.ReadString('Checker', 'ggeoutput', '');
-    finally
-        ini.Free;
-    end;
+    LoadCachedSettings();
 
-    if (callggp <> '') then
-        GeoCallGGP(GEOGET_SCRIPTDIR + callggp);
-    if (callgge <> '') then
-        GeoExport(GEOGET_SCRIPTDIR + callgge, ggeoutput);
+    if (cachedCallGgp <> '') then
+        GeoCallGGP(GEOGET_SCRIPTDIR + cachedCallGgp);
+    if (cachedCallGge <> '') then
+        GeoExport(GEOGET_SCRIPTDIR + cachedCallGge, cachedGgeOutput);
 end;
 
 procedure HandleNeutralResult();
@@ -488,46 +413,30 @@ begin
 end;
 
 procedure HandleCorrectResult(const coordinates: String);
-var
-    ini: TIniFile;
-    localCorrect: String;
 begin
     {$ifdef DEBUG_HELPER} LDH('Correct solution! :)'); {$endif}
 
-    ini := TIniFile.Create(GEOGET_SCRIPTDIR+'\Checker\Checker.ini');
-    try
-        localCorrect := ini.ReadString('Checker', 'correct', 'CORRECT');
-    finally
-        ini.Free;
-    end;
+    LoadCachedSettings();
 
-    if (localCorrect <> '') then begin
-        UpdateWaypointComment(localCorrect);
+    if (cachedCorrect <> '') then begin
+        UpdateWaypointComment(cachedCorrect);
         CallExternalScripts();
     end;
-    if (history) then
+    if (cachedHistory) then
         LogHistory(coordinates, 'Correct');
 end;
 
 procedure HandleIncorrectResult(const coordinates: String);
-var
-    ini: TIniFile;
-    localIncorrect: String;
 begin
     {$ifdef DEBUG_HELPER} LDH('Incorrect solution! :('); {$endif}
 
-    ini := TIniFile.Create(GEOGET_SCRIPTDIR+'\Checker\Checker.ini');
-    try
-        localIncorrect := ini.ReadString('Checker', 'incorrect', 'INCORRECT');
-    finally
-        ini.Free;
-    end;
+    LoadCachedSettings();
 
-    if (localIncorrect <> '') then begin
-        UpdateWaypointComment(localIncorrect);
+    if (cachedIncorrect <> '') then begin
+        UpdateWaypointComment(cachedIncorrect);
         CallExternalScripts();
     end;
-    if (history) then
+    if (cachedHistory) then
         LogHistory(coordinates, 'Incorrect');
 end;
 
@@ -630,33 +539,20 @@ begin
 end;
 
 function HasServicesFound(): Boolean;
-var
-    ini: TIniFile;
-    writenotfound: Boolean;
-    notfound, callggp, callgge, ggeoutput: String;
 begin
     Result := (serviceNum > 0);
     if not Result then begin
         ShowMessage(_('Error: No coordinate checker URL found!'));
         {$ifdef DEBUG_HELPER} LDHe('Error: No coordinate checker URL found!'); {$endif}
 
-        ini := TIniFile.Create(GEOGET_SCRIPTDIR+'\Checker\Checker.ini');
-        try
-            writenotfound := ini.ReadBool('Checker', 'writenotfound', False);
-            notfound      := ini.ReadString('Checker', 'notfound', 'NOTFOUND');
-            callggp       := ini.ReadString('Checker', 'callggp', '');
-            callgge       := ini.ReadString('Checker', 'callgge', '');
-            ggeoutput     := ini.ReadString('Checker', 'ggeoutput', '');
-        finally
-            ini.Free;
-        end;
+        LoadCachedSettings();
 
-        if (writenotfound) then
-            UpdateWaypointComment(notfound);
-        if (callggp <> '') then
-            GeoCallGGP(GEOGET_SCRIPTDIR + callggp);
-        if (callgge <> '') then
-            GeoExport(GEOGET_SCRIPTDIR + callgge, ggeoutput);
+        if (cachedWriteNotFound) then
+            UpdateWaypointComment(cachedNotFound);
+        if (cachedCallGgp <> '') then
+            GeoCallGGP(GEOGET_SCRIPTDIR + cachedCallGgp);
+        if (cachedCallGge <> '') then
+            GeoExport(GEOGET_SCRIPTDIR + cachedCallGge, cachedGgeOutput);
         GeoAbort;
     end;
 end;
@@ -664,30 +560,22 @@ end;
 procedure HandleGeocachingComService(const coordinates: String);
 var
     i: Integer;
-    ini: TIniFile;
-    localCorrect, localIncorrect: String;
 begin
     {$ifdef DEBUG_HELPER} LDH('Service: geocaching.com'); {$endif}
     {$ifdef DEBUG_HELPER} LDH('Attributes: ' + GC.TagValues('attribute')); {$endif}
 
-    ini := TIniFile.Create(GEOGET_SCRIPTDIR+'\Checker\Checker.ini');
-    try
-        localCorrect   := ini.ReadString('Checker', 'correct', 'CORRECT');
-        localIncorrect := ini.ReadString('Checker', 'incorrect', 'INCORRECT');
-    finally
-        ini.Free;
-    end;
+    LoadCachedSettings();
 
     i := GcVerify();
     case i of
         204: begin
-            if (localCorrect <> '') then UpdateWaypointComment(localCorrect);
-            if (history) then LogHistory(coordinates, 'Correct');
+            if (cachedCorrect <> '') then UpdateWaypointComment(cachedCorrect);
+            if (cachedHistory) then LogHistory(coordinates, 'Correct');
             i := -1;
         end;
         400: begin
-            if (localIncorrect <> '') then UpdateWaypointComment(localIncorrect);
-            if (history) then LogHistory(coordinates, 'Inorrect');
+            if (cachedIncorrect <> '') then UpdateWaypointComment(cachedIncorrect);
+            if (cachedHistory) then LogHistory(coordinates, 'Incorrect');
             i := -1;
         end;
         401, 403, 404, 405, 406, 407, 408, 429: i := 0;
@@ -715,23 +603,20 @@ end;
 procedure Checker(runFrom: String);
 var
     description, coordinates: String;
-    ini: TIniFile;
 begin
     {$ifdef DEBUG_HELPER} LDHInit(true); {$endif}
     {$ifdef DEBUG_HELPER} LDHp('----------------------------------------'); {$endif}
     {$ifdef DEBUG_HELPER} LDHp('Checker'); {$endif}
     {$ifdef DEBUG_HELPER} LDHp('----------------------------------------'); {$endif}
 
-    {Read configuration from INI}
-    ini := TIniFile.Create(GEOGET_SCRIPTDIR+'\Checker\Checker.ini');
-    try
-        answer    := ini.ReadBool('Checker', 'answer', False);
-        correct   := ini.ReadString('Checker', 'correct', 'CORRECT');
-        incorrect := ini.ReadString('Checker', 'incorrect', 'INCORRECT');
-        history   := ini.ReadBool('Checker', 'history', False);
-    finally
-        ini.Free;
-    end;
+    {Load cached settings (reads INI file once per session)}
+    LoadCachedSettings();
+
+    {Copy cached values to global variables for backward compatibility}
+    answer    := cachedAnswer;
+    correct   := cachedCorrect;
+    incorrect := cachedIncorrect;
+    history   := cachedHistory;
 
     {This cache GC3PVWQ have url in short description, so we join short and long together}
     description := GC.ShortDescription + GC.LongDescription + GC.Hint;

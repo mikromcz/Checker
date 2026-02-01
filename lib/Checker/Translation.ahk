@@ -1,98 +1,127 @@
 /**
  * @description Translation system for Checker application
- * Provides bilingual support (Czech/English) based on system locale detection.
- * Centralizes all user-facing strings for consistency and maintainability.
+ * Loads translations from external INI files in the lang/ folder.
+ * Supports automatic language detection with English fallback.
  * @author mikrom, ClaudeAI
- * @version 4.0.1
- * @since Initial version
+ * @version 4.2.0
+ *
+ * Supported languages:
+ * - English (en.ini) - default/fallback
+ * - Czech (cs.ini) - language code 0405
+ * - Slovak (sk.ini) - language code 041B
+ * - Polish (pl.ini) - language code 0415
+ * - German (de.ini) - language codes 0407, 0807, 0C07
+ *
+ * To add a new language:
+ * 1. Copy en.ini to xx.ini (where xx is the language code)
+ * 2. Translate all values in the [Strings] section
+ * 3. Add the language code mapping in Translation.init()
  */
 class Translation {
     static strings := ""
+    static currentLanguage := ""
+    static langFolder := ""
 
     /**
-     * Initializes the translation system with Czech/English strings
-     * Automatically detects system language (0405 = Czech) for localization
+     * Initializes the translation system
+     * Checks for manual override in Checker.ini, then detects system language
      */
     static init() {
         if (Translation.strings == "") {
             Translation.strings := Map()
+            Translation.langFolder := A_ScriptDir . "\lib\Checker\lang\"
 
-            ; Detect Czech system language (0405 = Czech)
-            isCzech := (A_Language = "0405") ; 0809 Roman
+            ; First check for manual language override in Checker.ini
+            manualLang := ""
+            try {
+                iniFile := A_ScriptDir . "\Checker.ini"
+                if (FileExist(iniFile)) {
+                    manualLang := IniRead(iniFile, "Checker", "language", "")
+                }
+            }
 
-            ; Main application strings
-            Translation.strings["app_title"] := isCzech ? "Checker - Nástroj pro ověření souřadnic" : "Checker - Coordinate Verification Tool"
-            Translation.strings["ready"] := isCzech ? "Připraven" : "Ready"
-            Translation.strings["initializing_webview"] := isCzech ? "Inicializace WebView2..." : "Initializing WebView2..."
-            Translation.strings["loading_url"] := isCzech ? "Načítání URL..." : "Loading URL..."
-            Translation.strings["page_loaded"] := isCzech ? "Stránka úspěšně načtena" : "Page loaded successfully"
-            Translation.strings["dom_loaded"] := isCzech ? "DOM načten - Vyplňování souřadnic..." : "DOM loaded - Filling coordinates..."
-            Translation.strings["coordinates_filled"] := isCzech ? "Souřadnice úspěšně vyplněny - Odešlete formulář a čekejte..." : "Coordinates filled successfully - Submit form and wait..."
-            Translation.strings["geocheck_captcha"] := isCzech ? "Souřadnice úspěšně vyplněny - Vyřešte captcha a odešlete formulář" : "Coordinates filled successfully - Please solve captcha and submit form"
-            Translation.strings["refreshing"] := isCzech ? "Obnovování stránky..." : "Refreshing page..."
-            Translation.strings["no_url_refresh"] := isCzech ? "Žádná URL k obnovení" : "No URL to refresh"
-            Translation.strings["checking"] := isCzech ? "Kontrola" : "Checking"
-            Translation.strings["correct"] := isCzech ? "Správně!" : "Correct!"
-            Translation.strings["wrong"] := isCzech ? "Špatně!" : "Wrong!"
-            Translation.strings["result_checking_disabled"] := isCzech ? "Kontrola výsledků zakázána" : "Result checking disabled"
+            if (manualLang != "" && FileExist(Translation.langFolder . manualLang . ".ini")) {
+                ; Use manually configured language
+                Translation.currentLanguage := manualLang
+            } else {
+                ; Map system language codes to INI file names
+                langMap := Map(
+                    "0405", "cs",  ; Czech
+                    "041B", "sk",  ; Slovak
+                    "0415", "pl",  ; Polish
+                    "0407", "de",  ; German (Germany)
+                    "0807", "de",  ; German (Switzerland)
+                    "0C07", "de"   ; German (Austria)
+                )
 
-            ; Menu strings
-            Translation.strings["menu_file"] := isCzech ? "&Soubor" : "&File"
-            Translation.strings["menu_refresh"] := isCzech ? "&Obnovit (F5)" : "&Refresh (F5)"
-            Translation.strings["menu_preferences"] := isCzech ? "&Předvolby..." : "&Preferences..."
-            Translation.strings["menu_exit"] := isCzech ? "&Konec" : "E&xit"
-            Translation.strings["menu_help"] := isCzech ? "&Nápověda" : "&Help"
-            Translation.strings["menu_about"] := isCzech ? "&O aplikaci..." : "&About..."
+                ; Determine which language file to use based on system language
+                Translation.currentLanguage := langMap.Has(A_Language) ? langMap[A_Language] : "en"
+            }
 
-            ; Preferences dialog
-            Translation.strings["preferences_title"] := isCzech ? "Předvolby" : "Preferences"
-            Translation.strings["result_checking"] := isCzech ? "Kontrola výsledků:" : "Result Checking:"
-            Translation.strings["result_checking_desc"] := isCzech ? "Kontrolovat výsledek a vrátit exit kód (1=Správně, 2=Špatně)" : "Check result and return exit code (1=Correct, 2=Wrong)"
-            Translation.strings["debug_mode"] := isCzech ? "Režim ladění:" : "Debug Mode:"
-            Translation.strings["debug_mode_desc"] := isCzech ? "Povolit režim ladění (zobrazit dodatečné informace)" : "Enable debug mode (show additional information)"
-            Translation.strings["audio_feedback"] := isCzech ? "Zvuková odezva:" : "Audio Feedback:"
-            Translation.strings["audio_feedback_desc"] := isCzech ? "Přehrát zvuk pro správné/nesprávné ověření" : "Play sound for correct/incorrect verification"
-            Translation.strings["clipboard"] := isCzech ? "Schránka:" : "Clipboard:"
-            Translation.strings["clipboard_desc"] := isCzech ? "Kopírovat zprávu autora do schránky" : "Copy owner's message to clipboard"
-            Translation.strings["timeout"] := isCzech ? "Časový limit načítání stránky (sekundy):" : "Page load timeout (seconds):"
-            Translation.strings["timeout_desc"] := isCzech ? "(prázdné = bez limitu)" : "(empty = no timeout)"
-            Translation.strings["ok"] := isCzech ? "&OK" : "&OK"
-            Translation.strings["cancel"] := isCzech ? "&Zrušit" : "&Cancel"
+            ; Load the language file (with English fallback)
+            Translation.loadLanguageFile()
+        }
+    }
 
-            ; About dialog
-            Translation.strings["about_title"] := isCzech ? "O aplikaci Checker" : "About Checker"
-            Translation.strings["current_parameters"] := isCzech ? "Aktuální parametry:" : "Current Parameters:"
-            Translation.strings["service"] := isCzech ? "Služba" : "Service"
-            Translation.strings["latitude"] := isCzech ? "Zeměpisná šířka" : "Latitude"
-            Translation.strings["longitude"] := isCzech ? "Zeměpisná délka" : "Longitude"
-            Translation.strings["coordinates"] := isCzech ? "Souřadnice" : "Coordinates"
-            Translation.strings["target_url"] := isCzech ? "Cílová URL:" : "Target URL:"
-            Translation.strings["none"] := isCzech ? "(žádné)" : "(none)"
-            Translation.strings["not_provided"] := isCzech ? "(neposkytnuty)" : "(not provided)"
-            Translation.strings["no_url_provided"] := isCzech ? "(žádná URL poskytnuta)" : "(no URL provided)"
-            Translation.strings["characters_total"] := isCzech ? "znaků celkem" : "characters total"
+    /**
+     * Loads translations from the appropriate INI file
+     * Falls back to English for missing keys
+     */
+    static loadLanguageFile() {
 
-            ; Clipboard strings
-            Translation.strings["clipboard_copied_title"] := isCzech ? "Zpráva autora zkopírována" : "Owner's Message Copied"
-            Translation.strings["clipboard_success"] := isCzech ? "✓ Úspěšně zkopírováno do schránky:" : "✓ Successfully copied to clipboard:"
-            Translation.strings["clipboard_failed"] := isCzech ? "✗ Ověření schránky selhalo - očekáváno:" : "✗ Clipboard verification failed - expected:"
-            Translation.strings["clipboard_got"] := isCzech ? "získáno:" : "got:"
-            Translation.strings["clipboard_copy_error"] := isCzech ? "Chyba kopírování do schránky:" : "Clipboard copy error:"
-            Translation.strings["clipboard_not_supported"] := isCzech ? "Kopírování do schránky není podporováno pro službu" : "Clipboard copy not supported for"
-            Translation.strings["clipboard_service"] := isCzech ? "služba" : "service"
-            Translation.strings["attempting_clipboard"] := isCzech ? "Pokus o zkopírování zprávy autora..." : "Attempting to copy owner's message..."
+        langFile := Translation.langFolder . Translation.currentLanguage . ".ini"
+        fallbackFile := Translation.langFolder . "en.ini"
 
-            ; Error messages
-            Translation.strings["error"] := isCzech ? "Chyba" : "Error"
-            Translation.strings["webview_error"] := isCzech ? "Chyba WebView2:" : "WebView2 Error:"
-            Translation.strings["webview_init_failed"] := isCzech ? "Inicializace WebView2 selhala:" : "Failed to initialize WebView2:"
-            Translation.strings["navigation_failed"] := isCzech ? "Navigace selhala - WebNavigationKind:" : "Navigation failed - WebNavigationKind:"
-            Translation.strings["loading_timeout"] := isCzech ? "Časový limit načítání - Zkontrolujte URL nebo síťové připojení" : "Loading timeout - Check URL or network connection"
-            Translation.strings["unknown_service"] := isCzech ? "Neznámá služba:" : "Unknown service:"
-            Translation.strings["see_documentation"] := isCzech ? "- Viz dokumentace pro podporované služby" : "- See documentation for supported services"
-            Translation.strings["dead_service_warning"] := isCzech ? "Varování: Stránka" : "Warning: Site"
-            Translation.strings["dead_service_desc"] := isCzech ? "je mrtvá. Nelze nic vyplnit/zkontrolovat. Kontaktujte autora keše pro změnu ověřovací služby." : "is dead. Cannot fill/check anything. Contact cache author to change verification service."
-            Translation.strings["dead_since"] := isCzech ? "(mrtvá od" : "(dead since"
+        ; First load English as fallback (ensures all keys exist)
+        if (FileExist(fallbackFile)) {
+            Translation.loadFromIni(fallbackFile)
+        }
+
+        ; Then load the target language (overwrites English values)
+        if (Translation.currentLanguage != "en" && FileExist(langFile)) {
+            Translation.loadFromIni(langFile)
+        }
+    }
+
+    /**
+     * Loads all strings from an INI file into the strings Map
+     * Uses FileRead with UTF-8 encoding instead of IniRead to properly handle special characters
+     * @param {String} iniFile Path to the INI file
+     */
+    static loadFromIni(iniFile) {
+        try {
+            ; Read file with UTF-8 encoding (IniRead doesn't handle UTF-8 properly)
+            content := FileRead(iniFile, "UTF-8")
+
+            ; Find [Strings] section and parse it
+            inStringsSection := false
+
+            for line in StrSplit(content, "`n", "`r") {
+                line := Trim(line)
+
+                ; Skip empty lines and comments
+                if (line == "" || SubStr(line, 1, 1) == ";")
+                    continue
+
+                ; Check for section headers
+                if (SubStr(line, 1, 1) == "[") {
+                    inStringsSection := (line == "[Strings]")
+                    continue
+                }
+
+                ; Parse key=value pairs in [Strings] section
+                if (inStringsSection && InStr(line, "=")) {
+                    parts := StrSplit(line, "=", , 2)
+                    if (parts.Length >= 2) {
+                        key := Trim(parts[1])
+                        value := Trim(parts[2])
+                        Translation.strings[key] := value
+                    }
+                }
+            }
+        } catch as e {
+            ; If loading fails, strings Map remains empty or partial
+            ; get() will return the key itself as fallback
         }
     }
 
@@ -104,5 +133,28 @@ class Translation {
     static get(key) {
         Translation.init()
         return Translation.strings.Has(key) ? Translation.strings[key] : key
+    }
+
+    /**
+     * Gets the current language code
+     * @returns {String} Current language code (e.g., "en", "cs", "sk")
+     */
+    static getLanguage() {
+        Translation.init()
+        return Translation.currentLanguage
+    }
+
+    /**
+     * Gets list of available languages by scanning lang folder
+     * @returns {Array} Array of available language codes
+     */
+    static getAvailableLanguages() {
+        Translation.init()
+        languages := []
+        Loop Files, Translation.langFolder . "*.ini" {
+            langCode := StrReplace(A_LoopFileName, ".ini", "")
+            languages.Push(langCode)
+        }
+        return languages
     }
 }

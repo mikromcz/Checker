@@ -6,7 +6,7 @@
  * @description Service registry and factory for coordinate checker services.
  * Manages registration, initialization, and creation of all supported services.
  * @author mikrom, ClaudeAI
- * @version 4.1.0
+ * @version 4.2.0
  */
 
 ; Alive services
@@ -86,16 +86,6 @@ class ServiceRegistry {
     }
 
     /**
-     * Registers a standard LatLonString service
-     * @param {String} serviceName Service identifier
-     * @param {String} displayName Human-readable service name
-     */
-    static registerStandardService(serviceName, displayName) {
-        ServiceRegistry.services[StrLower(serviceName)] := (app) => StandardLatLonService(app, serviceName, displayName
-        )
-    }
-
-    /**
      * Creates a service instance for the given service name
      * @param {String} serviceName Name of the service to create (may include |comment)
      * @param {Object} checkerApp Reference to the main Checker application
@@ -113,16 +103,8 @@ class ServiceRegistry {
         serviceKey := StrLower(baseServiceName)
 
         if (ServiceRegistry.services.Has(serviceKey)) {
-            serviceFactory := ServiceRegistry.services[serviceKey]
-
-            ; Handle both class constructors and factory functions
-            if (IsObject(serviceFactory) && serviceFactory.HasProp("Prototype")) {
-                ; It's a class constructor
-                return serviceFactory(checkerApp)
-            } else {
-                ; It's a factory function
-                return serviceFactory(checkerApp)
-            }
+            ; Both class constructors and factory functions are callable the same way
+            return ServiceRegistry.services[serviceKey](checkerApp)
         }
 
         ; Unknown service

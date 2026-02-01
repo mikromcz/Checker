@@ -3,9 +3,9 @@
  * Automates coordinate submission and verification across multiple geocaching
  * coordinate checker websites using WebView2 technology.
  * @author mikrom, ClaudeAI
- * @version 4.0.1
+ * @version 4.2.0
  * @url https://www.geoget.cz/doku.php/user:skript:checker
- * @forum http://www.geocaching.cz/forum/viewthread.php?forum_id=20&thread_id=25822
+ * @forum https://forum.geocaching.cz/t/checker-klikatko-na-overeni-souradnic/24502
  * @icon https://icons8.com/icon/18401/Thumb-Up
  */
 
@@ -15,6 +15,230 @@
 #Include lib\Promise.ahk
 #Include lib\ComVar.ahk
 #Include lib\Checker\ServiceRegistry.ahk
+
+/**
+ * Application constants for consistent values across the codebase
+ */
+class CheckerConstants {
+    ; Window dimensions
+    static MIN_WIDTH := 1000
+    static MIN_HEIGHT := 600
+    static STATUS_BAR_HEIGHT := 20
+    static WINDOW_BORDER_WIDTH := 16
+    static WINDOW_DECORATION_HEIGHT := 59
+
+    ; Exit codes
+    static EXIT_NORMAL := 0
+    static EXIT_CORRECT := 1
+    static EXIT_WRONG := 2
+    static EXIT_DEAD := 3
+    static EXIT_INVALID_PARAMS := 4
+
+    ; Timeouts (milliseconds)
+    static DEFAULT_TIMEOUT_MS := 10000
+    static RESULT_CHECK_INTERVAL_MS := 200
+    static DOM_READY_DELAY_MS := 500
+    static CAPTCHA_FOCUS_DELAY_MS := 100
+}
+
+/**
+ * Settings manager for the Checker application
+ * Handles loading and saving settings from/to INI file
+ */
+class CheckerSettings {
+    /**
+     * Constructor - initializes settings with defaults
+     * @param {String} iniFile Path to INI file (default: "Checker.ini")
+     */
+    __New(iniFile := "Checker.ini") {
+        this.iniFile := iniFile
+        this.answer := 1
+        this.debug := 0
+        this.beep := 0
+        this.copymsg := 1
+        this.timeout := 10
+        this.language := ""  ; Empty = auto-detect, otherwise language code (en, cs, sk)
+        this.windowWidth := CheckerConstants.MIN_WIDTH
+        this.windowHeight := CheckerConstants.MIN_HEIGHT
+    }
+
+    /**
+     * Loads settings from INI file
+     * Uses defaults if file doesn't exist or loading fails
+     */
+    load() {
+        try {
+            if (FileExist(this.iniFile)) {
+                this.answer := IniRead(this.iniFile, "Checker", "answer", 1)
+                this.copymsg := IniRead(this.iniFile, "Checker", "copymsg", 1)
+                this.timeout := IniRead(this.iniFile, "Checker", "timeout", "")
+                this.debug := IniRead(this.iniFile, "Checker", "debug", 0)
+                this.beep := IniRead(this.iniFile, "Checker", "beep", 0)
+                this.language := IniRead(this.iniFile, "Checker", "language", "")
+                this.windowWidth := Integer(IniRead(this.iniFile, "Checker", "windowWidth", CheckerConstants.MIN_WIDTH))
+                this.windowHeight := Integer(IniRead(this.iniFile, "Checker", "windowHeight", CheckerConstants.MIN_HEIGHT))
+
+                ; Validate window size constraints
+                this.validateWindowSize()
+            }
+        } catch {
+            ; Use defaults if loading fails
+        }
+    }
+
+    /**
+     * Saves current settings to INI file
+     * @returns {Boolean} True if save succeeded, false otherwise
+     */
+    save() {
+        try {
+            IniWrite(this.answer, this.iniFile, "Checker", "answer")
+            IniWrite(this.copymsg, this.iniFile, "Checker", "copymsg")
+            IniWrite(this.timeout, this.iniFile, "Checker", "timeout")
+            IniWrite(this.debug, this.iniFile, "Checker", "debug")
+            IniWrite(this.beep, this.iniFile, "Checker", "beep")
+            IniWrite(this.language, this.iniFile, "Checker", "language")
+            IniWrite(this.windowWidth, this.iniFile, "Checker", "windowWidth")
+            IniWrite(this.windowHeight, this.iniFile, "Checker", "windowHeight")
+            return true
+        } catch as e {
+            MsgBox("Failed to save settings: " . e.message, "Error", "OK Icon!")
+            return false
+        }
+    }
+
+    /**
+     * Validates and constrains window size to acceptable range
+     */
+    validateWindowSize() {
+        if (this.windowWidth < CheckerConstants.MIN_WIDTH)
+            this.windowWidth := CheckerConstants.MIN_WIDTH
+        if (this.windowHeight < CheckerConstants.MIN_HEIGHT)
+            this.windowHeight := CheckerConstants.MIN_HEIGHT
+        if (this.windowWidth > A_ScreenWidth)
+            this.windowWidth := A_ScreenWidth
+        if (this.windowHeight > A_ScreenHeight)
+            this.windowHeight := A_ScreenHeight
+    }
+}
+
+/**
+ * Coordinate validator and command-line parser
+ * Handles parsing and validation of coordinate parameters
+ */
+class CoordinateValidator {
+    /**
+     * Constructor - initializes coordinate fields
+     */
+    __New() {
+        this.service := ""
+        this.lat := ""
+        this.latdeg := ""
+        this.latmin := ""
+        this.latdec := ""
+        this.lon := ""
+        this.londeg := ""
+        this.lonmin := ""
+        this.londec := ""
+        this.url := ""
+        this.isValid := false
+        this.errorMessage := ""
+    }
+
+    /**
+     * Parses command line arguments and validates them
+     * Expected format: service lat latdeg latmin latdec lon londeg lonmin londec url
+     * @returns {Boolean} True if parameters are valid, false otherwise
+     */
+    parseCommandLine() {
+        this.isValid := false
+        this.errorMessage := ""
+
+        if (A_Args.Length >= 10) {
+            this.service := A_Args[1]
+            this.lat := A_Args[2]
+            this.latdeg := A_Args[3]
+            this.latmin := A_Args[4]
+            this.latdec := A_Args[5]
+            this.lon := A_Args[6]
+            this.londeg := A_Args[7]
+            this.lonmin := A_Args[8]
+            this.londec := A_Args[9]
+            this.url := A_Args[10]
+
+            this.isValid := this.validate()
+        } else {
+            this.errorMessage := "Insufficient parameters provided (" . A_Args.Length . " received, 10 required)"
+        }
+
+        return this.isValid
+    }
+
+    /**
+     * Validates coordinate parameters for correct format and ranges
+     * @returns {Boolean} True if all parameters are valid, false otherwise
+     */
+    validate() {
+        ; Validate coordinate directions
+        if (this.lat != "N" && this.lat != "S") {
+            this.errorMessage := "Invalid latitude direction '" . this.lat . "' (must be N or S)"
+            return false
+        }
+
+        if (this.lon != "E" && this.lon != "W") {
+            this.errorMessage := "Invalid longitude direction '" . this.lon . "' (must be E or W)"
+            return false
+        }
+
+        ; Validate that coordinate numbers are numeric
+        if (!IsNumber(this.latdeg) || !IsNumber(this.latmin) || !IsNumber(this.latdec)) {
+            this.errorMessage := "Invalid latitude coordinates (latdeg='" . this.latdeg . "', latmin='" . this.latmin . "', latdec='" . this.latdec . "') - must be numbers"
+            return false
+        }
+
+        if (!IsNumber(this.londeg) || !IsNumber(this.lonmin) || !IsNumber(this.londec)) {
+            this.errorMessage := "Invalid longitude coordinates (londeg='" . this.londeg . "', lonmin='" . this.lonmin . "', londec='" . this.londec . "') - must be numbers"
+            return false
+        }
+
+        ; Validate coordinate ranges
+        latDeg := Integer(this.latdeg)
+        lonDeg := Integer(this.londeg)
+        latMin := Integer(this.latmin)
+        lonMin := Integer(this.lonmin)
+
+        if (latDeg < 0 || latDeg > 90) {
+            this.errorMessage := "Invalid latitude degrees '" . this.latdeg . "' (must be 0-90)"
+            return false
+        }
+
+        if (lonDeg < 0 || lonDeg > 180) {
+            this.errorMessage := "Invalid longitude degrees '" . this.londeg . "' (must be 0-180)"
+            return false
+        }
+
+        if (latMin < 0 || latMin >= 60) {
+            this.errorMessage := "Invalid latitude minutes '" . this.latmin . "' (must be 0-59)"
+            return false
+        }
+
+        if (lonMin < 0 || lonMin >= 60) {
+            this.errorMessage := "Invalid longitude minutes '" . this.lonmin . "' (must be 0-59)"
+            return false
+        }
+
+        return true
+    }
+
+    /**
+     * Checks if all required coordinate parameters are present
+     * @returns {Boolean} True if all coordinate fields have values
+     */
+    hasCoordinates() {
+        return (this.lat != "" && this.latdeg != "" && this.latmin != "" && this.latdec != "" &&
+            this.lon != "" && this.londeg != "" && this.lonmin != "" && this.londec != "")
+    }
+}
 
 class CheckerApp {
     /**
@@ -35,6 +259,7 @@ class CheckerApp {
      * Initializes application properties and default settings
      */
     __New() {
+        ; Coordinate fields
         this.service := ""
         this.lat := ""
         this.latdeg := ""
@@ -45,6 +270,8 @@ class CheckerApp {
         this.lonmin := ""
         this.londec := ""
         this.url := ""
+
+        ; WebView2 and state management
         this.webView := ""
         this.webViewController := ""
         this.isCheckingResults := false
@@ -54,17 +281,22 @@ class CheckerApp {
         this.clipboardCopied := false
         this.version := this.getVersionFromScript()
 
-        ; Settings with defaults
+        ; Use CheckerSettings for settings management
+        this.settingsManager := CheckerSettings()
+        ; Create settings proxy for backwards compatibility
         this.settings := {
-            answer: 1,      ; Check result and send exit code
-            debug: 0,       ; Debug mode
-            beep: 0,        ; Acoustic feedback
-            copymsg: 1,     ; Copy owner's message to clipboard
-            timeout: 10,    ; Page load timeout in seconds
-            windowWidth: 1000,  ; Window width
-            windowHeight: 600   ; Window height
+            answer: 1,
+            debug: 0,
+            beep: 0,
+            copymsg: 1,
+            timeout: 10,
+            language: "",
+            windowWidth: CheckerConstants.MIN_WIDTH,
+            windowHeight: CheckerConstants.MIN_HEIGHT
         }
-        this.iniFile := "Checker.ini"
+
+        ; Use CoordinateValidator for parameter validation
+        this.validator := CoordinateValidator()
     }
 
     setupIcons() {
@@ -76,104 +308,40 @@ class CheckerApp {
 
     /**
      * Parses command line arguments and validates parameters
-     * Expected format: service lat latdeg latmin latdec lon londeg lonmin londec url
+     * Delegates to CoordinateValidator for parsing and validation
      */
     parseCommandLine() {
-        this.hasValidParameters := false
-        this.parameterError := ""
+        this.hasValidParameters := this.validator.parseCommandLine()
+        this.parameterError := this.validator.errorMessage
 
-        if (A_Args.Length >= 10) {
-            this.service := A_Args[1]
-            this.lat := A_Args[2]
-            this.latdeg := A_Args[3]
-            this.latmin := A_Args[4]
-            this.latdec := A_Args[5]
-            this.lon := A_Args[6]
-            this.londeg := A_Args[7]
-            this.lonmin := A_Args[8]
-            this.londec := A_Args[9]
-            this.url := A_Args[10]
-
-            ; Validate parameter types and values
-            if (!this.validateParameters()) {
-                this.hasValidParameters := false
-                this.finalExitCode := 4  ; Set exit code for invalid parameters
-                return
-            }
-
-            this.hasValidParameters := true
+        if (this.hasValidParameters) {
+            ; Copy validated values to CheckerApp for compatibility
+            this.service := this.validator.service
+            this.lat := this.validator.lat
+            this.latdeg := this.validator.latdeg
+            this.latmin := this.validator.latmin
+            this.latdec := this.validator.latdec
+            this.lon := this.validator.lon
+            this.londeg := this.validator.londeg
+            this.lonmin := this.validator.lonmin
+            this.londec := this.validator.londec
+            this.url := this.validator.url
         } else {
-            this.parameterError := "Insufficient parameters provided (" . A_Args.Length . " received, 10 required)"
-            this.finalExitCode := 4  ; Set exit code for invalid parameters
+            this.finalExitCode := CheckerConstants.EXIT_INVALID_PARAMS
         }
-    }
-
-    /**
-     * Validates coordinate parameters for correct format and ranges
-     * @returns {Boolean} True if all parameters are valid, false otherwise
-     */
-    validateParameters() {
-        ; Validate coordinate directions
-        if (this.lat != "N" && this.lat != "S") {
-            this.parameterError := "Invalid latitude direction '" . this.lat . "' (must be N or S)"
-            return false
-        }
-
-        if (this.lon != "E" && this.lon != "W") {
-            this.parameterError := "Invalid longitude direction '" . this.lon . "' (must be E or W)"
-            return false
-        }
-
-        ; Validate that coordinate numbers are numeric
-        if (!IsNumber(this.latdeg) || !IsNumber(this.latmin) || !IsNumber(this.latdec)) {
-            this.parameterError := "Invalid latitude coordinates (latdeg='" . this.latdeg . "', latmin='" . this.latmin . "', latdec='" . this.latdec . "') - must be numbers"
-            return false
-        }
-
-        if (!IsNumber(this.londeg) || !IsNumber(this.lonmin) || !IsNumber(this.londec)) {
-            this.parameterError := "Invalid longitude coordinates (londeg='" . this.londeg . "', lonmin='" . this.lonmin . "', londec='" . this.londec . "') - must be numbers"
-            return false
-        }
-
-        ; Validate coordinate ranges
-        latDeg := Integer(this.latdeg)
-        lonDeg := Integer(this.londeg)
-        latMin := Integer(this.latmin)
-        lonMin := Integer(this.lonmin)
-
-        if (latDeg < 0 || latDeg > 90) {
-            this.parameterError := "Invalid latitude degrees '" . this.latdeg . "' (must be 0-90)"
-            return false
-        }
-
-        if (lonDeg < 0 || lonDeg > 180) {
-            this.parameterError := "Invalid longitude degrees '" . this.londeg . "' (must be 0-180)"
-            return false
-        }
-
-        if (latMin < 0 || latMin >= 60) {
-            this.parameterError := "Invalid latitude minutes '" . this.latmin . "' (must be 0-59)"
-            return false
-        }
-
-        if (lonMin < 0 || lonMin >= 60) {
-            this.parameterError := "Invalid longitude minutes '" . this.lonmin . "' (must be 0-59)"
-            return false
-        }
-
-        return true
     }
 
     createGUI() {
         ; Calculate centered position based on saved client size
         ; Add approximate window decoration size for positioning
-        approxWindowWidth := this.settings.windowWidth + 16   ; Add border width
-        approxWindowHeight := this.settings.windowHeight + 59  ; Add title bar + border height
+        approxWindowWidth := this.settings.windowWidth + CheckerConstants.WINDOW_BORDER_WIDTH
+        approxWindowHeight := this.settings.windowHeight + CheckerConstants.WINDOW_DECORATION_HEIGHT
         centerX := (A_ScreenWidth - approxWindowWidth) // 2
         centerY := (A_ScreenHeight - approxWindowHeight) // 2
 
         ; Create main GUI window
-        this.gui := Gui("+Resize +MinSize1000x600", Translation.get("app_title"))
+        minSizeStr := "+Resize +MinSize" . CheckerConstants.MIN_WIDTH . "x" . CheckerConstants.MIN_HEIGHT
+        this.gui := Gui(minSizeStr, Translation.get("app_title"))
         this.gui.OnEvent("Close", (*) => this.exitApp())
         this.gui.OnEvent("Size", (*) => this.onWindowResize())
 
@@ -184,7 +352,7 @@ class CheckerApp {
         this.createMenuBar()
 
         ; Create WebView2 container area (starts from y0 since menu bar is native)
-        containerHeight := this.settings.windowHeight - 20  ; Leave 20px for status bar
+        containerHeight := this.settings.windowHeight - CheckerConstants.STATUS_BAR_HEIGHT
         this.webViewContainer := this.gui.AddText("x0 y0 w" . this.settings.windowWidth . " h" . containerHeight . " +Border")
 
         ; Create status bar at bottom
@@ -194,7 +362,8 @@ class CheckerApp {
         this.gui.Move(centerX, centerY)
         ; Use SetClientSize to set the exact client dimensions we want
         DllCall("SetWindowPos", "Ptr", this.gui.Hwnd, "Ptr", 0, "Int", centerX, "Int", centerY,
-                "Int", this.settings.windowWidth + 16, "Int", this.settings.windowHeight + 59, "UInt", 0x0004)
+                "Int", this.settings.windowWidth + CheckerConstants.WINDOW_BORDER_WIDTH,
+                "Int", this.settings.windowHeight + CheckerConstants.WINDOW_DECORATION_HEIGHT, "UInt", 0x0004)
 
         ; Initialize WebView2
         this.initializeWebView()
@@ -228,10 +397,10 @@ class CheckerApp {
     }
 
     createStatusBar() {
-        ; Create status bar area (thinner - reduced height from 30 to 20)
-        statusY := this.settings.windowHeight - 20
+        ; Create status bar area
+        statusY := this.settings.windowHeight - CheckerConstants.STATUS_BAR_HEIGHT
         statusTextY := statusY + 2
-        this.statusBar := this.gui.AddText("x0 y" . statusY . " w" . this.settings.windowWidth . " h20 +0x1000")  ; SS_SUNKEN
+        this.statusBar := this.gui.AddText("x0 y" . statusY . " w" . this.settings.windowWidth . " h" . CheckerConstants.STATUS_BAR_HEIGHT . " +0x1000")  ; SS_SUNKEN
         this.statusBar.BackColor := "0xF0F0F0"
 
         ; Left status text for loading/page messages (much wider for debug messages)
@@ -245,51 +414,47 @@ class CheckerApp {
 
     /**
      * Loads application settings from INI file
-     * Creates default settings file if it doesn't exist
+     * Delegates to CheckerSettings and syncs to local settings object
      */
     loadSettings() {
-        ; Load settings from INI file
-        try {
-            if (FileExist(this.iniFile)) {
-                this.settings.answer := IniRead(this.iniFile, "Checker", "answer", 1)
-                this.settings.copymsg := IniRead(this.iniFile, "Checker", "copymsg", 1)
-                this.settings.timeout := IniRead(this.iniFile, "Checker", "timeout", "")
-                this.settings.debug := IniRead(this.iniFile, "Checker", "debug", 0)
-                this.settings.beep := IniRead(this.iniFile, "Checker", "beep", 0)
-                this.settings.windowWidth := Integer(IniRead(this.iniFile, "Checker", "windowWidth", 1000))
-                this.settings.windowHeight := Integer(IniRead(this.iniFile, "Checker", "windowHeight", 600))
+        this.settingsManager.load()
+        this.syncSettingsFromManager()
+    }
 
-                ; Debug: Show loaded values
-                ; MsgBox("Loaded from INI: " . this.settings.windowWidth . "x" . this.settings.windowHeight)
+    /**
+     * Syncs settings from the settings manager to the local settings object
+     * Maintains backwards compatibility with existing code
+     */
+    syncSettingsFromManager() {
+        this.settings.answer := this.settingsManager.answer
+        this.settings.copymsg := this.settingsManager.copymsg
+        this.settings.timeout := this.settingsManager.timeout
+        this.settings.debug := this.settingsManager.debug
+        this.settings.beep := this.settingsManager.beep
+        this.settings.language := this.settingsManager.language
+        this.settings.windowWidth := this.settingsManager.windowWidth
+        this.settings.windowHeight := this.settingsManager.windowHeight
+    }
 
-                ; Validate window size (minimum 1000x600, maximum screen size)
-                if (this.settings.windowWidth < 1000)
-                    this.settings.windowWidth := 1000
-                if (this.settings.windowHeight < 600)
-                    this.settings.windowHeight := 600
-                if (this.settings.windowWidth > A_ScreenWidth)
-                    this.settings.windowWidth := A_ScreenWidth
-                if (this.settings.windowHeight > A_ScreenHeight)
-                    this.settings.windowHeight := A_ScreenHeight
-            }
-        } catch as e {
-            ; Use defaults if loading fails
-        }
+    /**
+     * Syncs settings from the local settings object to the settings manager
+     * Called before saving to ensure manager has latest values
+     */
+    syncSettingsToManager() {
+        this.settingsManager.answer := this.settings.answer
+        this.settingsManager.copymsg := this.settings.copymsg
+        this.settingsManager.timeout := this.settings.timeout
+        this.settingsManager.debug := this.settings.debug
+        this.settingsManager.beep := this.settings.beep
+        this.settingsManager.language := this.settings.language
+        this.settingsManager.windowWidth := this.settings.windowWidth
+        this.settingsManager.windowHeight := this.settings.windowHeight
     }
 
     saveSettings() {
-        ; Save settings to INI file
-        try {
-            IniWrite(this.settings.answer, this.iniFile, "Checker", "answer")
-            IniWrite(this.settings.copymsg, this.iniFile, "Checker", "copymsg")
-            IniWrite(this.settings.timeout, this.iniFile, "Checker", "timeout")
-            IniWrite(this.settings.debug, this.iniFile, "Checker", "debug")
-            IniWrite(this.settings.beep, this.iniFile, "Checker", "beep")
-            IniWrite(this.settings.windowWidth, this.iniFile, "Checker", "windowWidth")
-            IniWrite(this.settings.windowHeight, this.iniFile, "Checker", "windowHeight")
-        } catch as e {
-            MsgBox("Failed to save settings: " . e.message, "Error", "OK Icon!")
-        }
+        ; Sync local settings to manager and save
+        this.syncSettingsToManager()
+        this.settingsManager.save()
     }
 
     showPreferences() {
@@ -306,10 +471,9 @@ class CheckerApp {
         copymsgCb := prefGui.AddCheckbox("x15 y45 w300 Checked" . this.settings.copymsg,
             Translation.get("clipboard_desc"))
 
-        ; Timeout field (inline)
-        prefGui.AddText("x15 y78", Translation.get("timeout"))
-        timeoutEdit := prefGui.AddEdit("x160 y75 w30", this.settings.timeout)
-        prefGui.AddText("x195 y78", Translation.get("timeout_desc"))
+        ; Timeout field (input first, then label)
+        timeoutEdit := prefGui.AddEdit("x15 y75 w30", this.settings.timeout)
+        prefGui.AddText("x50 y78", Translation.get("timeout_label"))
 
         ; Debug checkbox
         debugCb := prefGui.AddCheckbox("x15 y105 w300 Checked" . this.settings.debug,
@@ -319,27 +483,55 @@ class CheckerApp {
         beepCb := prefGui.AddCheckbox("x15 y135 w300 Checked" . this.settings.beep . " +Disabled",
             Translation.get("audio_feedback_desc"))
 
+        ; Language dropdown
+        prefGui.AddText("x15 y168", Translation.get("language_label"))
+        langDdl := prefGui.AddDropDownList("x80 y165 w80")
+
+        ; Populate language dropdown
+        availableLangs := Translation.getAvailableLanguages()
+        langOptions := ["auto"]  ; First option is auto-detect
+        for lang in availableLangs {
+            langOptions.Push(lang)
+        }
+        langDdl.Add(langOptions)
+
+        ; Select current language in dropdown
+        if (this.settings.language == "") {
+            langDdl.Choose(1)  ; "auto"
+        } else {
+            ; Find index of current language
+            for i, lang in langOptions {
+                if (lang == this.settings.language) {
+                    langDdl.Choose(i)
+                    break
+                }
+            }
+        }
 
         ; Buttons
-        okBtn := prefGui.AddButton("x85 y170 w75 h25", Translation.get("ok"))
-        cancelBtn := prefGui.AddButton("x170 y170 w75 h25", Translation.get("cancel"))
+        okBtn := prefGui.AddButton("x85 y200 w75 h25", Translation.get("ok"))
+        cancelBtn := prefGui.AddButton("x170 y200 w75 h25", Translation.get("cancel"))
 
         ; Button events
-        okBtn.OnEvent("Click", (*) => this.savePreferences(answerCb, debugCb, beepCb, copymsgCb, timeoutEdit, prefGui))
+        okBtn.OnEvent("Click", (*) => this.savePreferences(answerCb, debugCb, beepCb, copymsgCb, timeoutEdit, langDdl, prefGui))
         cancelBtn.OnEvent("Click", (*) => prefGui.Destroy())
         prefGui.OnEvent("Escape", (*) => prefGui.Destroy())
 
         ; Show dialog
-        prefGui.Show("w330 h210")
+        prefGui.Show("w330 h240")
     }
 
-    savePreferences(answerCb, debugCb, beepCb, copymsgCb, timeoutEdit, prefGui) {
+    savePreferences(answerCb, debugCb, beepCb, copymsgCb, timeoutEdit, langDdl, prefGui) {
         ; Save settings from dialog controls
         this.settings.answer := answerCb.Value
         this.settings.debug := debugCb.Value
         this.settings.beep := beepCb.Value
         this.settings.copymsg := copymsgCb.Value
         this.settings.timeout := timeoutEdit.Text
+
+        ; Save language (empty string for "auto")
+        selectedLang := langDdl.Text
+        this.settings.language := (selectedLang == "auto") ? "" : selectedLang
 
         this.saveSettings()
         prefGui.Destroy()
@@ -367,13 +559,7 @@ class CheckerApp {
         aboutText .= "`n" . Translation.get("target_url") . "`n"
         aboutText .= "───────────────────────────────────────`n"
         if (this.url != "") {
-            ; Wrap long URLs for better display
-            if (StrLen(this.url) > 50) {
-                aboutText .= SubStr(this.url, 1, 47) . "...`n"
-                aboutText .= "(" . StrLen(this.url) . " " . Translation.get("characters_total") . ")"
-            } else {
-                aboutText .= this.url
-            }
+            aboutText .= this.url
         } else {
             aboutText .= Translation.get("no_url_provided")
         }
@@ -405,42 +591,17 @@ class CheckerApp {
 
         ; Navigate to URL if provided
         if (this.url != "") {
-            ; Add language parameters for different services
-            finalUrl := this.url
-            if (StrLower(this.service) == "geochecker") {
-                if (InStr(this.url, "?")) {
-                    finalUrl .= "&language=English"
-                } else {
-                    finalUrl .= "?language=English"
-                }
-            } else if (StrLower(this.service) == "geocheck") {
-                if (InStr(this.url, "?")) {
-                    finalUrl .= "&lang=en_US"
-                } else {
-                    finalUrl .= "?lang=en_US"
-                }
-            } else if (StrLower(this.service) == "gcm") {
-                ; Fix Gcm URL: change gc.gcm.cz/validator/ to validator.gcm.cz/
-                finalUrl := StrReplace(finalUrl, "gc.gcm.cz/validator/", "validator.gcm.cz/")
-            } else if (StrLower(this.service) == "hermansky") {
-                ; Fix Hermansky URL: change speedygt.ic.cz/gps to geo.hermansky.net
-                finalUrl := StrReplace(finalUrl, "speedygt.ic.cz/gps", "geo.hermansky.net")
-            } else if (StrLower(this.service) == "geocachefi") {
-                ; Add English language parameter for geocache.fi
-                if (InStr(finalUrl, "?")) {
-                    finalUrl .= "&z=1"
-                } else {
-                    finalUrl .= "?z=1"
-                }
-            }
+            ; Apply service-specific URL transformations
+            finalUrl := this.transformServiceUrl(this.url, this.service)
 
             this.updateStatus(Translation.get("loading_url"))
             this.webView.Navigate(finalUrl)
 
             ; Set a timeout to detect loading issues
             ; Use timeout setting from INI (convert seconds to milliseconds)
-            timeoutMs := (this.settings.timeout && IsNumber(this.settings.timeout)) ? this.settings.timeout * 1000 :
-                10000
+            timeoutMs := (this.settings.timeout && IsNumber(this.settings.timeout))
+                ? this.settings.timeout * 1000
+                : CheckerConstants.DEFAULT_TIMEOUT_MS
             SetTimer(() => this.checkLoadingTimeout(), timeoutMs)
         } else {
             this.updateStatus(Translation.get("ready") . " - " . Translation.get("no_url_provided"))
@@ -457,22 +618,22 @@ class CheckerApp {
     onNavigationCompleted(sender, args) {
         try {
             if (args.IsSuccess) {
-                this.updateStatus("Page loaded successfully")
+                this.updateStatus(Translation.get("page_loaded"))
             } else {
-                this.updateStatus("Navigation failed - WebNavigationKind: " . args.WebErrorStatus)
+                this.updateStatus(Translation.get("navigation_failed") . " " . args.WebErrorStatus)
             }
         } catch as e {
-            this.updateStatus("Navigation event error: " . e.message)
+            this.updateStatus(Translation.get("error") . ": " . e.message)
         }
     }
 
     onDOMContentLoaded(sender, args) {
         try {
-            this.updateStatus("DOM loaded - Filling coordinates...")
+            this.updateStatus(Translation.get("dom_loaded"))
             ; Small delay to ensure DOM is fully ready
-            SetTimer(() => this.fillCoordinateField(), 500)
+            SetTimer(() => this.fillCoordinateField(), CheckerConstants.DOM_READY_DELAY_MS)
         } catch as e {
-            this.updateStatus("DOM event error: " . e.message)
+            this.updateStatus(Translation.get("error") . ": " . e.message)
         }
     }
 
@@ -501,6 +662,35 @@ class CheckerApp {
             this.lon != "" && this.londeg != "" && this.lonmin != "" && this.londec != "")
     }
 
+    /**
+     * Transforms URL based on service-specific requirements
+     * Adds language parameters and fixes legacy URLs
+     * @param {String} url The original URL
+     * @param {String} service The service name
+     * @returns {String} Transformed URL with service-specific modifications
+     */
+    transformServiceUrl(url, service) {
+        finalUrl := url
+        switch StrLower(service) {
+            case "geochecker":
+                ; Add English language parameter for geochecker.com
+                finalUrl .= InStr(url, "?") ? "&language=English" : "?language=English"
+            case "geocheck":
+                ; Add English language parameter for geocheck.org
+                finalUrl .= InStr(url, "?") ? "&lang=en_US" : "?lang=en_US"
+            case "gcm":
+                ; Fix Gcm URL: change gc.gcm.cz/validator/ to validator.gcm.cz/
+                finalUrl := StrReplace(finalUrl, "gc.gcm.cz/validator/", "validator.gcm.cz/")
+            case "hermansky":
+                ; Fix Hermansky URL: change speedygt.ic.cz/gps to geo.hermansky.net
+                finalUrl := StrReplace(finalUrl, "speedygt.ic.cz/gps", "geo.hermansky.net")
+            case "geocachefi":
+                ; Add English language parameter for geocache.fi
+                finalUrl .= InStr(finalUrl, "?") ? "&z=1" : "?z=1"
+        }
+        return finalUrl
+    }
+
     executeJavaScript(jsCode) {
         this.webView.ExecuteScriptAsync(jsCode)
         .then((result) => this.onCoordinatesFilled(result))
@@ -520,19 +710,19 @@ class CheckerApp {
 
                 ; Special message for geocheck about captcha
                 if (StrLower(this.service) == "geocheck") {
-                    this.updateStatusLeft("Coordinates filled successfully - Please solve captcha and submit form")
+                    this.updateStatusLeft(Translation.get("geocheck_captcha"))
                 } else {
-                    this.updateStatusLeft("Coordinates filled successfully - Submit form and wait...")
+                    this.updateStatusLeft(Translation.get("coordinates_filled"))
                 }
 
                 ; Start checking for results after coordinates are filled (if enabled)
                 if (this.settings.answer) {
                     this.startResultChecking()
                 } else {
-                    this.updateStatusRight("Result checking disabled")
+                    this.updateStatusRight(Translation.get("result_checking_disabled"))
                 }
             } else {
-                this.updateStatus("Failed to fill coordinates: " . resultStr)
+                this.updateStatus(Translation.get("error") . ": " . resultStr)
             }
         } catch as e {
             this.updateStatus("Result processing error: " . e.message)
@@ -544,8 +734,8 @@ class CheckerApp {
     }
 
     checkLoadingTimeout() {
-        if (this.statusTextLeft && this.statusTextLeft.Text == "Loading URL...") {
-            this.updateStatus("Loading timeout - Check URL or network connection")
+        if (this.statusTextLeft && this.statusTextLeft.Text == Translation.get("loading_url")) {
+            this.updateStatus(Translation.get("loading_timeout"))
         }
     }
 
@@ -558,46 +748,20 @@ class CheckerApp {
     refreshAndFill() {
         try {
             if (this.webView && this.url != "") {
-                this.updateStatus("Refreshing page...")
+                this.updateStatus(Translation.get("refreshing"))
 
                 ; Reset coordinate filling flag to allow refilling after refresh
                 this.coordinatesFilled := false
 
-                ; Apply service-specific URL transformations (same as in onWebViewCreated)
-                finalUrl := this.url
-                if (StrLower(this.service) == "geochecker") {
-                    if (InStr(this.url, "?")) {
-                        finalUrl .= "&language=English"
-                    } else {
-                        finalUrl .= "?language=English"
-                    }
-                } else if (StrLower(this.service) == "geocheck") {
-                    if (InStr(this.url, "?")) {
-                        finalUrl .= "&lang=en_US"
-                    } else {
-                        finalUrl .= "?lang=en_US"
-                    }
-                } else if (StrLower(this.service) == "gcm") {
-                    ; Fix Gcm URL: change gc.gcm.cz/validator/ to validator.gcm.cz/
-                    finalUrl := StrReplace(finalUrl, "gc.gcm.cz/validator/", "validator.gcm.cz/")
-                } else if (StrLower(this.service) == "hermansky") {
-                    ; Fix Hermansky URL: change speedygt.ic.cz/gps to geo.hermansky.net
-                    finalUrl := StrReplace(finalUrl, "speedygt.ic.cz/gps", "geo.hermansky.net")
-                } else if (StrLower(this.service) == "geocachefi") {
-                    ; Add English language parameter for geocache.fi
-                    if (InStr(finalUrl, "?")) {
-                        finalUrl .= "&z=1"
-                    } else {
-                        finalUrl .= "?z=1"
-                    }
-                }
+                ; Apply service-specific URL transformations
+                finalUrl := this.transformServiceUrl(this.url, this.service)
 
                 this.webView.Navigate(finalUrl)
             } else {
-                this.updateStatus("No URL to refresh")
+                this.updateStatus(Translation.get("no_url_refresh"))
             }
         } catch as e {
-            this.updateStatus("Refresh error: " . e.message)
+            this.updateStatus(Translation.get("error") . ": " . e.message)
         }
     }
 
@@ -608,7 +772,7 @@ class CheckerApp {
     startResultChecking() {
         if (!this.isCheckingResults) {
             this.isCheckingResults := true
-            this.checkTimer := SetTimer(() => this.checkForResults(), 200)
+            this.checkTimer := SetTimer(() => this.checkForResults(), CheckerConstants.RESULT_CHECK_INTERVAL_MS)
         }
     }
 
@@ -616,7 +780,7 @@ class CheckerApp {
         ; Toggle status between "Checking..." and "Checking..." with dots for blinking effect
         static dots := ""
         dots := (dots == "...") ? "" : dots . "."
-        this.updateStatusRight("Checking" . dots)
+        this.updateStatusRight(Translation.get("checking") . dots)
 
         ; Build service-specific result checking JavaScript
         jsCode := this.buildResultCheckingJS()
@@ -657,7 +821,7 @@ class CheckerApp {
             if (InStr(resultStr, "RESULT:SUCCESS")) {
                 this.stopResultChecking()
                 this.updateStatusRightWithColor(Translation.get("correct"), "0x008000") ; Dark green
-                this.finalExitCode := 1 ; Set exit code for success
+                this.finalExitCode := CheckerConstants.EXIT_CORRECT
 
                 ; Copy owner's message to clipboard if enabled and service supports it
                 if (this.settings.copymsg) {
@@ -667,7 +831,7 @@ class CheckerApp {
             } else if (InStr(resultStr, "RESULT:WRONG")) {
                 this.stopResultChecking()
                 this.updateStatusRightWithColor(Translation.get("wrong"), "0xFF0000") ; Red
-                this.finalExitCode := 2 ; Set exit code for incorrect
+                this.finalExitCode := CheckerConstants.EXIT_WRONG
             }
             ; If RESULT:NONE, continue checking
         } catch as e {
@@ -943,23 +1107,24 @@ class CheckerApp {
             this.settings.windowWidth := Integer(clientWidth)
             this.settings.windowHeight := Integer(clientHeight)
 
-            ; Resize WebView container (leave 20px at bottom for status bar)
+            ; Resize WebView container (leave space at bottom for status bar)
             if (this.webViewContainer) {
-                this.webViewContainer.Move(0, 0, clientWidth, clientHeight - 20)
+                this.webViewContainer.Move(0, 0, clientWidth, clientHeight - CheckerConstants.STATUS_BAR_HEIGHT)
             }
 
             ; Resize status bar to full width at bottom
             if (this.statusBar) {
-                this.statusBar.Move(0, clientHeight - 20, clientWidth, 20)
+                this.statusBar.Move(0, clientHeight - CheckerConstants.STATUS_BAR_HEIGHT, clientWidth, CheckerConstants.STATUS_BAR_HEIGHT)
             }
 
             ; Resize status text controls
+            statusTextY := clientHeight - CheckerConstants.STATUS_BAR_HEIGHT + 2
             if (this.statusTextLeft) {
-                this.statusTextLeft.Move(10, clientHeight - 18, clientWidth - 110, 16)
+                this.statusTextLeft.Move(10, statusTextY, clientWidth - 110, 16)
             }
 
             if (this.statusTextRight) {
-                this.statusTextRight.Move(clientWidth - 100, clientHeight - 18, 90, 16)
+                this.statusTextRight.Move(clientWidth - 100, statusTextY, 90, 16)
             }
 
             ; Resize WebView2 if it exists
@@ -967,7 +1132,7 @@ class CheckerApp {
                 try {
                     ; Use the client size we already calculated
                     w := clientWidth
-                    h := clientHeight - 20
+                    h := clientHeight - CheckerConstants.STATUS_BAR_HEIGHT
 
                     ; Create a RECT structure for WebView2 bounds
                     rect := Buffer(16, 0)

@@ -3,7 +3,7 @@
  * for filling coordinates and checking results across different geocaching coordinate
  * verification websites.
  * @author mikrom, ClaudeAI
- * @version 4.0.1
+ * @version 4.2.0
  */
 class BaseService {
     /**
@@ -192,5 +192,42 @@ class BaseService {
     copyOwnerMessage() {
         ; Override in child classes that support clipboard
         return false
+    }
+
+    /**
+     * Helper method for copying text content from a CSS selector to clipboard
+     * Reduces code duplication in services that support clipboard functionality
+     * @param {String} selector CSS selector to find the element containing the message
+     * @param {String} serviceName Optional service name for status messages (default: this.serviceName)
+     * @returns {Boolean} True if clipboard operation was initiated
+     */
+    copyTextFromSelector(selector, serviceName := "") {
+        if (serviceName == "")
+            serviceName := this.serviceName
+
+        this.app.updateStatus("Executing clipboard JavaScript for " . serviceName . "...")
+
+        jsCode := "try { " .
+                  "var element = document.querySelector('" . selector . "'); " .
+                  "if (element) { " .
+                  "var messageText = element.textContent || element.innerText; " .
+                  "if (messageText) { " .
+                  "messageText = messageText.replace(/\\s+/g, ' ').trim(); " .
+                  "'CLIPBOARD:' + messageText; " .
+                  "} else { " .
+                  "'CLIPBOARD:NO_TEXT'; " .
+                  "} " .
+                  "} else { " .
+                  "'CLIPBOARD:NO_ELEMENT'; " .
+                  "} " .
+                  "} catch (e) { " .
+                  "'ERROR: ' + e.message; " .
+                  "}"
+
+        this.app.webView.ExecuteScriptAsync(jsCode)
+            .then((result) => this.app.onClipboardResult(result))
+            .catch((error) => this.app.onClipboardError(error))
+
+        return true
     }
 }
