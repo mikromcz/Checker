@@ -1,7 +1,7 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Polish translation for Checker
+# Copyright (C) 2025 mikrom
+# This file is distributed under the same license as the Checker package.
+# mikrom <mikrom@mikrom.cz>, 2025.
 #
 msgid ""
 msgstr ""
@@ -14,12 +14,13 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 1.8.2\n"
-"Language: cs\n"
+"Language: pl\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #. Designer..Label1..Caption
 #: Checker.gfm:24
 msgid "More than one service found. Select which you want to use."
-msgstr "Nalezeno více služeb. Vyberte kterou chcete použít."
+msgstr "Znaleziono więcej niż jedną usługę. Wybierz, której chcesz użyć."
 
 #. Designer..ButtonOK..Caption
 #: Checker.gfm:39
@@ -29,100 +30,100 @@ msgstr "OK"
 #. Designer..ButtonCancel..Caption
 #: Checker.gfm:93
 msgid "Cancel"
-msgstr "Zrušit"
+msgstr "Anuluj"
 
 #: Checker.ggc.pas:23 Checker.ggp.pas:23
 msgid "Open and fill checker page (geocheck.org, geochecker.com, evince.locusprime.net, etc.)"
-msgstr "Pokud je v listingu odkaz na ověření, otevře web a předvyplní souřadnice"
+msgstr "Otwórz i wypełnij stronę weryfikacji (geocheck.org, geochecker.com, evince.locusprime.net, itp.)"
 
 #: Checker.ggi.pas:41
 msgid "Changelog"
-msgstr "Seznam změn"
+msgstr "Lista zmian"
 
 #. "Uspesne overeno"
 #: Checker.lib.pas:177
 msgid "OK: Succesfuly verified!"
-msgstr "OK: Úspěšně ověřeno!"
+msgstr "OK: Pomyślnie zweryfikowano!"
 
 #. "Kontrolovane souradnice jsou chybne"
 #: Checker.lib.pas:178
 msgid "Error: Coordinates do not match!"
-msgstr "Chyba: Souřadnice jsou chybné!"
+msgstr "Błąd: Współrzędne się nie zgadzają!"
 
 #. "Keska neexistuje"
 #: Checker.lib.pas:180
 msgid "Error: Geocache not found!"
-msgstr "Chyba: Keš neexistuje!"
+msgstr "Błąd: Skrzynka nie została znaleziona!"
 
 #. "BM nemuze overit souradnice PMO kese"
 #: Checker.lib.pas:182
 msgid "Error: Basic member cannot verify PMO geocache!"
-msgstr "Chyba: Běžní hráči nemohou kontrolovat Pémiové keše!"
+msgstr "Błąd: Zwykli członkowie nie mogą weryfikować skrzynek PMO!"
 
 #. "Nelze overit nepublikovanou nebo archivovanou kesku"
 #: Checker.lib.pas:183
 msgid "Error: Cannot verify an unpublished or archived geocache!"
-msgstr "Chyba: Nelze zkontrolovat nepublikované, nebo archivované keše!"
+msgstr "Błąd: Nie można zweryfikować niepublikowanej lub zarchiwizowanej skrzynki!"
 
 #. "Prekrocen limit poctu kontrol (10/10 minut)"
 #: Checker.lib.pas:184
 msgid "Error: Limit exceeded, only 10 in 10 minutes allowed!"
-msgstr "Chyba: Překročen limit počtu ověření! Povoleno 10 během 10 minut."
+msgstr "Błąd: Przekroczono limit, dozwolone tylko 10 weryfikacji w 10 minut!"
 
-#. "Nďż˝vratovďż˝ hodnota"
+#. "Navratova hodnota"
 #: Checker.lib.pas:185
 msgid "Result: "
-msgstr "Výsledek: "
+msgstr "Wynik: "
 
 #: Checker.lib.pas:537
 msgid "Dead service."
-msgstr "Mrtvá služba."
+msgstr "Martwa usługa."
 
 #: Checker.lib.pas:543
 msgid "Wrong parameters!"
-msgstr "Neplatné parametry!"
+msgstr "Nieprawidłowe parametry!"
 
 #: Checker.lib.pas:579
 msgid "Error: You didn't select anything!"
-msgstr "Chyba: Nebylo nic vybráno!"
+msgstr "Błąd: Nic nie zostało wybrane!"
 
 #: Checker.lib.pas:628
 msgid "Wrong coordinates. Maybe they are zero"
-msgstr "Špatné souřadnice. Možná jsou nulové."
+msgstr "Nieprawidłowe współrzędne. Być może są zerowe."
 
 #: Checker.lib.pas:640
 msgid "Error: No coordinate checker URL found!"
-msgstr "Chyba: Nenalezen odkaz na žádnou ověřovací službu!"
+msgstr "Błąd: Nie znaleziono adresu URL usługi weryfikacji!"
 
 #: Checker.lib.pas:694
 msgid "Error: Unexpected return value: "
-msgstr "Chyba: Neočekávaná hodnota: "
+msgstr "Błąd: Nieoczekiwana wartość zwrotna: "
 
 #~ msgid ""
 #~ "Error: This should not happen!\n"
 #~ "No or wrong exit code from Checker.ahk"
 #~ msgstr ""
-#~ "Chyba: Toto se nemělo stát!\n"
-#~ "Žádný, nebo špatný exit kód z Checker.ahk"
+#~ "Błąd: To nie powinno się zdarzyć!\n"
+#~ "Brak lub nieprawidłowy kod wyjścia z Checker.ahk"
 
 #~ msgid "OK, neither correct or incorrect"
-#~ msgstr "OK, ani dobře ani špatně."
+#~ msgstr "OK, ani poprawne ani niepoprawne."
 
 #~ msgid "Correct solution! :)"
-#~ msgstr "Správné řešení! :)"
+#~ msgstr "Poprawne rozwiązanie! :)"
 
 #~ msgid "Incorrect solution! :("
-#~ msgstr "Špatné řešení! :("
+#~ msgstr "Niepoprawne rozwiązanie! :("
 
 #~ msgid "Error"
-#~ msgstr "Chyba"
+#~ msgstr "Błąd"
 
 #~ msgid ""
 #~ "No coordinate checker site found, try look at finar.cz?\n"
 #~ "If this final location is in their database, it will show cache name."
 #~ msgstr ""
-#~ "Nebyla nalezena žádná ověřovací služba. Chcete zkusit finar.cz?\n"
-#~ "Pokud jsou tyto finální souřadnice v jejich databázi, zobrazí se název keše."
+#~ "Nie znaleziono usługi weryfikacji. Sprawdzić na finar.cz?\n"
+#~ "Jeśli te końcowe współrzędne są w ich bazie danych, zostanie wyświetlona nazwa skrzynki."
 
 #~ msgid "Nothing found"
-#~ msgstr "Nic nenalezeno"
+#~ msgstr "Nic nie znaleziono"

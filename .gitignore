@@ -22,7 +22,7 @@ Desktop.ini
 .claude/
 
 # Checker specific files
-locale/CS/LC_MESSAGES/default.po~
+default.po~
 locale/tools/
 backup/
 dev/

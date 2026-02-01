@@ -1,25 +1,26 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# German translation for Checker
+# Copyright (C) 2025 mikrom
+# This file is distributed under the same license as the Checker package.
+# mikrom <mikrom@mikrom.cz>, 2025.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: Checker\n"
 "POT-Creation-Date: 2025-08-20 19:20\n"
-"PO-Revision-Date: 2026-02-01 17:56+0100\n"
+"PO-Revision-Date: 2026-02-01 17:55+0100\n"
 "Last-Translator: mikrom <mikrom@mikrom.cz>\n"
 "Language-Team: mikrom <mikrom@mikrom.cz>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 1.8.2\n"
-"Language: cs\n"
+"Language: de\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #. Designer..Label1..Caption
 #: Checker.gfm:24
 msgid "More than one service found. Select which you want to use."
-msgstr "Nalezeno více služeb. Vyberte kterou chcete použít."
+msgstr "Mehrere Dienste gefunden. Wählen Sie aus, welchen Sie verwenden möchten."
 
 #. Designer..ButtonOK..Caption
 #: Checker.gfm:39
@@ -29,100 +30,100 @@ msgstr "OK"
 #. Designer..ButtonCancel..Caption
 #: Checker.gfm:93
 msgid "Cancel"
-msgstr "Zrušit"
+msgstr "Abbrechen"
 
 #: Checker.ggc.pas:23 Checker.ggp.pas:23
 msgid "Open and fill checker page (geocheck.org, geochecker.com, evince.locusprime.net, etc.)"
-msgstr "Pokud je v listingu odkaz na ověření, otevře web a předvyplní souřadnice"
+msgstr "Checker-Seite öffnen und ausfüllen (geocheck.org, geochecker.com, evince.locusprime.net, usw.)"
 
 #: Checker.ggi.pas:41
 msgid "Changelog"
-msgstr "Seznam změn"
+msgstr "Änderungsprotokoll"
 
 #. "Uspesne overeno"
 #: Checker.lib.pas:177
 msgid "OK: Succesfuly verified!"
-msgstr "OK: Úspěšně ověřeno!"
+msgstr "OK: Erfolgreich überprüft!"
 
 #. "Kontrolovane souradnice jsou chybne"
 #: Checker.lib.pas:178
 msgid "Error: Coordinates do not match!"
-msgstr "Chyba: Souřadnice jsou chybné!"
+msgstr "Fehler: Koordinaten stimmen nicht überein!"
 
 #. "Keska neexistuje"
 #: Checker.lib.pas:180
 msgid "Error: Geocache not found!"
-msgstr "Chyba: Keš neexistuje!"
+msgstr "Fehler: Geocache nicht gefunden!"
 
 #. "BM nemuze overit souradnice PMO kese"
 #: Checker.lib.pas:182
 msgid "Error: Basic member cannot verify PMO geocache!"
-msgstr "Chyba: Běžní hráči nemohou kontrolovat Pémiové keše!"
+msgstr "Fehler: Basic-Mitglieder können PMO-Geocaches nicht überprüfen!"
 
 #. "Nelze overit nepublikovanou nebo archivovanou kesku"
 #: Checker.lib.pas:183
 msgid "Error: Cannot verify an unpublished or archived geocache!"
-msgstr "Chyba: Nelze zkontrolovat nepublikované, nebo archivované keše!"
+msgstr "Fehler: Unveröffentlichte oder archivierte Geocaches können nicht überprüft werden!"
 
 #. "Prekrocen limit poctu kontrol (10/10 minut)"
 #: Checker.lib.pas:184
 msgid "Error: Limit exceeded, only 10 in 10 minutes allowed!"
-msgstr "Chyba: Překročen limit počtu ověření! Povoleno 10 během 10 minut."
+msgstr "Fehler: Limit überschritten, nur 10 Überprüfungen in 10 Minuten erlaubt!"
 
-#. "Nďż˝vratovďż˝ hodnota"
+#. "Navratova hodnota"
 #: Checker.lib.pas:185
 msgid "Result: "
-msgstr "Výsledek: "
+msgstr "Ergebnis: "
 
 #: Checker.lib.pas:537
 msgid "Dead service."
-msgstr "Mrtvá služba."
+msgstr "Dienst nicht verfügbar."
 
 #: Checker.lib.pas:543
 msgid "Wrong parameters!"
-msgstr "Neplatné parametry!"
+msgstr "Falsche Parameter!"
 
 #: Checker.lib.pas:579
 msgid "Error: You didn't select anything!"
-msgstr "Chyba: Nebylo nic vybráno!"
+msgstr "Fehler: Sie haben nichts ausgewählt!"
 
 #: Checker.lib.pas:628
 msgid "Wrong coordinates. Maybe they are zero"
-msgstr "Špatné souřadnice. Možná jsou nulové."
+msgstr "Falsche Koordinaten. Vielleicht sind sie null."
 
 #: Checker.lib.pas:640
 msgid "Error: No coordinate checker URL found!"
-msgstr "Chyba: Nenalezen odkaz na žádnou ověřovací službu!"
+msgstr "Fehler: Keine Koordinaten-Checker-URL gefunden!"
 
 #: Checker.lib.pas:694
 msgid "Error: Unexpected return value: "
-msgstr "Chyba: Neočekávaná hodnota: "
+msgstr "Fehler: Unerwarteter Rückgabewert: "
 
 #~ msgid ""
 #~ "Error: This should not happen!\n"
 #~ "No or wrong exit code from Checker.ahk"
 #~ msgstr ""
-#~ "Chyba: Toto se nemělo stát!\n"
-#~ "Žádný, nebo špatný exit kód z Checker.ahk"
+#~ "Fehler: Das sollte nicht passieren!\n"
+#~ "Kein oder falscher Exit-Code von Checker.ahk"
 
 #~ msgid "OK, neither correct or incorrect"
-#~ msgstr "OK, ani dobře ani špatně."
+#~ msgstr "OK, weder richtig noch falsch."
 
 #~ msgid "Correct solution! :)"
-#~ msgstr "Správné řešení! :)"
+#~ msgstr "Richtige Lösung! :)"
 
 #~ msgid "Incorrect solution! :("
-#~ msgstr "Špatné řešení! :("
+#~ msgstr "Falsche Lösung! :("
 
 #~ msgid "Error"
-#~ msgstr "Chyba"
+#~ msgstr "Fehler"
 
 #~ msgid ""
 #~ "No coordinate checker site found, try look at finar.cz?\n"
 #~ "If this final location is in their database, it will show cache name."
 #~ msgstr ""
-#~ "Nebyla nalezena žádná ověřovací služba. Chcete zkusit finar.cz?\n"
-#~ "Pokud jsou tyto finální souřadnice v jejich databázi, zobrazí se název keše."
+#~ "Keine Koordinaten-Checker-Seite gefunden. Bei finar.cz nachschauen?\n"
+#~ "Wenn diese Finalkoordinaten in ihrer Datenbank sind, wird der Cache-Name angezeigt."
 
 #~ msgid "Nothing found"
-#~ msgstr "Nic nenalezeno"
+#~ msgstr "Nichts gefunden"
