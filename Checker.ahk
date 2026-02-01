@@ -538,33 +538,54 @@ class CheckerApp {
     }
 
     showAbout() {
-        aboutText := Translation.get("app_title") . "`n"
-        aboutText .= "Version " . this.version . " (AutoHotkey v2 + WebView2)" . "`n`n"
+        ; Create compact About dialog (y+2 for tight spacing, y+10 for section breaks)
+        aboutGui := Gui("+Owner" . this.gui.Hwnd . " -MinimizeBox -MaximizeBox", Translation.get("about_title"))
+        aboutGui.MarginX := 10
+        aboutGui.MarginY := 10
+        aboutGui.SetFont("s9", "Segoe UI")
 
-        ; Format parameters section with better alignment and readability
-        aboutText .= Translation.get("current_parameters") . "`n"
-        aboutText .= "═══════════════════════════════════════`n"
-        aboutText .= Translation.get("service") . ":    " . (this.service != "" ? this.service : Translation.get("none")) . "`n"
+        ; Title
+        aboutGui.SetFont("s10 bold")
+        aboutGui.AddText(, Translation.get("app_title"))
+        aboutGui.SetFont("s9 norm")
+        aboutGui.AddText("y+2", "Version " . this.version . " (AHK2 + WebView2)")
 
-        ; Format coordinates nicely if they exist
+        ; Service and coordinates
+        aboutGui.AddText("y+10", Translation.get("service") . ": " . (this.service != "" ? this.service : Translation.get("none")))
         if (this.hasValidCoordinates()) {
-            aboutText .= Translation.get("latitude") . ":   " . this.lat . " " . this.latdeg . Chr(176) . " " . this.latmin . "." . this.latdec .
-            "'" . "`n"
-            aboutText .= Translation.get("longitude") . ":  " . this.lon . " " . Format("{:03d}", Integer(this.londeg)) . Chr(176) . " " .
-            this.lonmin . "." . this.londec . "'" . "`n"
-        } else {
-            aboutText .= Translation.get("coordinates") . ": " . Translation.get("not_provided") . "`n"
+            coords := this.lat . " " . this.latdeg . Chr(176) . " " . this.latmin . "." . this.latdec . "'  "
+            coords .= this.lon . " " . Format("{:03d}", Integer(this.londeg)) . Chr(176) . " " . this.lonmin . "." . this.londec . "'"
+            aboutGui.AddText("y+2", Translation.get("coordinates") . ": " . coords)
         }
 
-        aboutText .= "`n" . Translation.get("target_url") . "`n"
-        aboutText .= "───────────────────────────────────────`n"
+        ; URL with clickable link on same line as label
         if (this.url != "") {
-            aboutText .= this.url
+            aboutGui.AddText("y+2 Section", Translation.get("target_url"))
+            aboutGui.AddLink("x+5 ys", '<a href="' . this.url . '">' . this.url . '</a>')
         } else {
-            aboutText .= Translation.get("no_url_provided")
+            aboutGui.AddText("y+2", Translation.get("target_url") . " " . Translation.get("no_url_provided"))
         }
 
-        MsgBox(aboutText, Translation.get("about_title"), "OK")
+        ; Buttons
+        hasUrl := this.url != ""
+        btnCopyUrl := aboutGui.AddButton("xm y+10 w80", Translation.get("copy_url"))
+        btnCopyUrl.Enabled := hasUrl
+        btnCopyUrl.OnEvent("Click", (*) => this.aboutCopyUrl())
+        btnClose := aboutGui.AddButton("x+5 w80 Default", Translation.get("close"))
+        btnClose.OnEvent("Click", (*) => aboutGui.Destroy())
+
+        aboutGui.OnEvent("Escape", (*) => aboutGui.Destroy())
+        aboutGui.Show()
+    }
+
+    /**
+     * Copies the URL to clipboard from About dialog
+     */
+    aboutCopyUrl() {
+        if (this.url != "") {
+            A_Clipboard := this.url
+            this.updateStatus(Translation.get("url_copied"))
+        }
     }
 
     initializeWebView() {
