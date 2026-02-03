@@ -1,3 +1,6 @@
+** 4.2.1 (20260203) **
+  * Oprava geocheck.org (kromě geocheck.org/geo_inputchkcoord.php, teď může být url i geocheck.org/inputchkcoord.php)
+
 ** 4.2.0 (20260201) **
   * Refaktoring: CheckerApp rozdělen na menší třídy (CheckerSettings, CoordinateValidator)
   * Refaktoring: Přidána helper metoda copyTextFromSelector() do BaseService pro zjednodušení clipboard operací

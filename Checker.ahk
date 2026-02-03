@@ -568,7 +568,7 @@ class CheckerApp {
 
         ; Buttons
         hasUrl := this.url != ""
-        btnCopyUrl := aboutGui.AddButton("xm y+10 w80", Translation.get("copy_url"))
+        btnCopyUrl := aboutGui.AddButton("xm y+10 w90", Translation.get("copy_url"))
         btnCopyUrl.Enabled := hasUrl
         btnCopyUrl.OnEvent("Click", (*) => this.aboutCopyUrl())
         btnClose := aboutGui.AddButton("x+5 w80 Default", Translation.get("close"))
