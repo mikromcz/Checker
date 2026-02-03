@@ -4,7 +4,7 @@
     Www: https://www.geoget.cz/doku.php/user:skript:checker
     Forum: https://forum.geocaching.cz/t/checker-klikatko-na-overeni-souradnic/24502
     Author: mikrom, https://www.mikrom.cz
-    Version: 4.1.1
+    Version: 4.2.1
 
     Uses: CheckerForm, Checker.ahk
 
@@ -40,7 +40,7 @@ const
     gctoolboxRegex       = '(?i)(https?:)?\/\/(www\.)?gctoolbox\.de\/index\.php\?goto=tools&showtool=coordinatechecker[^"''<\s]+';
     geocacheFiRegex      = '(?i)(https?:)?\/\/(www\.)?geocache\.fi\/checker\/\?[^"''<\s]+';
     geocachePlannerRegex = '(?i)(https?:)?\/\/(www\.)?geocache-planer\.de\/CAL\/checker\.php[^"''<\s]+';
-    geocheckRegex        = '(?i)(https?:)?\/\/(www\.)?(geocheck\.org|geotjek\.(dk|eu|org))\/geo_inputchkcoord[^"''<\s]+';
+    geocheckRegex        = '(?i)(https?:)?\/\/(www\.)?(geocheck\.org|geotjek\.(dk|eu|org))\/(geo_)?inputchkcoord[^"''<\s]+';
     geocheckerRegex      = '(?i)(https?:)?\/\/(www\.)?geochecker\.com\/index\.php[^"''<\s]+';
     geowiiRegex          = '(?i)(https?:)?\/\/(www\.)?geowii\.miga\.lv\/wii\/[^"''<\s]+';
     gocachingRegex       = '(?i)(https?:)?\/\/(www\.)?gocaching\.de\/cochecker[^"''<\s]+';
